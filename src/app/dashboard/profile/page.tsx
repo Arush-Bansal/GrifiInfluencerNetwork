@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/dashboard/Navbar";
-import { User, Loader2, Save, Camera } from "lucide-react";
+import { User, Loader2, Save, Camera, Link as LinkIcon, MapPin, Check, XCircle } from "lucide-react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const ProfilePage = () => {
@@ -22,43 +22,79 @@ const ProfilePage = () => {
 
   // Profile State
   const [profile, setProfile] = useState({
+    username: "",
     full_name: "",
+    bio: "",
+    location: "",
+    website: "",
     niche: "",
     followers: "",
     platform: "",
     engagementRate: "",
   });
 
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'unavailable'>('idle');
+
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndProfile = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
       
       if (!session?.user) {
         router.push("/auth");
         return;
       }
 
-      // Load profile from metadata if available
-      const metadata = session.user.user_metadata || {};
-      setProfile({
-        full_name: metadata.full_name || "",
-        niche: metadata.niche || "",
-        followers: metadata.followers || "",
-        platform: metadata.platform || "",
-        engagementRate: metadata.engagementRate || "",
-      });
+      setUser(session.user);
       
-      setLoading(false);
+      try {
+        // Try to fetch from 'profiles' table first for most up-to-date data
+        // Explicitly selecting fields to avoid type errors if table schema varies
+        const { data: profileData, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
+
+        const metadata = session.user.user_metadata || {};
+        
+        if (profileData && !error) {
+          setProfile({
+            username: profileData.username || metadata.username || "",
+            full_name: profileData.full_name || metadata.full_name || "",
+            bio: profileData.bio || metadata.bio || "",
+            location: profileData.location || metadata.location || "",
+            website: profileData.website || metadata.website || "",
+            niche: profileData.niche || metadata.niche || "",
+            followers: profileData.followers || metadata.followers || "",
+            platform: profileData.platform || metadata.platform || "",
+            engagementRate: profileData.engagement_rate || metadata.engagementRate || "", // Map db snake_case to state camelCase
+          });
+        } else {
+          // Fallback to metadata
+          setProfile({
+            username: metadata.username || "",
+            full_name: metadata.full_name || "",
+            bio: metadata.bio || "",
+            location: metadata.location || "",
+            website: metadata.website || "",
+            niche: metadata.niche || "",
+            followers: metadata.followers || "",
+            platform: metadata.platform || "",
+            engagementRate: metadata.engagementRate || "",
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching profile:", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    fetchUser();
+    fetchUserAndProfile();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-      } else if (!loading) {
+      if (!session?.user && !loading) {
         router.push("/auth");
       }
     });
@@ -66,30 +102,127 @@ const ProfilePage = () => {
     return () => subscription.unsubscribe();
   }, [router, loading]);
 
+  // Username validation effect
+  useEffect(() => {
+    const checkUsername = async () => {
+      if (!profile.username || profile.username.length < 3) {
+        setUsernameStatus('idle');
+        return;
+      }
+
+      // Don't check if it's the current user's own username (already saved)
+      // We check against metadata OR the initially loaded profile data if possible. 
+      // Simplified: if it matches user metadata username, it's theirs.
+      if (user?.user_metadata?.username === profile.username) {
+         setUsernameStatus('available'); 
+         return;
+      }
+      
+      setUsernameStatus('checking');
+      
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("username", profile.username)
+          .maybeSingle();
+
+        if (error) throw error;
+        
+        if (data) {
+          setUsernameStatus('unavailable');
+        } else {
+          setUsernameStatus('available');
+        }
+      } catch (error) {
+        console.error("Error checking username:", error);
+        setUsernameStatus('idle');
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+        checkUsername();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [profile.username, user]);
 
 
   const handleSave = async () => {
     if (!user) return;
+    
+    if (usernameStatus === 'unavailable') {
+        toast({
+            title: "Username Taken",
+            description: "Please choose a different username before saving.",
+            variant: "destructive"
+        });
+        return;
+    }
+
     setSaving(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({
+      // 1. Update Auth Metadata (User Identity)
+      const { error: authError } = await supabase.auth.updateUser({
         data: {
+          username: profile.username,
           full_name: profile.full_name,
           niche: profile.niche,
           followers: profile.followers,
           platform: profile.platform,
           engagementRate: profile.engagementRate,
+          // Storing extra fields in metadata as backup
+          bio: profile.bio,
+          location: profile.location,
+          website: profile.website,
         }
       });
 
-      if (error) throw error;
+      if (authError) throw authError;
 
-      toast({
-        title: "Profile Updated",
-        description: "Your profile information has been saved successfully.",
-      });
+      // 2. Upsert to 'profiles' table (Public Data)
+      // Sanitization: Convert empty strings to null for fields that might be numeric or optional
+      const dbPayload = {
+          id: user.id,
+          username: profile.username,
+          full_name: profile.full_name || null,
+          bio: profile.bio || null,
+          location: profile.location || null,
+          website: profile.website || null,
+          niche: profile.niche || null,
+          followers: profile.followers || null,
+          platform: profile.platform || null,
+          engagement_rate: profile.engagementRate || null,
+          updated_at: new Date().toISOString(),
+          avatar_url: user.user_metadata?.avatar_url
+      };
+
+      const { error: dbError } = await supabase
+        .from("profiles")
+        .upsert(dbPayload);
+
+      if (dbError) {
+        console.error("Error updating profiles table:", JSON.stringify(dbError, null, 2));
+        // If it's a specific type error or constraint violation, we want to know.
+        toast({
+          title: "Warning: Profile Sync Issue",
+          description: `Saved to account, but public profile sync failed. ${dbError.message || dbError.details || ''}`,
+          variant: "destructive", // Changed to destructive to draw attention, though data is partially saved
+        });
+      } else {
+         toast({
+            title: "Profile Updated",
+            description: "Your profile information has been saved successfully.",
+         });
+      }
+      
+      // Refresh user to update local state from new metadata
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) setUser(session.user);
+
     } catch (error: any) {
+      console.error("Critical error saving profile:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to update profile.",
@@ -110,20 +243,20 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-secondary/30">
-      <Navbar user={user} />
+      <Navbar user={user} username={profile.username} />
 
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold mb-2 text-foreground">Profile Settings</h1>
-          <p className="text-muted-foreground">Manage your account settings and influencer profile details.</p>
+          <h1 className="text-3xl font-bold mb-2 text-foreground">Public Profile Settings</h1>
+          <p className="text-muted-foreground">Manage your public profile and account details.</p>
         </div>
 
         <div className="grid gap-8">
           {/* Account Information Card */}
           <Card>
             <CardHeader>
-              <CardTitle>Account Information</CardTitle>
-              <CardDescription>Your personal account details.</CardDescription>
+              <CardTitle>Public Information</CardTitle>
+              <CardDescription>This information will be displayed on your public profile.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex flex-col sm:flex-row gap-6 items-start">
@@ -142,18 +275,85 @@ const ProfilePage = () => {
                 </div>
                 
                 <div className="flex-1 space-y-4 w-full">
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input id="email" value={user?.email || ""} disabled className="bg-muted text-muted-foreground" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="username">Username</Label>
+                      <div className="relative">
+                        <Input 
+                          id="username" 
+                          placeholder="username" 
+                          value={profile.username} 
+                          onChange={(e) => {
+                             // Simple regex to allow only valid url chars
+                             const val = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                             setProfile({ ...profile, username: val });
+                          }} 
+                          className={
+                            usernameStatus === 'unavailable' ? 'border-destructive focus-visible:ring-destructive pr-10' : 
+                            usernameStatus === 'available' ? 'border-green-500 focus-visible:ring-green-500 pr-10' : 'pr-10'
+                          }
+                        />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          {usernameStatus === 'checking' && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                          {usernameStatus === 'available' && <Check className="h-4 w-4 text-green-500" />}
+                          {usernameStatus === 'unavailable' && <XCircle className="h-4 w-4 text-destructive" />}
+                        </div>
+                      </div>
+                      <div className="flex justify-between">
+                         <p className="text-xs text-muted-foreground">instalink.app/u/{profile.username || "username"}</p>
+                         {usernameStatus === 'unavailable' && <p className="text-xs text-destructive font-medium">Username taken</p>}
+                         {usernameStatus === 'available' && <p className="text-xs text-green-600 font-medium">Username available</p>}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="full_name">Display Name</Label>
+                      <Input 
+                        id="full_name" 
+                        placeholder="Your full name" 
+                        value={profile.full_name} 
+                        onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} 
+                      />
+                    </div>
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="full_name">Display Name</Label>
-                    <Input 
-                      id="full_name" 
-                      placeholder="Your full name" 
-                      value={profile.full_name} 
-                      onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} 
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bio">Bio</Label>
+                    <textarea 
+                      id="bio"
+                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      placeholder="Tell us about yourself..."
+                      value={profile.bio}
+                      onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
                     />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                      <Label htmlFor="location">Location</Label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input 
+                          id="location" 
+                          className="pl-9"
+                          placeholder="City, Country" 
+                          value={profile.location} 
+                          onChange={(e) => setProfile({ ...profile, location: e.target.value })} 
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="website">Website</Label>
+                      <div className="relative">
+                        <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input 
+                          id="website" 
+                          className="pl-9"
+                          placeholder="https://yourwebsite.com" 
+                          value={profile.website} 
+                          onChange={(e) => setProfile({ ...profile, website: e.target.value })} 
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -164,7 +364,7 @@ const ProfilePage = () => {
           <Card>
             <CardHeader>
               <CardTitle>Influencer Profile</CardTitle>
-              <CardDescription>These details help us match you with the right sponsors.</CardDescription>
+              <CardDescription>These details help brands find you.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
@@ -227,7 +427,7 @@ const ProfilePage = () => {
           </Card>
 
           <div className="flex justify-end">
-            <Button onClick={handleSave} disabled={saving} size="lg">
+            <Button onClick={handleSave} disabled={saving || usernameStatus === 'unavailable'} size="lg">
               {saving ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />

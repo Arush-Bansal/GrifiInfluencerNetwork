@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { 
   User, 
   LogOut, 
-  Search 
+  Search,
+  ExternalLink 
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
@@ -15,9 +16,10 @@ import Link from "next/link";
 
 interface NavbarProps {
   user?: SupabaseUser | null;
+  username?: string | null;
 }
 
-export const Navbar = ({ user }: NavbarProps) => {
+export const Navbar = ({ user, username }: NavbarProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,7 +51,7 @@ export const Navbar = ({ user }: NavbarProps) => {
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div 
           className="flex items-center gap-2 cursor-pointer" 
-          onClick={() => router.push('/dashboard')}
+          onClick={() => router.push(user ? '/dashboard' : '/')}
         >
           <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
             <span className="text-primary-foreground font-semibold text-lg">G</span>
@@ -78,32 +80,69 @@ export const Navbar = ({ user }: NavbarProps) => {
             </Link>
           </Button>
 
-          {/* Profile Link or User Email */}
-          {!isProfilePage && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => router.push("/dashboard/profile")} 
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <User className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">
-                 Profile
-              </span>
-            </Button>
+          {user ? (
+            <>
+              {/* Public Profile Link / Setup */}
+              {username || user?.user_metadata?.username ? (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => window.open(`/u/${username || user?.user_metadata?.username}`, '_blank')}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">
+                     View Public
+                  </span>
+                </Button>
+              ) : (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => router.push("/dashboard/profile")}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <User className="w-4 h-4 mr-2 opacity-50" />
+                  <span className="hidden sm:inline">
+                     Setup Page
+                  </span>
+                </Button>
+              )}
+
+              {/* Profile Link */}
+              {!isProfilePage && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => router.push("/dashboard/profile")} 
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">
+                     Profile
+                  </span>
+                </Button>
+              )}
+
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleLogout} 
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            </>
+          ) : (
+             <Button 
+                variant="default" 
+                size="sm" 
+                onClick={() => router.push("/auth")} 
+              >
+                Sign In
+              </Button>
           )}
-
-
-
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleLogout} 
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
         </div>
       </div>
     </header>

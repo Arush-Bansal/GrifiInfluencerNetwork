@@ -31,26 +31,55 @@ const Dashboard = () => {
     followers: "",
     platform: "",
     engagementRate: "",
+    username: "",
   });
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
-    const loadUserData = (session: any) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-      if (!session?.user) {
+    const loadUserData = async (session: any) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      
+      if (!currentUser) {
+        setLoading(false);
         router.push("/auth");
-      } else {
-        const metadata = session.user.user_metadata || {};
-        setProfile((prev) => ({
-          ...prev,
-          niche: metadata.niche || "",
-          followers: metadata.followers || "",
-          platform: metadata.platform || "",
-          engagementRate: metadata.engagementRate || "",
-        }));
+        return;
       }
+
+      // Initial state from metadata
+      const metadata = currentUser.user_metadata || {};
+      let profileData = {
+        niche: metadata.niche || "",
+        followers: metadata.followers || "",
+        platform: metadata.platform || "",
+        engagementRate: metadata.engagementRate || "",
+        username: metadata.username || "",
+      };
+
+      try {
+        // Fetch latest from DB to be sure
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("niche, followers, platform, engagement_rate, username")
+          .eq("id", currentUser.id)
+          .single();
+
+        if (data && !error) {
+          profileData = {
+            niche: data.niche || profileData.niche,
+            followers: data.followers || profileData.followers,
+            platform: data.platform || profileData.platform,
+            engagementRate: data.engagement_rate || profileData.engagementRate, // snake_case from DB
+            username: data.username || profileData.username,
+          };
+        }
+      } catch (err) {
+        console.error("Error fetching profile", err);
+      }
+
+      setProfile(profileData);
+      setLoading(false);
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -138,13 +167,26 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-secondary/30">
-      <Navbar user={user} />
+      <Navbar user={user} username={profile.username} />
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold mb-2 text-foreground">Welcome to Grifi</h1>
-          <p className="text-muted-foreground">Complete your profile to start finding sponsor matches.</p>
+        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold mb-2 text-foreground">Welcome to Grifi</h1>
+            <p className="text-muted-foreground">Complete your profile to start finding sponsor matches.</p>
+          </div>
+          
+          {profile.username ? (
+            <Button variant="outline" onClick={() => window.open(`/u/${profile.username}`, '_blank')}>
+              <User className="w-4 h-4 mr-2" />
+              View Public Profile
+            </Button>
+          ) : (
+             <Button onClick={() => router.push("/dashboard/profile")}>
+              Setup Public Profile
+            </Button>
+          )}
         </div>
 
         {/* Stats Overview */}
