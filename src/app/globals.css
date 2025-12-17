@@ -1,0 +1,184 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@theme {
+  /* Colors */
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  /* Border Radius */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  /* Fonts */
+  --font-sans: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --font-serif: 'Lora', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+  /* Shadows */
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+
+  /* Animations */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
+}
+
+/* Base Variables */
+@layer base {
+  :root {
+    --background: 36 33% 97%;
+    --foreground: 20 10% 15%;
+    --card: 36 33% 97%;
+    --card-foreground: 20 10% 15%;
+    --popover: 36 33% 97%;
+    --popover-foreground: 20 10% 15%;
+    --primary: 26 90% 52%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 36 20% 90%;
+    --secondary-foreground: 26 90% 52%;
+    --muted: 36 20% 90%;
+    --muted-foreground: 20 5% 40%;
+    --accent: 36 25% 85%;
+    --accent-foreground: 26 90% 52%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 36 15% 85%;
+    --input: 36 15% 85%;
+    --ring: 26 90% 52%;
+    --radius: 0.5rem;
+    --sidebar-background: 36 33% 96%;
+    --sidebar-foreground: 20 10% 15%;
+    --sidebar-primary: 26 90% 52%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 36 20% 90%;
+    --sidebar-accent-foreground: 26 90% 52%;
+    --sidebar-border: 36 15% 85%;
+    --sidebar-ring: 26 90% 52%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    
+    /* Shadows */
+    --shadow-2xs: 1px 1px 0px 0px #000000;
+    --shadow-xs: 2px 2px 0px 0px #000000;
+    --shadow-sm: 3px 3px 0px 0px #000000;
+    --shadow-md: 8px 8px 0px 0px #000000;
+    --shadow-lg: 12px 12px 0px 0px #000000;
+    --shadow-xl: 16px 16px 0px 0px #000000;
+    --shadow-2xl: 24px 24px 0px 0px #000000;
+  }
+
+  .dark {
+    --background: 20 14% 4%;
+    --foreground: 36 33% 97%;
+    --card: 20 14% 4%;
+    --card-foreground: 36 33% 97%;
+    --popover: 20 14% 4%;
+    --popover-foreground: 36 33% 97%;
+    --primary: 26 90% 52%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 20 10% 12%;
+    --secondary-foreground: 26 90% 52%;
+    --muted: 20 10% 12%;
+    --muted-foreground: 36 10% 60%;
+    --accent: 20 10% 16%;
+    --accent-foreground: 26 90% 52%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 20 10% 16%;
+    --input: 20 10% 16%;
+    --ring: 26 90% 52%;
+    --sidebar-background: 20 14% 6%;
+    --sidebar-foreground: 36 20% 95%;
+    --sidebar-primary: 26 90% 52%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 20 10% 12%;
+    --sidebar-accent-foreground: 26 90% 52%;
+    --sidebar-border: 20 10% 16%;
+    --sidebar-ring: 26 90% 52%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+
+    --shadow-2xs: 1px 1px 0px 0px #ffffff;
+    --shadow-xs: 2px 2px 0px 0px #ffffff;
+    --shadow-sm: 3px 3px 0px 0px #ffffff;
+    --shadow-md: 8px 8px 0px 0px #ffffff;
+    --shadow-lg: 12px 12px 0px 0px #ffffff;
+    --shadow-xl: 16px 16px 0px 0px #ffffff;
+    --shadow-2xl: 24px 24px 0px 0px #ffffff;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
