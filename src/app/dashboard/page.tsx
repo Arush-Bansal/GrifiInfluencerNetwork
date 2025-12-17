@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { User, LogOut, Zap, TrendingUp, Users, Bot } from "lucide-react";
+import { User, LogOut, Zap, TrendingUp, Users, Bot, Search } from "lucide-react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface SponsorMatch {
@@ -31,8 +31,16 @@ const Dashboard = () => {
     platform: "",
     engagementRate: "",
   });
+  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
   const { toast } = useToast();
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/dashboard/search?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -155,6 +163,25 @@ const Dashboard = () => {
               <User className="w-4 h-4" />
               <span className="hidden sm:inline">{user?.email}</span>
             </div>
+            {/* Desktop Search */}
+            <form onSubmit={handleSearchSubmit} className="relative mr-2 hidden md:block">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search users..."
+                className="w-64 pl-9 h-9 bg-background"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </form>
+            
+            {/* Mobile Search Icon */}
+            <Button variant="ghost" size="icon" className="md:hidden mr-2 text-muted-foreground" asChild>
+              <a href="/dashboard/search">
+                <Search className="w-5 h-5" />
+                <span className="sr-only">Search</span>
+              </a>
+            </Button>
             <Button variant="outline" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-foreground">
               <LogOut className="w-4 h-4 mr-2" />
               Logout
