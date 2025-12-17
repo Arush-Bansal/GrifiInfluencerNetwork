@@ -132,22 +132,22 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-secondary">
+    <div className="min-h-screen bg-secondary/30">
       {/* Header */}
-      <header className="bg-background border-b-2 border-border sticky top-0 z-50">
+      <header className="bg-background border-b border-border sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xl">G</span>
+            <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
+              <span className="text-primary-foreground font-semibold text-lg">G</span>
             </div>
-            <span className="text-2xl font-bold tracking-tight">GRIFI</span>
+            <span className="text-xl font-semibold tracking-tight">GRIFI</span>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
               <User className="w-4 h-4" />
               <span className="hidden sm:inline">{user?.email}</span>
             </div>
-            <Button variant="outline" onClick={handleLogout} className="border-2">
+            <Button variant="outline" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-foreground">
               <LogOut className="w-4 h-4 mr-2" />
               Logout
             </Button>
@@ -155,63 +155,63 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Welcome to Grifi</h1>
+          <h1 className="text-2xl font-semibold mb-2 text-foreground">Welcome to Grifi</h1>
           <p className="text-muted-foreground">Complete your profile to start finding sponsor matches.</p>
         </div>
 
         {/* Stats Overview */}
         <div className="grid md:grid-cols-4 gap-4 mb-8">
-          <Card className="border-2 shadow-xs">
+          <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary text-primary-foreground flex items-center justify-center">
-                  <Users className="w-6 h-6" />
+                <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center">
+                  <Users className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">{matches.length}</div>
-                  <div className="text-muted-foreground text-sm">Matches</div>
+                  <div className="text-2xl font-semibold">{matches.length}</div>
+                  <div className="text-muted-foreground text-xs font-medium">Matches</div>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="border-2 shadow-xs">
+          <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary text-primary-foreground flex items-center justify-center">
-                  <Zap className="w-6 h-6" />
+                <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center">
+                  <Zap className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">0</div>
-                  <div className="text-muted-foreground text-sm">Active Deals</div>
+                  <div className="text-2xl font-semibold">0</div>
+                  <div className="text-muted-foreground text-xs font-medium">Active Deals</div>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="border-2 shadow-xs">
+          <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary text-primary-foreground flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6" />
+                <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">$0</div>
-                  <div className="text-muted-foreground text-sm">Total Earned</div>
+                  <div className="text-2xl font-semibold">$0</div>
+                  <div className="text-muted-foreground text-xs font-medium">Total Earned</div>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="border-2 shadow-xs">
+          <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary text-primary-foreground flex items-center justify-center">
-                  <Bot className="w-6 h-6" />
+                <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center">
+                  <Bot className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">AI</div>
-                  <div className="text-muted-foreground text-sm">Powered</div>
+                  <div className="text-2xl font-semibold">AI</div>
+                  <div className="text-muted-foreground text-xs font-medium">Powered</div>
                 </div>
               </div>
             </CardContent>
@@ -220,15 +220,15 @@ const Dashboard = () => {
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Profile Form */}
-          <Card className="border-2 shadow-sm">
+          <Card>
             <CardHeader>
-              <CardTitle>Your Profile</CardTitle>
+              <CardTitle className="text-lg">Your Profile</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="niche">Content Niche</Label>
                 <Select value={profile.niche} onValueChange={(v) => setProfile({ ...profile, niche: v })}>
-                  <SelectTrigger className="border-2 mt-1">
+                  <SelectTrigger className="mt-1.5 w-full">
                     <SelectValue placeholder="Select your niche" />
                   </SelectTrigger>
                   <SelectContent>
@@ -247,7 +247,7 @@ const Dashboard = () => {
               <div>
                 <Label htmlFor="platform">Main Platform</Label>
                 <Select value={profile.platform} onValueChange={(v) => setProfile({ ...profile, platform: v })}>
-                  <SelectTrigger className="border-2 mt-1">
+                  <SelectTrigger className="mt-1.5 w-full">
                     <SelectValue placeholder="Select platform" />
                   </SelectTrigger>
                   <SelectContent>
@@ -268,7 +268,7 @@ const Dashboard = () => {
                   value={profile.followers}
                   onChange={(e) => setProfile({ ...profile, followers: e.target.value })}
                   placeholder="e.g., 50,000"
-                  className="border-2 mt-1"
+                  className="mt-1.5"
                 />
               </div>
 
@@ -280,13 +280,13 @@ const Dashboard = () => {
                   value={profile.engagementRate}
                   onChange={(e) => setProfile({ ...profile, engagementRate: e.target.value })}
                   placeholder="e.g., 4.5"
-                  className="border-2 mt-1"
+                  className="mt-1.5"
                 />
               </div>
 
               <Button 
                 onClick={findMatches} 
-                className="w-full shadow-sm hover:shadow-md transition-shadow"
+                className="w-full mt-2"
                 disabled={matchLoading}
               >
                 {matchLoading ? (
@@ -302,15 +302,17 @@ const Dashboard = () => {
           </Card>
 
           {/* Matches Results */}
-          <Card className="border-2 shadow-sm">
+          <Card>
             <CardHeader>
-              <CardTitle>Sponsor Matches</CardTitle>
+              <CardTitle className="text-lg">Sponsor Matches</CardTitle>
             </CardHeader>
             <CardContent>
               {matches.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
-                  <Bot className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg mb-2">No matches yet</p>
+                  <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4 text-muted-foreground/50">
+                    <Bot className="w-6 h-6" />
+                  </div>
+                  <p className="font-medium mb-1">No matches yet</p>
                   <p className="text-sm">Complete your profile and click "Find AI Matches"</p>
                 </div>
               ) : (
@@ -318,21 +320,21 @@ const Dashboard = () => {
                   {matches.map((match, index) => (
                     <div 
                       key={index} 
-                      className="p-4 border-2 border-border bg-background hover:shadow-sm transition-shadow"
+                      className="p-4 border rounded-lg bg-card hover:bg-muted/50 transition-colors"
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <h3 className="font-bold text-lg">{match.brandName}</h3>
+                          <h3 className="font-semibold text-foreground">{match.brandName}</h3>
                           <p className="text-sm text-muted-foreground">{match.industry}</p>
                         </div>
-                        <div className="px-3 py-1 bg-primary text-primary-foreground font-mono text-sm">
-                          {match.matchScore}%
+                        <div className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                          {match.matchScore}% Match
                         </div>
                       </div>
-                      <p className="text-sm mb-2">{match.reason}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{match.estimatedDealValue}</span>
-                        <Button size="sm" variant="outline" className="border-2">
+                      <p className="text-sm text-muted-foreground mb-3 leading-relaxed">{match.reason}</p>
+                      <div className="flex items-center justify-between pt-2 border-t mt-3">
+                        <span className="text-sm font-medium text-foreground">{match.estimatedDealValue}</span>
+                        <Button size="sm" variant="secondary" className="h-8">
                           Contact
                         </Button>
                       </div>
@@ -349,3 +351,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

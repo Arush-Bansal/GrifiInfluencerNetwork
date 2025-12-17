@@ -119,18 +119,18 @@ const AuthContent = () => {
     <div className="min-h-screen bg-background flex">
       {/* Left side - Form */}
       <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-sm">
           <Link href="/" className="flex items-center gap-2 mb-8">
-            <div className="w-10 h-10 bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xl">G</span>
+            <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
+              <span className="text-primary-foreground font-semibold text-lg">G</span>
             </div>
-            <span className="text-2xl font-bold tracking-tight">GRIFI</span>
+            <span className="text-xl font-semibold tracking-tight">GRIFI</span>
           </Link>
 
-          <h1 className="text-3xl font-bold mb-2">
+          <h1 className="text-2xl font-semibold mb-2 tracking-tight">
             {isSignUp ? "Create your account" : "Welcome back"}
           </h1>
-          <p className="text-muted-foreground mb-8">
+          <p className="text-muted-foreground mb-8 text-sm">
             {isSignUp 
               ? "Start finding your perfect sponsors today" 
               : "Log in to access your dashboard"}
@@ -138,7 +138,7 @@ const AuthContent = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {isSignUp && (
-              <div>
+              <div className="space-y-1">
                 <Label htmlFor="name">Full Name</Label>
                 <Input
                   id="name"
@@ -146,13 +146,12 @@ const AuthContent = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="John Doe"
-                  className="border-2 mt-1"
                   required
                 />
               </div>
             )}
             
-            <div>
+            <div className="space-y-1">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -160,12 +159,11 @@ const AuthContent = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="border-2 mt-1"
                 required
               />
             </div>
             
-            <div>
+            <div className="space-y-1">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
@@ -173,14 +171,13 @@ const AuthContent = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="border-2 mt-1"
                 required
               />
             </div>
 
             <Button 
               type="submit" 
-              className="w-full shadow-sm hover:shadow-md transition-shadow"
+              className="w-full"
               disabled={loading}
             >
               {loading ? "Loading..." : (isSignUp ? "Create Account" : "Log In")}
@@ -191,7 +188,7 @@ const AuthContent = () => {
             <button
               type="button"
               onClick={() => setIsSignUp(!isSignUp)}
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               {isSignUp 
                 ? "Already have an account? Log in" 
@@ -202,22 +199,25 @@ const AuthContent = () => {
       </div>
 
       {/* Right side - Visual */}
-      <div className="hidden lg:flex flex-1 bg-primary text-primary-foreground items-center justify-center p-8">
+      <div className="hidden lg:flex flex-1 bg-secondary border-l items-center justify-center p-8">
         <div className="max-w-md text-center">
-          <h2 className="text-4xl font-bold mb-6">
-            AI-POWERED SPONSOR MATCHING
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary mb-6 shadow-lg shadow-primary/20">
+            <span className="text-primary-foreground font-bold text-3xl">G</span>
+          </div>
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">
+            AI-Powered Sponsor Matching
           </h2>
-          <p className="text-xl opacity-90 mb-8">
+          <p className="text-muted-foreground mb-8 text-lg">
             Join thousands of influencers using Grifi to find their perfect brand partnerships.
           </p>
           <div className="grid grid-cols-2 gap-4 text-left">
-            <div className="p-4 bg-primary-foreground/10 border border-primary-foreground/20">
-              <div className="text-2xl font-bold">92%</div>
-              <div className="text-sm opacity-80">Match Accuracy</div>
+            <div className="p-4 bg-background border rounded-lg shadow-sm">
+              <div className="text-2xl font-bold text-primary">92%</div>
+              <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">Match Accuracy</div>
             </div>
-            <div className="p-4 bg-primary-foreground/10 border border-primary-foreground/20">
-              <div className="text-2xl font-bold">3x</div>
-              <div className="text-sm opacity-80">Faster Deals</div>
+            <div className="p-4 bg-background border rounded-lg shadow-sm">
+              <div className="text-2xl font-bold text-primary">3x</div>
+              <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">Faster Deals</div>
             </div>
           </div>
         </div>
@@ -233,3 +233,4 @@ export default function Auth() {
     </Suspense>
   );
 }
+
