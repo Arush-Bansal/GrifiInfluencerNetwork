@@ -55,8 +55,16 @@ const Dashboard = () => {
   }, [router]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/");
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    } finally {
+      localStorage.clear();
+      sessionStorage.clear();
+      router.push("/auth");
+      router.refresh();
+    }
   };
 
   const findMatches = async () => {
