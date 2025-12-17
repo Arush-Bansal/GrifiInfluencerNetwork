@@ -1,8 +1,46 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Zap, Users, TrendingUp, Bot } from "lucide-react";
+import { Zap, Users, TrendingUp, Bot, LogOut, LayoutDashboard } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useRouter } from "next/navigation";
+import { Session } from "@supabase/supabase-js";
 
 const Index = () => {
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    } finally {
+      localStorage.clear();
+      sessionStorage.clear();
+      setSession(null);
+      router.refresh();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -15,12 +53,33 @@ const Index = () => {
             <span className="text-xl font-semibold tracking-tight">GRIFI</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/auth">
-              <Button variant="ghost" size="sm">Log In</Button>
-            </Link>
-            <Link href="/auth?mode=signup">
-              <Button size="sm">Get Started</Button>
-            </Link>
+            {!loading && (
+              <>
+                {session ? (
+                  <>
+                    <Link href="/dashboard">
+                      <Button variant="ghost" size="sm">
+                        <LayoutDashboard className="w-4 h-4 mr-2" />
+                        Dashboard
+                      </Button>
+                    </Link>
+                    <Button variant="outline" size="sm" onClick={handleLogout}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/auth">
+                      <Button variant="ghost" size="sm">Log In</Button>
+                    </Link>
+                    <Link href="/auth?mode=signup">
+                      <Button size="sm">Get Started</Button>
+                    </Link>
+                  </>
+                )}
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -38,16 +97,30 @@ const Index = () => {
             The identity layer for the creator economy. Whether you're a creator, brand, agency, or operator — build your professional network here.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth?mode=signup">
-              <Button size="lg" className="h-12 px-8 text-base">
-                Join the Network
-              </Button>
-            </Link>
-            <Link href="/auth">
-              <Button size="lg" variant="outline" className="h-12 px-8 text-base">
-                Log In
-              </Button>
-            </Link>
+            {!loading && (
+              <>
+                {session ? (
+                  <Link href="/dashboard">
+                    <Button size="lg" className="h-12 px-8 text-base">
+                      Go to Dashboard
+                    </Button>
+                  </Link>
+                ) : (
+                  <>
+                    <Link href="/auth?mode=signup">
+                      <Button size="lg" className="h-12 px-8 text-base">
+                        Join the Network
+                      </Button>
+                    </Link>
+                    <Link href="/auth">
+                      <Button size="lg" variant="outline" className="h-12 px-8 text-base">
+                        Log In
+                      </Button>
+                    </Link>
+                  </>
+                )}
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -106,11 +179,21 @@ const Index = () => {
           <p className="text-xl mb-8 opacity-90 max-w-xl mx-auto text-primary-foreground/80">
             Join thousands of influencers already using Grifi to land their dream sponsorships.
           </p>
-          <Link href="/auth?mode=signup">
-            <Button size="lg" variant="secondary" className="h-12 px-8 text-base font-semibold shadow-lg">
-              Start Free Today
-            </Button>
-          </Link>
+          {!loading && (
+             session ? (
+              <Link href="/dashboard">
+                <Button size="lg" variant="secondary" className="h-12 px-8 text-base font-semibold shadow-lg">
+                  Go to Dashboard
+                </Button>
+              </Link>
+             ) : (
+              <Link href="/auth?mode=signup">
+                <Button size="lg" variant="secondary" className="h-12 px-8 text-base font-semibold shadow-lg">
+                  Start Free Today
+                </Button>
+              </Link>
+             )
+          )}
         </div>
       </section>
 
