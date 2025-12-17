@@ -43,20 +43,29 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const loadUserData = (session: any) => {
       setUser(session?.user ?? null);
       setLoading(false);
       if (!session?.user) {
         router.push("/auth");
+      } else {
+        const metadata = session.user.user_metadata || {};
+        setProfile((prev) => ({
+          ...prev,
+          niche: metadata.niche || "",
+          followers: metadata.followers || "",
+          platform: metadata.platform || "",
+          engagementRate: metadata.engagementRate || "",
+        }));
       }
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      loadUserData(session);
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-      if (!session?.user) {
-        router.push("/auth");
-      }
+      loadUserData(session);
     });
 
     return () => subscription.unsubscribe();
@@ -159,10 +168,7 @@ const Dashboard = () => {
             <span className="text-xl font-semibold tracking-tight">GRIFI</span>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-muted-foreground text-sm">
-              <User className="w-4 h-4" />
-              <span className="hidden sm:inline">{user?.email}</span>
-            </div>
+
             {/* Desktop Search */}
             <form onSubmit={handleSearchSubmit} className="relative mr-2 hidden md:block">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -181,6 +187,10 @@ const Dashboard = () => {
                 <Search className="w-5 h-5" />
                 <span className="sr-only">Search</span>
               </a>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard/profile")} className="text-muted-foreground hover:text-foreground">
+              <User className="w-4 h-4 mr-2" />
+              Profile
             </Button>
             <Button variant="outline" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-foreground">
               <LogOut className="w-4 h-4 mr-2" />
