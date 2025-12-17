@@ -29,25 +29,25 @@ const Index = () => {
       <section className="container mx-auto px-4 py-20 md:py-32">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center justify-center mb-6 px-4 py-1.5 rounded-full bg-secondary text-secondary-foreground">
-            <span className="font-medium text-xs tracking-wide uppercase">AI-Powered Sponsorship Matching</span>
+            <span className="font-medium text-xs tracking-wide uppercase">The Professional Network for Creators</span>
           </div>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-tight text-foreground">
-            We bring <span className="text-primary">sponsors</span><br />
-            to influencers
+            Connect, Collaborate, & <br/> <span className="text-primary">Grow Together</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-            Grifi uses artificial intelligence to match influencers with perfect brand sponsors. 
-            Stop searching. Start earning.
+            The identity layer for the creator economy. Whether you're a creator, brand, agency, or operator — build your professional network here.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/auth?mode=signup">
               <Button size="lg" className="h-12 px-8 text-base">
-                Join as Influencer
+                Join the Network
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="h-12 px-8 text-base">
-              I'm a Brand
-            </Button>
+            <Link href="/auth">
+              <Button size="lg" variant="outline" className="h-12 px-8 text-base">
+                Log In
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
