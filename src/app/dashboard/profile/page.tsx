@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/dashboard/Navbar";
 import { User, Loader2, Save, Camera, Link as LinkIcon, MapPin, Check, XCircle } from "lucide-react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { SocialVerification } from "@/components/dashboard/SocialVerification";
 
 const ProfilePage = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -425,6 +426,9 @@ const ProfilePage = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Verification Center */}
+          <SocialVerification user={user} />
 
           <div className="flex justify-end">
             <Button onClick={handleSave} disabled={saving || usernameStatus === 'unavailable'} size="lg">
