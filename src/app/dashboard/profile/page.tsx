@@ -9,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { User, LogOut, Loader2, Save, Camera } from "lucide-react";
+import { Navbar } from "@/components/dashboard/Navbar";
+import { User, Loader2, Save, Camera } from "lucide-react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const ProfilePage = () => {
@@ -65,18 +66,7 @@ const ProfilePage = () => {
     return () => subscription.unsubscribe();
   }, [router, loading]);
 
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (error) {
-      console.error("Error signing out:", error);
-    } finally {
-      localStorage.clear();
-      sessionStorage.clear();
-      router.push("/auth");
-      router.refresh();
-    }
-  };
+
 
   const handleSave = async () => {
     if (!user) return;
@@ -120,27 +110,7 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-secondary/30">
-      {/* Header - Consistent with Dashboard */}
-      <header className="bg-background border-b border-border sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/dashboard')}>
-            <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-              <span className="text-primary-foreground font-semibold text-lg">G</span>
-            </div>
-            <span className="text-xl font-semibold tracking-tight">GRIFI</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-muted-foreground text-sm">
-              <User className="w-4 h-4" />
-              <span className="hidden sm:inline">{user?.email}</span>
-            </div>
-            <Button variant="outline" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-foreground">
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Navbar user={user} />
 
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">

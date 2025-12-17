@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Navbar } from "@/components/dashboard/Navbar";
 import { supabase } from "@/integrations/supabase/client";
-import { User, LogOut, Zap, TrendingUp, Users, Bot, Search } from "lucide-react";
+import { User, Zap, TrendingUp, Users, Bot } from "lucide-react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface SponsorMatch {
@@ -31,16 +32,8 @@ const Dashboard = () => {
     platform: "",
     engagementRate: "",
   });
-  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
   const { toast } = useToast();
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/dashboard/search?q=${encodeURIComponent(searchQuery)}`);
-    }
-  };
 
   useEffect(() => {
     const loadUserData = (session: any) => {
@@ -70,19 +63,6 @@ const Dashboard = () => {
 
     return () => subscription.unsubscribe();
   }, [router]);
-
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (error) {
-      console.error("Error signing out:", error);
-    } finally {
-      localStorage.clear();
-      sessionStorage.clear();
-      router.push("/auth");
-      router.refresh();
-    }
-  };
 
   const findMatches = async () => {
     if (!profile.niche || !profile.followers || !profile.platform) {
@@ -158,47 +138,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-secondary/30">
-      {/* Header */}
-      <header className="bg-background border-b border-border sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-              <span className="text-primary-foreground font-semibold text-lg">G</span>
-            </div>
-            <span className="text-xl font-semibold tracking-tight">GRIFI</span>
-          </div>
-          <div className="flex items-center gap-4">
-
-            {/* Desktop Search */}
-            <form onSubmit={handleSearchSubmit} className="relative mr-2 hidden md:block">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search users..."
-                className="w-64 pl-9 h-9 bg-background"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </form>
-            
-            {/* Mobile Search Icon */}
-            <Button variant="ghost" size="icon" className="md:hidden mr-2 text-muted-foreground" asChild>
-              <a href="/dashboard/search">
-                <Search className="w-5 h-5" />
-                <span className="sr-only">Search</span>
-              </a>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard/profile")} className="text-muted-foreground hover:text-foreground">
-              <User className="w-4 h-4 mr-2" />
-              Profile
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-foreground">
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Navbar user={user} />
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Welcome Section */}
