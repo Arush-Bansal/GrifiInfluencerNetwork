@@ -12,6 +12,7 @@ import { Loader2, MapPin, Link as LinkIcon, Calendar, Edit, MessageCircle, Share
 import { Navbar } from "@/components/dashboard/Navbar";
 import { useToast } from "@/hooks/use-toast";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { SuggestCollabModal } from "@/components/collabs/SuggestCollabModal";
 
 interface Profile {
   id: string;
@@ -173,9 +174,15 @@ export default function PublicProfilePage() {
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Message
                     </Button>
-                    <Button className="flex-1 md:flex-none">
-                      Connect
-                    </Button>
+                    <SuggestCollabModal 
+                      receiverId={profile.id} 
+                      receiverName={profile.full_name}
+                      trigger={
+                        <Button className="flex-1 md:flex-none">
+                          Connect
+                        </Button>
+                      }
+                    />
                   </>
                 )}
                 <Button variant="ghost" size="icon">

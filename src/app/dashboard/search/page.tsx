@@ -140,7 +140,11 @@ function SearchContent() {
                       </p>
                     )}
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => router.push(`/u/${profile.username}`)}
+                  >
                     View
                   </Button>
                 </CardContent>

@@ -8,7 +8,8 @@ import {
   User, 
   LogOut, 
   Search,
-  ExternalLink 
+  ExternalLink,
+  Inbox
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
@@ -108,6 +109,19 @@ export const Navbar = ({ user, username }: NavbarProps) => {
                   </span>
                 </Button>
               )}
+
+              {/* Requests Link */}
+              <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => router.push("/dashboard/collabs")} 
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <Inbox className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">
+                     Requests
+                  </span>
+                </Button>
 
               {/* Profile Link */}
               {!isProfilePage && (
