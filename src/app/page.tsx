@@ -52,34 +52,40 @@ const Index = () => {
             </div>
             <span className="text-xl font-semibold tracking-tight">GRIFI</span>
           </div>
-          <div className="flex items-center gap-4">
-            {!loading && (
-              <>
-                {session ? (
-                  <>
-                    <Link href="/dashboard">
-                      <Button variant="ghost" size="sm">
-                        <LayoutDashboard className="w-4 h-4 mr-2" />
-                        Dashboard
+          <div className="flex items-center gap-6">
+            <div className="hidden md:flex items-center gap-6">
+              <Link href="/" className="text-sm font-medium text-primary">Home</Link>
+              <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">About</Link>
+            </div>
+            <div className="flex items-center gap-4">
+              {!loading && (
+                <>
+                  {session ? (
+                    <>
+                      <Link href="/dashboard">
+                        <Button variant="ghost" size="sm">
+                          <LayoutDashboard className="w-4 h-4 mr-2" />
+                          Dashboard
+                        </Button>
+                      </Link>
+                      <Button variant="outline" size="sm" onClick={handleLogout}>
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Logout
                       </Button>
-                    </Link>
-                    <Button variant="outline" size="sm" onClick={handleLogout}>
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Logout
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/auth">
-                      <Button variant="ghost" size="sm">Log In</Button>
-                    </Link>
-                    <Link href="/auth?mode=signup">
-                      <Button size="sm">Get Started</Button>
-                    </Link>
-                  </>
-                )}
-              </>
-            )}
+                    </>
+                  ) : (
+                    <>
+                      <Link href="/auth">
+                        <Button variant="ghost" size="sm">Log In</Button>
+                      </Link>
+                      <Link href="/auth?mode=signup">
+                        <Button size="sm">Get Started</Button>
+                      </Link>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </nav>
@@ -206,8 +212,14 @@ const Index = () => {
             </div>
             <span className="font-bold text-sm tracking-tight">GRIFI</span>
           </div>
+          <div className="flex gap-8">
+            <Link href="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">Home</Link>
+            <Link href="/about" className="text-sm text-muted-foreground hover:text-primary transition-colors">About</Link>
+            <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">Privacy</Link>
+            <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">Terms</Link>
+          </div>
           <div className="text-muted-foreground text-sm">
-            © 2024 Grifi. All rights reserved.
+            © 2024 Grifi Network. All rights reserved.
           </div>
         </div>
       </footer>
