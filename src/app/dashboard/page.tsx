@@ -11,7 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Navbar } from "@/components/dashboard/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Zap, TrendingUp, Users, Bot } from "lucide-react";
-import { CommunityFeed } from "@/components/dashboard/CommunityFeed";
+import { UnifiedFeed } from "@/components/dashboard/UnifiedFeed";
+import { CreatePost } from "@/components/dashboard/CreatePost";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface SponsorMatch {
@@ -248,7 +249,12 @@ const Dashboard = () => {
 
         <div className="grid lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8 space-y-8">
-             <CommunityFeed userId={user?.id || ""} />
+             <CreatePost 
+               userId={user?.id || ""} 
+               userProfile={{ username: profile.username }}
+               onPostCreated={() => window.location.reload()} // Simple refresh for now
+             />
+             <UnifiedFeed userId={user?.id || ""} />
           </div>
 
           <div className="lg:col-span-4 space-y-8">

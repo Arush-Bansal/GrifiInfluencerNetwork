@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, MapPin, Link as LinkIcon, Calendar, Edit, MessageCircle, Share2, Briefcase, Users, Star } from "lucide-react";
+import { Loader2, MapPin, Link as LinkIcon, Calendar, Edit, MessageCircle, Share2, Briefcase, Users, Star, UserPlus, UserMinus, Clock } from "lucide-react";
 import { Navbar } from "@/components/dashboard/Navbar";
 import { useToast } from "@/hooks/use-toast";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
@@ -39,6 +39,9 @@ export default function PublicProfilePage() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [userPosts, setUserPosts] = useState<any[]>([]);
+  const [followLoading, setFollowLoading] = useState(false);
 
   useEffect(() => {
     const fetchProfileAndUser = async () => {
@@ -98,10 +101,120 @@ export default function PublicProfilePage() {
       }
     };
 
+    const fetchPosts = async (userId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from("posts" as any)
+          .select("*")
+          .eq("author_id", userId)
+          .order("created_at", { ascending: false });
+        if (!error && data) setUserPosts(data);
+      } catch (err) {
+        console.error("Error fetching user posts:", err);
+      }
+    };
+
+    const fetchFollowingStatus = async (currentUserId: string, profileUserId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from("follows" as any)
+          .select("id")
+          .eq("follower_id", currentUserId)
+          .eq("following_id", profileUserId)
+          .maybeSingle();
+        if (!error && data) setIsFollowing(true);
+      } catch (err) {
+        console.error("Error fetching following status:", err);
+      }
+    };
+
     if (username) {
-      fetchProfileAndUser();
+      fetchProfileAndUser().then(async () => {
+        // We need the profile ID from fetchProfileAndUser
+      });
     }
   }, [username, toast]);
+
+  // Nested useEffect to handle secondary fetches once profile is loaded
+  useEffect(() => {
+    if (profile && currentUser) {
+      if (!isOwnProfile) {
+        fetchFollowingStatus(currentUser.id, profile.id);
+      }
+      fetchPosts(profile.id);
+    } else if (profile) {
+      fetchPosts(profile.id);
+    }
+  }, [profile, currentUser, isOwnProfile]);
+
+  const fetchPosts = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("posts" as any)
+        .select("*")
+        .eq("author_id", userId)
+        .order("created_at", { ascending: false });
+      if (!error && data) setUserPosts(data);
+    } catch (err) {
+      console.error("Error fetching user posts:", err);
+    }
+  };
+
+  const fetchFollowingStatus = async (currentUserId: string, profileUserId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("follows" as any)
+        .select("id")
+        .eq("follower_id", currentUserId)
+        .eq("following_id", profileUserId)
+        .maybeSingle();
+      setIsFollowing(!!data);
+    } catch (err) {
+      console.error("Error fetching following status:", err);
+    }
+  };
+
+  const handleFollow = async () => {
+    if (!currentUser) {
+      toast({
+        title: "Login required",
+        description: "You need to be logged in to follow users.",
+      });
+      return;
+    }
+
+    setFollowLoading(true);
+    try {
+      if (isFollowing) {
+        const { error } = await supabase
+          .from("follows" as any)
+          .delete()
+          .eq("follower_id", currentUser.id)
+          .eq("following_id", profile?.id);
+        if (error) throw error;
+        setIsFollowing(false);
+        toast({ title: "Unfollowed", description: `You are no longer following @${profile?.username}` });
+      } else {
+        const { error } = await supabase
+          .from("follows" as any)
+          .insert({
+            follower_id: currentUser.id,
+            following_id: profile?.id
+          });
+        if (error) throw error;
+        setIsFollowing(true);
+        toast({ title: "Following", description: `You are now following @${profile?.username}` });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Something went wrong.",
+        variant: "destructive"
+      });
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -170,15 +283,31 @@ export default function PublicProfilePage() {
                   </Button>
                 ) : (
                   <>
-                    <Button variant="outline" className="flex-1 md:flex-none">
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Message
+                    <Button 
+                      variant={isFollowing ? "secondary" : "default"} 
+                      className="flex-1 md:flex-none"
+                      onClick={handleFollow}
+                      disabled={followLoading}
+                    >
+                      {followLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : isFollowing ? (
+                        <>
+                          <UserMinus className="w-4 h-4 mr-2" />
+                          Unfollow
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Follow
+                        </>
+                      )}
                     </Button>
                     <SuggestCollabModal 
                       receiverId={profile.id} 
                       receiverName={profile.full_name}
                       trigger={
-                        <Button className="flex-1 md:flex-none">
+                        <Button variant="outline" className="flex-1 md:flex-none">
                           Connect
                         </Button>
                       }
@@ -238,9 +367,23 @@ export default function PublicProfilePage() {
                 <CardTitle className="text-lg">Recent Activity</CardTitle>
                </CardHeader>
                <CardContent>
-                 <div className="text-center py-8 text-muted-foreground">
-                   <p>No recent activity to show.</p>
-                 </div>
+                 {userPosts.length === 0 ? (
+                   <div className="text-center py-8 text-muted-foreground">
+                     <p>No recent activity to show.</p>
+                   </div>
+                 ) : (
+                   <div className="space-y-4">
+                     {userPosts.map(post => (
+                       <div key={post.id} className="p-4 rounded-xl bg-secondary/50 border border-border/50">
+                         <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
+                           <Clock className="w-3 h-3" />
+                           {new Date(post.created_at).toLocaleDateString()}
+                         </div>
+                         <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
+                       </div>
+                     ))}
+                   </div>
+                 )}
                </CardContent>
             </Card>
 
