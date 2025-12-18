@@ -1,7 +1,11 @@
+-- Drop existing tables to allow re-creation
+drop table if exists public.campaign_applications;
+drop table if exists public.campaigns;
+
 -- Create a table for brand campaigns
 create table public.campaigns (
   id uuid default gen_random_uuid() primary key,
-  brand_id uuid references auth.users(id) not null,
+  brand_id uuid references public.profiles(id) not null,
   title text not null,
   description text not null,
   status text default 'open', -- 'open', 'closed'
@@ -12,7 +16,7 @@ create table public.campaigns (
 create table public.campaign_applications (
   id uuid default gen_random_uuid() primary key,
   campaign_id uuid references public.campaigns(id) on delete cascade not null,
-  influencer_id uuid references auth.users(id) not null,
+  influencer_id uuid references public.profiles(id) not null,
   status text default 'pending', -- 'pending', 'approved', 'rejected'
   message text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
