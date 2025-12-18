@@ -8,7 +8,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Search as SearchIcon, ArrowLeft, User, Loader2 } from "lucide-react";
+import { Search as SearchIcon, ArrowLeft, User, Loader2, Filter, Bot } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MultiSelect, Option } from "@/components/ui/multi-select";
+import { Navbar } from "@/components/dashboard/Navbar";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
+
+const NICHE_OPTIONS: Option[] = [
+  { value: "tech", label: "Technology" },
+  { value: "lifestyle", label: "Lifestyle" },
+  { value: "gaming", label: "Gaming" },
+  { value: "fitness", label: "Fitness" },
+  { value: "beauty", label: "Beauty" },
+  { value: "food", label: "Food" },
+  { value: "travel", label: "Travel" },
+  { value: "business", label: "Business" },
+];
+
+const PLATFORM_OPTIONS: Option[] = [
+  { value: "instagram", label: "Instagram" },
+  { value: "youtube", label: "YouTube" },
+  { value: "tiktok", label: "TikTok" },
+  { value: "twitter", label: "Twitter/X" },
+  { value: "linkedin", label: "LinkedIn" },
+];
 
 interface Profile {
   id: string;
@@ -25,23 +49,77 @@ function SearchContent() {
   const [results, setResults] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [filters, setFilters] = useState({
+    niches: [] as string[],
+    platforms: [] as string[],
+    minFollowers: "",
+    minEngagement: "",
+  });
+  const [showFilters, setShowFilters] = useState(false);
+  const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
+  const [profileUsername, setProfileUsername] = useState<string | null>(null);
   const router = useRouter();
   const { toast } = useToast();
 
+  useEffect(() => {
+    const loadUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setCurrentUser(session.user);
+        
+        // Fetch username from profiles
+        const { data } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", session.user.id)
+          .single();
+        
+        if (data?.username) {
+          setProfileUsername(data.username);
+        }
+      }
+    };
+    loadUser();
+  }, []);
+
   // Function to perform the search
   const performSearch = async (searchQuery: string) => {
-    if (!searchQuery.trim()) return;
-
     setLoading(true);
     setHasSearched(true);
     setResults([]);
 
     try {
-      const { data, error } = await supabase
+      let queryBuilder = supabase
         .from("profiles")
-        .select("id, full_name, username, avatar_url, bio")
-        .or(`full_name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%`)
-        .limit(20);
+        .select("id, full_name, username, avatar_url, bio, niche, platform, followers, engagement_rate");
+
+      if (searchQuery.trim()) {
+        queryBuilder = queryBuilder.or(`full_name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%`);
+      }
+
+      if (filters.niches.length > 0) {
+        queryBuilder = queryBuilder.in('niche', filters.niches);
+      }
+      
+      if (filters.platforms.length > 0) {
+        queryBuilder = queryBuilder.in('platform', filters.platforms);
+      }
+      
+      if (filters.minFollowers) {
+        const followers = parseInt(filters.minFollowers.replace(/,/g, ''));
+        if (!isNaN(followers)) {
+          queryBuilder = queryBuilder.gte('followers', followers);
+        }
+      }
+      
+      if (filters.minEngagement) {
+        const engagement = parseFloat(filters.minEngagement);
+        if (!isNaN(engagement)) {
+          queryBuilder = queryBuilder.gte('engagement_rate', engagement);
+        }
+      }
+
+      const { data, error } = await queryBuilder.limit(20);
 
       if (error) {
         throw error;
@@ -75,24 +153,23 @@ function SearchContent() {
 
   return (
     <div className="min-h-screen bg-secondary/30">
-      {/* Header */}
-      <header className="bg-background border-b border-border sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <h1 className="text-xl font-semibold tracking-tight">Search Users</h1>
-          </div>
-        </div>
-      </header>
+      <Navbar user={currentUser} username={profileUsername} />
 
       <main className="container mx-auto px-4 py-8 max-w-2xl">
         <Card className="mb-8">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Find People</CardTitle>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowFilters(!showFilters)}
+              className="text-muted-foreground"
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              {showFilters ? "Hide Filters" : "Show Filters"}
+            </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             <form onSubmit={handleSearch} className="flex gap-2">
               <div className="relative flex-1">
                 <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -107,6 +184,50 @@ function SearchContent() {
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
               </Button>
             </form>
+
+            {showFilters && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="space-y-2">
+                  <Label>Content Niches</Label>
+                  <MultiSelect
+                    options={NICHE_OPTIONS}
+                    selected={filters.niches}
+                    onChange={(v) => setFilters({ ...filters, niches: v })}
+                    placeholder="All Niches"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Main Platforms</Label>
+                  <MultiSelect
+                    options={PLATFORM_OPTIONS}
+                    selected={filters.platforms}
+                    onChange={(v) => setFilters({ ...filters, platforms: v })}
+                    placeholder="All Platforms"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Min Followers</Label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. 10000"
+                    value={filters.minFollowers}
+                    onChange={(e) => setFilters({ ...filters, minFollowers: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Min Engagement (%)</Label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. 2.5"
+                    value={filters.minEngagement}
+                    onChange={(e) => setFilters({ ...filters, minEngagement: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
