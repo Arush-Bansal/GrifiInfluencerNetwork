@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Navbar } from "@/components/dashboard/Navbar";
 import { supabase } from "@/integrations/supabase/client";
-import { User, Zap, TrendingUp, Users, Bot } from "lucide-react";
+import { User, Zap, TrendingUp, Users, Bot, ArrowRight } from "lucide-react";
 import { UnifiedFeed } from "@/components/dashboard/UnifiedFeed";
 import { CreatePost } from "@/components/dashboard/CreatePost";
 import { BrandCampaigns } from "@/components/campaigns/BrandCampaigns";
@@ -31,6 +31,7 @@ const Dashboard = () => {
     username: "",
   });
   const [role, setRole] = useState<string | null>(null);
+  const [communities, setCommunities] = useState<any[]>([]);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -78,6 +79,16 @@ const Dashboard = () => {
 
       setProfile(profileData);
       setRole(currentUser.user_metadata?.role || "influencer");
+
+      // Fetch communities for the new tab
+      const { data: communitiesData } = await supabase
+        .from("communities" as any)
+        .select("*")
+        .limit(6);
+      if (communitiesData) {
+        setCommunities(communitiesData);
+      }
+
       setLoading(false);
     };
 
@@ -144,6 +155,12 @@ const Dashboard = () => {
               >
                 {role === 'brand' ? 'My Campaigns' : 'Discover Campaigns'}
               </TabsTrigger>
+              <TabsTrigger 
+                value="communities" 
+                className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none shadow-none px-0 py-3 text-sm font-medium transition-all"
+              >
+                Communities
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="feed" className="animate-in fade-in slide-in-from-bottom-2 duration-300 outline-none">
@@ -163,6 +180,37 @@ const Dashboard = () => {
               ) : (
                 <InfluencerCampaigns influencerId={user?.id || ""} />
               )}
+            </TabsContent>
+
+            <TabsContent value="communities" className="animate-in fade-in slide-in-from-bottom-2 duration-300 outline-none">
+              <div className="grid md:grid-cols-2 gap-4">
+                {communities.map((community) => (
+                  <Card 
+                    key={community.id} 
+                    className="hover:shadow-md transition-all cursor-pointer group border-border/50 bg-card/50 backdrop-blur-sm"
+                    onClick={() => router.push(`/dashboard/communities/${community.id}`)}
+                  >
+                    <CardHeader className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                          <Users className="w-5 h-5" />
+                        </div>
+                        <Button variant="ghost" size="sm" className="h-8 px-2 text-xs">
+                          Join <ArrowRight className="w-3 h-3 ml-1" />
+                        </Button>
+                      </div>
+                      <CardTitle className="text-lg group-hover:text-primary transition-colors">{community.name}</CardTitle>
+                      <p className="text-muted-foreground text-xs line-clamp-1">{community.description || "Join this community to collaborate."}</p>
+                    </CardHeader>
+                  </Card>
+                ))}
+                <Card 
+                  className="border-dashed flex flex-col items-center justify-center p-6 bg-transparent hover:bg-accent/50 cursor-pointer transition-all"
+                  onClick={() => router.push("/dashboard/communities")}
+                >
+                  <p className="text-sm font-medium text-muted-foreground">See all communities</p>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
