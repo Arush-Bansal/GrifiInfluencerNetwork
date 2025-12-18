@@ -102,11 +102,13 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
     }
 
     // Fetch community info
-    const { data: communityData } = await supabase
+    const result = await supabase
       .from("communities" as any)
       .select("*")
       .eq("id", id)
       .single();
+    
+    const communityData = result.data as any;
     setCommunity(communityData);
 
     // Fetch approved posts
@@ -134,7 +136,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
       .eq("community_id", id)
       .eq("status", "approved")
       .order("created_at", { ascending: false });
-    setPosts(data || []);
+    setPosts((data as any) || []);
   };
 
   const fetchPendingPosts = async () => {
@@ -144,7 +146,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
       .eq("community_id", id)
       .eq("status", "pending")
       .order("created_at", { ascending: false });
-    setPendingPosts(data || []);
+    setPendingPosts((data as any) || []);
   };
 
   const fetchMembers = async () => {
@@ -152,7 +154,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
       .from("community_members" as any)
       .select("*, profiles:user_id(username)")
       .eq("community_id", id);
-    setMembers(data || []);
+    setMembers((data as any) || []);
   };
 
   const handleJoin = async () => {

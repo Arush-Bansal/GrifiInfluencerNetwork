@@ -42,7 +42,7 @@ export function CreateCommunityModal() {
       }
 
       // 1. Create the community
-      const { data: community, error: communityError } = await supabase
+      const result = await supabase
         .from("communities" as any)
         .insert({
           name: name.trim(),
@@ -51,6 +51,9 @@ export function CreateCommunityModal() {
         })
         .select()
         .single();
+      
+      const community = result.data as any;
+      const communityError = result.error;
 
       if (communityError) throw communityError;
 

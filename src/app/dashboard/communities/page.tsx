@@ -46,7 +46,7 @@ export default function CommunitiesPage() {
         .order("created_at", { ascending: false });
 
       if (!error && data) {
-        setCommunities(data);
+        setCommunities(data as any);
       }
       setLoading(false);
     };

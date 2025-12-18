@@ -29,7 +29,7 @@ export function CreatePost({ userId, onPostCreated, userProfile }: CreatePostPro
     setLoading(true);
     try {
       const { error } = await supabase
-        .from("posts")
+        .from("posts" as any)
         .insert({
           author_id: userId,
           content: content.trim(),

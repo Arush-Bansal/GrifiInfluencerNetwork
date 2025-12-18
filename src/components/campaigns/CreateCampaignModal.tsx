@@ -42,7 +42,7 @@ export function CreateCampaignModal({ brandId, onCampaignCreated }: CreateCampai
 
     setLoading(true);
     try {
-      const { error } = await supabase.from("campaigns").insert({
+      const { error } = await supabase.from("campaigns" as any).insert({
         brand_id: brandId,
         title: title.trim(),
         description: description.trim(),

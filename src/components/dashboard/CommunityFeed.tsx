@@ -45,8 +45,8 @@ export function CommunityFeed({ userId }: { userId: string }) {
         .eq("user_id", userId);
 
       const communityIds = Array.from(new Set([
-        ...(memberships?.map(m => m.community_id) || []),
-        ...(follows?.map(f => f.community_id) || [])
+        ...((memberships as any[])?.map(m => m.community_id) || []),
+        ...((follows as any[])?.map(f => f.community_id) || [])
       ]));
 
       if (communityIds.length === 0) {

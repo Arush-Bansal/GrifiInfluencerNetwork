@@ -49,7 +49,7 @@ export function ApplyToCampaignModal({
 
     setLoading(true);
     try {
-      const { error } = await supabase.from("campaign_applications").insert({
+      const { error } = await supabase.from("campaign_applications" as any).insert({
         campaign_id: campaignId,
         influencer_id: influencerId,
         message: message.trim(),
