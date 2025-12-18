@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Navbar } from "@/components/dashboard/Navbar";
 import { User, Loader2, Save, Camera, Link as LinkIcon, MapPin, Check, XCircle } from "lucide-react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { SocialVerification } from "@/components/dashboard/SocialVerification";
@@ -244,9 +243,7 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-secondary/30">
-      <Navbar user={user} username={profile.username} />
-
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2 text-foreground">Public Profile Settings</h1>
           <p className="text-muted-foreground">Manage your public profile and account details.</p>

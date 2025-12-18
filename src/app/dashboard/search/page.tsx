@@ -12,7 +12,6 @@ import { Search as SearchIcon, ArrowLeft, User, Loader2, Filter, Bot } from "luc
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MultiSelect, Option } from "@/components/ui/multi-select";
-import { Navbar } from "@/components/dashboard/Navbar";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const NICHE_OPTIONS: Option[] = [
@@ -153,9 +152,7 @@ function SearchContent() {
 
   return (
     <div className="min-h-screen bg-secondary/30">
-      <Navbar user={currentUser} username={profileUsername} />
-
-      <main className="container mx-auto px-4 py-8 max-w-2xl">
+      <main className="container mx-auto px-4 py-8">
         <Card className="mb-8">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Find People</CardTitle>

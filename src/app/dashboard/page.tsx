@@ -18,6 +18,8 @@ import { InfluencerCampaigns } from "@/components/campaigns/InfluencerCampaigns"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
+import { ContextSidebar } from "@/components/dashboard/ContextSidebar";
+
 const Dashboard = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -99,115 +101,79 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-secondary/30">
-      <Navbar user={user} username={profile.username} />
-
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Welcome Section */}
-        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold mb-2 text-foreground">Welcome to Grifi</h1>
-            <p className="text-muted-foreground">Complete your profile to start finding sponsor matches.</p>
-          </div>
-          
-          {profile.username ? (
-            <Button variant="outline" onClick={() => window.open(`/u/${profile.username}`, '_blank')}>
-              <User className="w-4 h-4 mr-2" />
-              View Public Profile
-            </Button>
-          ) : (
-             <Button onClick={() => router.push("/dashboard/profile")}>
-              Setup Public Profile
-            </Button>
-          )}
-        </div>
-
-        {/* Stats Overview */}
-        <div className="grid md:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center">
-                  <Users className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="text-2xl font-semibold">0</div>
-                  <div className="text-muted-foreground text-xs font-medium">Matches</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center">
-                  <Zap className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="text-2xl font-semibold">0</div>
-                  <div className="text-muted-foreground text-xs font-medium">Active Deals</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="text-2xl font-semibold">$0</div>
-                  <div className="text-muted-foreground text-xs font-medium">Total Earned</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center">
-                  <Bot className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="text-2xl font-semibold">AI</div>
-                  <div className="text-muted-foreground text-xs font-medium">Powered</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs defaultValue="feed" className="space-y-8">
-          <TabsList className="bg-background/50 border border-border/50 p-1">
-            <TabsTrigger value="feed" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all px-6">
-              Feed
-            </TabsTrigger>
-            <TabsTrigger value="campaigns" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all px-6">
-              {role === 'brand' ? 'My Campaigns' : 'Discover Campaigns'}
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="feed" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="lg:col-span-10 lg:col-start-2 space-y-8">
-                 <CreatePost 
-                   userId={user?.id || ""} 
-                   userProfile={{ username: profile.username }}
-                   onPostCreated={() => window.location.reload()} // Simple refresh for now
-                 />
-                 <UnifiedFeed userId={user?.id || ""} />
-              </div>
-          </TabsContent>
-
-          <TabsContent value="campaigns" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {role === 'brand' ? (
-              <BrandCampaigns brandId={user?.id || ""} />
+    <div className="container mx-auto px-4 py-8">
+      <div className="grid lg:grid-cols-12 gap-8">
+        {/* Main Content (Center) */}
+        <div className="lg:col-span-8 space-y-8">
+          {/* Welcome Section */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-accent/30 rounded-2xl border border-border/50">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">
+                Hello, {profile.username || user?.email?.split('@')[0]}!
+              </h1>
+              <p className="text-muted-foreground text-sm mt-1">
+                {role === 'brand' 
+                  ? "Here's what's happening with your campaigns today." 
+                  : "Discover new opportunities to grow your influence."}
+              </p>
+            </div>
+            
+            {profile.username ? (
+              <Button variant="outline" size="sm" onClick={() => window.open(`/u/${profile.username}`, '_blank')}>
+                <User className="w-4 h-4 mr-2" />
+                Preview Public Profile
+              </Button>
             ) : (
-              <InfluencerCampaigns influencerId={user?.id || ""} />
+               <Button size="sm" onClick={() => router.push("/dashboard/profile")}>
+                Setup Your Identity
+              </Button>
             )}
-          </TabsContent>
-        </Tabs>
-      </main>
+          </div>
+
+          <Tabs defaultValue="feed" className="space-y-6">
+            <TabsList className="bg-transparent border-b border-border rounded-none p-0 h-auto gap-8">
+              <TabsTrigger 
+                value="feed" 
+                className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none shadow-none px-0 py-3 text-sm font-medium transition-all"
+              >
+                Global Feed
+              </TabsTrigger>
+              <TabsTrigger 
+                value="campaigns" 
+                className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none shadow-none px-0 py-3 text-sm font-medium transition-all"
+              >
+                {role === 'brand' ? 'My Campaigns' : 'Discover Campaigns'}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="feed" className="animate-in fade-in slide-in-from-bottom-2 duration-300 outline-none">
+                <div className="space-y-6">
+                   <CreatePost 
+                     userId={user?.id || ""} 
+                     userProfile={{ username: profile.username }}
+                     onPostCreated={() => window.location.reload()}
+                   />
+                   <UnifiedFeed userId={user?.id || ""} />
+                </div>
+            </TabsContent>
+
+            <TabsContent value="campaigns" className="animate-in fade-in slide-in-from-bottom-2 duration-300 outline-none">
+              {role === 'brand' ? (
+                <BrandCampaigns brandId={user?.id || ""} />
+              ) : (
+                <InfluencerCampaigns influencerId={user?.id || ""} />
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        {/* Contextual Sidebar (Right) */}
+        <ContextSidebar 
+          role={role} 
+          profile={profile} 
+          className="lg:col-span-4 hidden lg:block" 
+        />
+      </div>
     </div>
   );
 };

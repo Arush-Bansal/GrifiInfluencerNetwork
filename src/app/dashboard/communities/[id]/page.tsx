@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { Navbar } from "@/components/dashboard/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -294,9 +293,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="min-h-screen bg-secondary/30">
-      <Navbar user={user} username={profile?.username} />
-
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 py-8">
         {/* Community Header */}
         <Card className="mb-8 border-none overflow-hidden bg-card/80 backdrop-blur-sm shadow-sm">
           <div className="h-32 bg-gradient-to-r from-primary/20 to-purple-500/20" />
