@@ -47,6 +47,28 @@ const ROLES: { id: UserRole; title: string; description: string; icon: any }[] =
   },
 ];
 
+const BLOCKED_DOMAINS = [
+  "gmail.com", "googlemail.com",
+  "yahoo.com", "yahoo.co.uk", "yahoo.in", "yahoo.ca", "ymail.com", "rocketmail.com",
+  "hotmail.com", "hotmail.co.uk", "hotmail.fr", "hotmail.it", "outlook.com", "live.com", "msn.com",
+  "icloud.com", "me.com", "mac.com",
+  "aol.com",
+  "protonmail.com", "proton.me",
+  "zoho.com", "zoho.in",
+  "gmx.com", "gmx.net", "gmx.de",
+  "yandex.com", "yandex.ru",
+  "mail.com", "mail.ru", "bk.ru", "inbox.ru", "list.ru",
+  "rediffmail.com",
+  "hushmail.com",
+  "fastmail.com", "fastmail.fm",
+  "t-online.de", "web.de", "freenet.de",
+];
+
+const isPublicEmail = (email: string) => {
+  const domain = email.split("@")[1]?.toLowerCase();
+  return BLOCKED_DOMAINS.includes(domain);
+};
+
 const AuthContent = () => {
   const searchParams = useSearchParams();
   const [isSignUp, setIsSignUp] = useState(searchParams.get("mode") === "signup");
@@ -59,15 +81,38 @@ const AuthContent = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const checkUserAccess = async (user: any) => {
+      if (user) {
+        const userRole = user.user_metadata?.role;
+        if (userRole === "brand" && isPublicEmail(user.email || "")) {
+          await supabase.auth.signOut();
+          toast({
+            title: "Access Restricted",
+            description: "Brand accounts must use a company email address.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        return true;
+      }
+      return false;
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        router.push("/dashboard");
+        const canAccess = await checkUserAccess(session.user);
+        if (canAccess) {
+          router.push("/dashboard");
+        }
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        router.push("/dashboard");
+        const canAccess = await checkUserAccess(session.user);
+        if (canAccess) {
+          router.push("/dashboard");
+        }
       }
     });
 
@@ -108,6 +153,17 @@ const AuthContent = () => {
           return;
         }
 
+        // Brand-specific email validation
+        if (role === "brand" && isPublicEmail(email)) {
+          toast({
+            title: "Company Email Required",
+            description: "Brands must use a company email address (e.g., name@company.com). Public email providers like Gmail or Yahoo are not allowed.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -134,12 +190,9 @@ const AuthContent = () => {
           });
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
-          options: { // Use token if required, otherwise empty object or undefined
-             // captchaToken: undefined 
-          }
         });
         
         if (error) {
@@ -151,6 +204,19 @@ const AuthContent = () => {
             });
           } else {
             throw error;
+          }
+        } else if (data?.user) {
+          // Check if this is a brand account with a public email
+          const userRole = data.user.user_metadata?.role;
+          if (userRole === "brand" && isPublicEmail(data.user.email || "")) {
+            await supabase.auth.signOut();
+            toast({
+              title: "Access Restricted",
+              description: "Brand accounts must use a company email address. Your account uses a public email provider which is no longer permitted for brands.",
+              variant: "destructive",
+            });
+            setLoading(false);
+            return;
           }
         }
       }
@@ -255,6 +321,11 @@ const AuthContent = () => {
                   required
                   className="h-11"
                 />
+                {isSignUp && role === "brand" && (
+                  <p className="text-[10px] text-muted-foreground italic">
+                    * Brand accounts require a company email address.
+                  </p>
+                )}
               </div>
               
               <div className="space-y-2">
