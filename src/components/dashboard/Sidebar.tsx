@@ -18,6 +18,15 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Settings } from "lucide-react";
 
 interface SidebarProps {
   className?: string;
@@ -132,40 +141,52 @@ export function Sidebar({ className, user, role, profile }: SidebarProps) {
         </div>
       </nav>
 
+
       <div className="p-4 mt-auto border-t border-border">
-        <div className="flex items-center gap-3 px-3 py-3 mb-2">
-          <Avatar className="w-9 h-9 border border-border">
-            <AvatarImage src={user?.user_metadata?.avatar_url || ""} />
-            <AvatarFallback className="bg-primary/5 text-primary text-xs">
-              {profile?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold truncate text-foreground">
-              {profile?.full_name || "User"}
-            </p>
-            <p className="text-xs text-muted-foreground truncate">
-              {role?.replace("_", " ") || "Member"}
-            </p>
-          </div>
-        </div>
-        <div className="space-y-1">
-          <Link
-            href="/dashboard/profile"
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-          >
-            <User className="w-4 h-4" />
-            Settings
-          </Link>
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10 h-9 px-3"
-            onClick={handleLogout}
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </Button>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer hover:bg-accent transition-colors">
+              <Avatar className="w-9 h-9 border border-border">
+                <AvatarImage src={user?.user_metadata?.avatar_url || ""} />
+                <AvatarFallback className="bg-primary/5 text-primary text-xs">
+                  {profile?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold truncate text-foreground">
+                  {profile?.full_name || "User"}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {role?.replace("_", " ") || "Member"}
+                </p>
+              </div>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-64 mb-2">
+            <DropdownMenuLabel>
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">{profile?.full_name || "User"}</p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {user?.email}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push(`/u/${profile?.username || user?.user_metadata?.username}`)}>
+              <ExternalLink className="mr-2 h-4 w-4 text-muted-foreground" />
+              <span>Go to Public Page</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
+              <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
+              <span>View Profile</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Logout</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </aside>
   );

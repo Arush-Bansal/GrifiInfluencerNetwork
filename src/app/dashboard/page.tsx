@@ -130,16 +130,7 @@ const Dashboard = () => {
             </div>
             
             <div className="shrink-0">
-              {profile.username ? (
-                <Button variant="outline" size="sm" onClick={() => router.push(`/u/${profile.username}`)} className="w-full sm:w-auto text-xs py-1 h-8">
-                  <User className="w-3.5 h-3.5 mr-2" />
-                  Preview Profile
-                </Button>
-              ) : (
-                 <Button size="sm" onClick={() => router.push("/dashboard/profile")} className="w-full sm:w-auto text-xs py-1 h-8">
-                  Setup Your Identity
-                </Button>
-              )}
+              {/* Profile setup check or additional info can go here if needed, but removing button as requested */}
             </div>
           </div>
 
