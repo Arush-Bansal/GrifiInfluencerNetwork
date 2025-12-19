@@ -57,6 +57,10 @@ function SearchContent() {
   const [showFilters, setShowFilters] = useState(false);
   const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const [profileUsername, setProfileUsername] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<Profile[]>([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -145,9 +149,64 @@ function SearchContent() {
     }
   }, [initialQuery]);
 
+  // Fetch suggestions as user types
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (!isFocused) return;
+      
+      if (!query.trim()) {
+        // Fetch "featured" or recent users when query is empty
+        setIsLoadingSuggestions(true);
+        const { data } = await supabase
+          .from("profiles")
+          .select("id, full_name, username, avatar_url, bio")
+          .limit(5);
+        setSuggestions(data || []);
+        setIsLoadingSuggestions(false);
+        return;
+      }
+
+      setIsLoadingSuggestions(true);
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, full_name, username, avatar_url, bio")
+        .or(`full_name.ilike.%${query}%,username.ilike.%${query}%`)
+        .limit(5);
+      
+      setSuggestions(data || []);
+      setIsLoadingSuggestions(false);
+    };
+
+    const debounceTimer = setTimeout(() => {
+      fetchSuggestions();
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [query, isFocused]);
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     performSearch(query);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isFocused || suggestions.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : prev));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev > 0 ? prev - 1 : prev));
+    } else if (e.key === "Enter" && activeIndex >= 0) {
+      e.preventDefault();
+      const suggestion = suggestions[activeIndex];
+      setQuery(suggestion.username || suggestion.full_name || "");
+      router.push(`/u/${suggestion.username}`);
+      setIsFocused(false);
+    } else if (e.key === "Escape") {
+      setIsFocused(false);
+    }
   };
 
   return (
@@ -173,9 +232,66 @@ function SearchContent() {
                 <Input
                   placeholder="Search by name or username..."
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setActiveIndex(-1);
+                  }}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => {
+                    // Slight delay to allow clicking suggestions
+                    setTimeout(() => setIsFocused(false), 200);
+                  }}
+                  onKeyDown={handleKeyDown}
                   className="pl-9"
                 />
+                
+                {isFocused && (
+                  <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-background border rounded-md shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                    {isLoadingSuggestions ? (
+                      <div className="p-4 flex items-center justify-center">
+                        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : suggestions.length > 0 ? (
+                      <div className="py-2">
+                        {suggestions.map((suggestion, index) => (
+                          <button
+                            key={suggestion.id}
+                            type="button"
+                            className={`w-full px-4 py-2 flex items-center gap-3 hover:bg-accent text-left transition-colors ${
+                              activeIndex === index ? "bg-accent" : ""
+                            }`}
+                            onClick={() => {
+                              setQuery(suggestion.username || suggestion.full_name || "");
+                              router.push(`/u/${suggestion.username}`);
+                            }}
+                            onMouseEnter={() => setActiveIndex(index)}
+                          >
+                            <Avatar className="w-8 h-8">
+                              <AvatarImage src={suggestion.avatar_url || ""} />
+                              <AvatarFallback>
+                                <User className="w-4 h-4" />
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">
+                                {suggestion.full_name || suggestion.username}
+                              </p>
+                              {suggestion.username && (
+                                <p className="text-xs text-muted-foreground truncate">
+                                  @{suggestion.username}
+                                </p>
+                              )}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        No results found
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               <Button type="submit" disabled={loading}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
