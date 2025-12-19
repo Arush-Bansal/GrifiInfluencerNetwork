@@ -62,7 +62,7 @@ export function MultiSelect({
                 return (
                   <Badge
                     key={item}
-                    variant="secondary"
+                    variant="default"
                     className="mr-1 mb-1"
                     onClick={(e) => {
                       e.stopPropagation();
