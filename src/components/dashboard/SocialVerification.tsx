@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, getURL } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Instagram, Youtube, Twitter, Facebook, CheckCircle2, Link2, Loader2, AlertCircle } from "lucide-react";
 import { User } from "@supabase/supabase-js";
@@ -32,7 +32,7 @@ export const SocialVerification = ({ user }: SocialVerificationProps) => {
       const { data, error } = await supabase.auth.linkIdentity({
         provider: provider,
         options: {
-          redirectTo: `${window.location.origin}/dashboard/profile`,
+          redirectTo: `${getURL()}dashboard/profile`,
           // Requesting readonly access to prove ownership
           scopes: provider === 'google' ? 'https://www.googleapis.com/auth/youtube.readonly' : undefined,
           queryParams: {

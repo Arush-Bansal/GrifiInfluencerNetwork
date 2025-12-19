@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, getURL } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { User, Briefcase, Building2, Globe, ArrowLeft, Loader2, Sparkles, Users, Mail, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -170,7 +170,7 @@ const AuthContent = () => {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            emailRedirectTo: `${getURL()}dashboard`,
             data: { name, role },
           },
         });
@@ -242,7 +242,7 @@ const AuthContent = () => {
         type: 'signup',
         email: email,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${getURL()}dashboard`,
         }
       });
       if (error) throw error;
