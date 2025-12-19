@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
-import { User, Briefcase, Building2, Globe, ArrowLeft, Loader2, Sparkles, Users } from "lucide-react";
+import { User, Briefcase, Building2, Globe, ArrowLeft, Loader2, Sparkles, Users, Mail, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const authSchema = z.object({
@@ -77,6 +77,8 @@ const AuthContent = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
+  const [resending, setResending] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -164,7 +166,7 @@ const AuthContent = () => {
           return;
         }
 
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -184,9 +186,10 @@ const AuthContent = () => {
             throw error;
           }
         } else {
+          setShowVerification(true);
           toast({
-            title: "Welcome to Grifi!",
-            description: "Your account has been created successfully.",
+            title: "Verification Email Sent",
+            description: "Please check your inbox to verify your account.",
           });
         }
       } else {
@@ -231,6 +234,33 @@ const AuthContent = () => {
     }
   };
 
+  const handleResendEmail = async () => {
+    if (!email) return;
+    setResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        }
+      });
+      if (error) throw error;
+      toast({
+        title: "Email Resent",
+        description: "A new verification link has been sent to your email.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to resend email. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setResending(false);
+    }
+  };
+
   const handleRoleSelect = (selectedRole: UserRole) => {
     setRole(selectedRole);
   };
@@ -256,14 +286,64 @@ const AuthContent = () => {
                 : "Welcome back"}
             </h1>
             <p className="text-muted-foreground text-sm sm:text-base">
-              {isSignUp 
-                ? (role ? "Enter your details to get started." : "Choose how you want to use Grifi.") 
-                : "Log in to access your professional network."}
+              {showVerification 
+                ? "Verify your email to complete your registration."
+                : (isSignUp 
+                  ? (role ? "Enter your details to get started." : "Choose how you want to use Grifi.") 
+                  : "Log in to access your professional network.")
+              }
             </p>
           </div>
 
+          {/* Verification Pending View */}
+          {showVerification && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6 text-center space-y-4">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                  <Mail className="w-8 h-8 text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold">Check your inbox</h3>
+                  <p className="text-sm text-muted-foreground">
+                    We've sent a verification link to <span className="font-semibold text-foreground">{email}</span>. 
+                    Please click the link to verify your account and continue.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-2">
+                <Button 
+                  onClick={handleResendEmail} 
+                  className="w-full h-11 text-base font-medium" 
+                  variant="default"
+                  disabled={resending}
+                >
+                  {resending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Resend verification email
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setShowVerification(false);
+                    setIsSignUp(false);
+                  }} 
+                  className="w-full h-11 text-muted-foreground hover:text-foreground" 
+                  variant="ghost"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Back to login
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-2 p-4 bg-muted/40 rounded-xl">
+                <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  Didn't receive it? Check your spam folder or click above to resend.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Role Selection Step */}
-          {isSignUp && !role && (
+          {isSignUp && !role && !showVerification && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
               {ROLES.map((r) => {
                 const Icon = r.icon;
@@ -292,7 +372,7 @@ const AuthContent = () => {
           )}
 
           {/* Auth Form */}
-          {(!isSignUp || role) && (
+          {(!isSignUp || role) && !showVerification && (
             <form onSubmit={handleSubmit} className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
               
               {isSignUp && (
@@ -376,21 +456,23 @@ const AuthContent = () => {
           )}
 
           {/* Toggle Login/Signup */}
-          <div className="text-center text-sm">
-            <span className="text-muted-foreground">
-              {isSignUp ? "Already have an account? " : "New to Grifi? "}
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                if (!isSignUp) setRole(null); // Reset role if switching to signup
-              }}
-              className="font-medium text-primary hover:underline underline-offset-4 transition-all"
-            >
-              {isSignUp ? "Log in" : "Sign up"}
-            </button>
-          </div>
+          {!showVerification && (
+            <div className="text-center text-sm">
+              <span className="text-muted-foreground">
+                {isSignUp ? "Already have an account? " : "New to Grifi? "}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  if (!isSignUp) setRole(null); // Reset role if switching to signup
+                }}
+                className="font-medium text-primary hover:underline underline-offset-4 transition-all"
+              >
+                {isSignUp ? "Log in" : "Sign up"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

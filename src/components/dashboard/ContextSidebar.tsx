@@ -47,7 +47,7 @@ export function ContextSidebar({ role, profile, className }: ContextSidebarProps
         </Card>
 
         {/* AI Suggestions */}
-        <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
+        {/* <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
           <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
             <Zap className="w-4 h-4 text-primary" />
             AI Suggestions
@@ -60,7 +60,7 @@ export function ContextSidebar({ role, profile, className }: ContextSidebarProps
           <Button variant="link" className="text-xs h-auto p-0 mt-2 text-primary">
             Explore matches
           </Button>
-        </div>
+        </div> */}
 
         {/* Role Specific Alerts */}
         {!profile?.username && (
