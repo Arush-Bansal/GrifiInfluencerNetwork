@@ -222,7 +222,7 @@ export default function CollabRequestsPage() {
                                               <h4 className="font-semibold text-sm sm:text-base truncate">{partner.full_name || partner.username || "User"}</h4>
                                               <p className="text-[10px] sm:text-xs text-muted-foreground truncate">@{partner.username}</p>
                                               <div className="flex items-center gap-2 mt-1 shrink-0">
-                                                  <Badge variant="secondary" className="text-[9px] sm:text-[10px] h-4 sm:h-5 px-1 sm:px-1.5 font-medium">{req.type}</Badge>
+                                                  <Badge variant="default" className="text-[9px] sm:text-[10px] h-4 sm:h-5 px-1 sm:px-1.5 font-medium">{req.type}</Badge>
                                               </div>
                                           </div>
                                       </div>
