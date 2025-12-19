@@ -171,11 +171,13 @@ const Dashboard = () => {
 
             <TabsContent value="feed" className="animate-in fade-in slide-in-from-bottom-2 duration-300 outline-none">
                 <div className="space-y-6">
-                   <CreatePost 
-                     userId={user?.id || ""} 
-                     userProfile={{ username: profile.username }}
-                     onPostCreated={() => window.location.reload()}
-                   />
+                   <div className="hidden lg:block">
+                     <CreatePost 
+                       userId={user?.id || ""} 
+                       userProfile={{ username: profile.username }}
+                       onPostCreated={() => window.location.reload()}
+                     />
+                   </div>
                    <UnifiedFeed userId={user?.id || ""} />
                 </div>
             </TabsContent>

@@ -33,7 +33,7 @@ export function BottomNav({ className, role }: BottomNavProps) {
     },
     {
       title: "Create",
-      href: role === "brand" ? "/dashboard/campaigns/new" : "/dashboard",
+      href: "/dashboard/create",
       icon: Plus,
       isAction: true,
     },
