@@ -314,9 +314,25 @@ const ProfilePage = () => {
   return (
     <div className="min-h-screen bg-secondary/30">
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 text-foreground">Public Profile Settings</h1>
-          <p className="text-muted-foreground">Manage your public profile and account details.</p>
+        {/* Sticky Action Header */}
+        <div className="sticky top-16 lg:top-0 z-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 -mx-4 px-4 py-4 mb-6 border-b flex items-center justify-between sm:static sm:bg-transparent sm:backdrop-blur-none sm:border-none sm:mx-0 sm:px-0 sm:mb-8 sm:py-0">
+          <div>
+            <h1 className="text-xl sm:text-3xl font-bold text-foreground">Profile Settings</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Manage your public profile and account details.</p>
+          </div>
+          <Button 
+            onClick={handleSave} 
+            disabled={saving || usernameStatus === 'unavailable'} 
+            size="sm"
+            className="shadow-lg shadow-primary/20"
+          >
+            {saving ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-2" />
+            )}
+            <span className="inline">Save Changes</span>
+          </Button>
         </div>
 
         <div className="grid gap-8">
@@ -329,16 +345,28 @@ const ProfilePage = () => {
             <CardContent className="space-y-6">
               {/* Banner Section */}
               <div className="space-y-4">
-                <Label>Profile Background</Label>
-                <div className="relative h-40 w-full rounded-xl overflow-hidden bg-secondary border-2 border-dashed border-border group">
+                <div className="flex items-center justify-between">
+                  <Label>Profile Background</Label>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-xs h-8 text-primary"
+                    onClick={() => document.getElementById('banner-upload')?.click()}
+                  >
+                    <Camera className="w-3.5 h-3.5 mr-1.5" />
+                    {profile.banner_url ? 'Change' : 'Upload'}
+                  </Button>
+                </div>
+                <div className="relative h-32 sm:h-40 w-full rounded-xl overflow-hidden bg-secondary border-2 border-dashed border-border group">
                   {profile.banner_url ? (
                     <img src={profile.banner_url} alt="Profile Banner" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-primary/5 via-primary/10 to-primary/20 flex items-center justify-center">
-                      <p className="text-muted-foreground text-sm font-medium">No background image set</p>
+                      <p className="text-muted-foreground text-xs font-medium">No background image set</p>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  {/* Desktop Hover Overlay */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:flex items-center justify-center">
                     <input
                       type="file"
                       id="banner-upload"
@@ -349,27 +377,41 @@ const ProfilePage = () => {
                     <Button 
                       variant="secondary" 
                       size="sm" 
-                      className="font-bold"
+                      className="font-bold shadow-lg"
                       onClick={() => document.getElementById('banner-upload')?.click()}
                     >
                       <Camera className="w-4 h-4 mr-2" />
                       {profile.banner_url ? 'Change Background' : 'Upload Background'}
                     </Button>
                   </div>
+                  {/* Mobile Input (Functional without hover) */}
+                  <input
+                    type="file"
+                    id="banner-upload-mobile"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(e, 'banner')}
+                  />
                 </div>
-                <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest text-center">Recommended size: 1200x400</p>
+                <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest text-center">Recommended: 1200x400</p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-6 items-start pt-4 border-t border-border">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="h-24 w-24 rounded-full bg-secondary flex items-center justify-center border-2 border-border relative overflow-hidden">
+              <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start pt-4 border-t border-border mt-2">
+                <div className="flex flex-col items-center gap-3 shrink-0">
+                  <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-full bg-secondary flex items-center justify-center border-4 border-background shadow-xl relative overflow-hidden group">
                     {user?.user_metadata?.avatar_url ? (
                       <img src={user.user_metadata.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
                     ) : (
                       <User className="h-12 w-12 text-muted-foreground" />
                     )}
+                    <div 
+                      className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                      onClick={() => document.getElementById('avatar-upload')?.click()}
+                    >
+                      <Camera className="w-6 h-6 text-white" />
+                    </div>
                   </div>
-                  <div className="relative">
+                  <div className="relative w-full">
                     <input
                       type="file"
                       id="avatar-upload"
@@ -380,10 +422,10 @@ const ProfilePage = () => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="w-full text-xs" 
+                      className="w-full text-xs font-semibold h-8" 
                       onClick={() => document.getElementById('avatar-upload')?.click()}
                     >
-                      <Camera className="w-3 h-3 mr-2" />
+                      <Camera className="w-3.5 h-3.5 mr-2" />
                       Change Photo
                     </Button>
                   </div>
@@ -415,7 +457,7 @@ const ProfilePage = () => {
                         </div>
                       </div>
                       <div className="flex justify-between">
-                         <p className="text-xs text-muted-foreground">instalink.app/u/{profile.username || "username"}</p>
+                         <p className="text-xs text-muted-foreground">grifi.in/u/{profile.username || "username"}</p>
                          {usernameStatus === 'unavailable' && <p className="text-xs text-destructive font-medium">Username taken</p>}
                          {usernameStatus === 'available' && <p className="text-xs text-green-600 font-medium">Username available</p>}
                       </div>

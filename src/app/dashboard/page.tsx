@@ -112,56 +112,62 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid lg:grid-cols-12 gap-8">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-full overflow-hidden">
+      <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
         {/* Main Content (Center) */}
-        <div className="lg:col-span-8 space-y-8">
+        <div className="lg:col-span-8 space-y-6 sm:space-y-8 min-w-0">
           {/* Welcome Section */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-accent/30 rounded-2xl border border-border/50">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 sm:p-6 bg-accent/30 rounded-2xl border border-border/50 max-w-full overflow-hidden">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground lg:truncate">
                 Hello, {profile.username || user?.email?.split('@')[0]}!
               </h1>
-              <p className="text-muted-foreground text-sm mt-1">
+              <p className="text-muted-foreground text-xs sm:text-sm mt-1 lg:truncate">
                 {role === 'brand' 
                   ? "Here's what's happening with your campaigns today." 
                   : "Discover new opportunities to grow your influence."}
               </p>
             </div>
             
-            {profile.username ? (
-              <Button variant="outline" size="sm" onClick={() => window.open(`/u/${profile.username}`, '_blank')}>
-                <User className="w-4 h-4 mr-2" />
-                Preview Public Profile
-              </Button>
-            ) : (
-               <Button size="sm" onClick={() => router.push("/dashboard/profile")}>
-                Setup Your Identity
-              </Button>
-            )}
+            <div className="shrink-0">
+              {profile.username ? (
+                <Button variant="outline" size="sm" onClick={() => window.open(`/u/${profile.username}`, '_blank')} className="w-full sm:w-auto text-xs py-1 h-8">
+                  <User className="w-3.5 h-3.5 mr-2" />
+                  Preview Profile
+                </Button>
+              ) : (
+                 <Button size="sm" onClick={() => router.push("/dashboard/profile")} className="w-full sm:w-auto text-xs py-1 h-8">
+                  Setup Your Identity
+                </Button>
+              )}
+            </div>
           </div>
 
-          <Tabs defaultValue="feed" className="space-y-6">
-            <TabsList className="bg-transparent border-b border-border rounded-none p-0 h-auto gap-8">
-              <TabsTrigger 
-                value="feed" 
-                className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none shadow-none px-0 py-3 text-sm font-medium transition-all"
-              >
-                Global Feed
-              </TabsTrigger>
-              <TabsTrigger 
-                value="campaigns" 
-                className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none shadow-none px-0 py-3 text-sm font-medium transition-all"
-              >
-                {role === 'brand' ? 'My Campaigns' : 'Discover Campaigns'}
-              </TabsTrigger>
-              <TabsTrigger 
-                value="communities" 
-                className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none shadow-none px-0 py-3 text-sm font-medium transition-all"
-              >
-                Communities
-              </TabsTrigger>
-            </TabsList>
+          <Tabs defaultValue="feed" className="space-y-6 max-w-full">
+            <div className="border-b border-border -mx-4 px-4 sm:mx-0 sm:px-0">
+              <div className="overflow-x-auto no-scrollbar scroll-smooth">
+                <TabsList className="bg-transparent rounded-none p-0 h-auto flex justify-start gap-4 sm:gap-8 border-none min-w-max pb-[2px]">
+                  <TabsTrigger 
+                    value="feed" 
+                    className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none shadow-none px-2 py-3 text-sm font-bold transition-all whitespace-nowrap"
+                  >
+                    Global
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="campaigns" 
+                    className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none shadow-none px-2 py-3 text-sm font-bold transition-all whitespace-nowrap"
+                  >
+                    Campaigns
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="communities" 
+                    className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none shadow-none px-2 py-3 text-sm font-bold transition-all whitespace-nowrap"
+                  >
+                    Communities
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+            </div>
 
             <TabsContent value="feed" className="animate-in fade-in slide-in-from-bottom-2 duration-300 outline-none">
                 <div className="space-y-6">

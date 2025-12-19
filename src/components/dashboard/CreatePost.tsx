@@ -109,21 +109,43 @@ export function CreatePost({ userId, onPostCreated, userProfile }: CreatePostPro
   return (
     <Card className="border-none bg-card/50 backdrop-blur-sm shadow-sm mb-6">
       <CardContent className="pt-6">
-        <div className="flex gap-4">
-          <Avatar className="w-10 h-10 border border-border/50">
-            <AvatarImage src={userProfile?.avatar_url} alt={userProfile?.username} />
-            <AvatarFallback>{userProfile?.username?.[0]?.toUpperCase() || "U"}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1 space-y-4">
+        <div className="flex gap-3 sm:gap-4">
+          <div className="flex flex-col items-center gap-3">
+            <Avatar className="w-10 h-10 border border-border/50">
+              <AvatarImage src={userProfile?.avatar_url} alt={userProfile?.username} />
+              <AvatarFallback>{userProfile?.username?.[0]?.toUpperCase() || "U"}</AvatarFallback>
+            </Avatar>
+            
+            <div className="relative">
+              <input
+                type="file"
+                id="post-image-upload"
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageSelect}
+              />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-10 w-10 text-muted-foreground hover:text-primary transition-all rounded-full hover:bg-primary/5 border border-transparent hover:border-primary/20"
+                onClick={() => document.getElementById('post-image-upload')?.click()}
+                title="Add Image"
+              >
+                <ImagePlus className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex-1 min-w-0 space-y-4">
             <Textarea
               placeholder={`What's on your mind, ${userProfile?.username || 'influencer'}?`}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="min-h-[100px] bg-secondary/50 border-none focus-visible:ring-primary/20 resize-none text-sm"
+              className="min-h-[100px] bg-secondary/30 border-none focus-visible:ring-primary/20 resize-none text-sm p-3 rounded-xl"
             />
 
             {imagePreview && (
-              <div className="relative w-full max-h-[300px] rounded-lg overflow-hidden border border-border/50 group">
+              <div className="relative w-full max-h-[300px] rounded-xl overflow-hidden border border-border/50 group">
                 <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                 <Button
                   variant="destructive"
@@ -136,29 +158,11 @@ export function CreatePost({ userId, onPostCreated, userProfile }: CreatePostPro
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-2 border-t border-border/50">
-              <div className="relative">
-                <input
-                  type="file"
-                  id="post-image-upload"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleImageSelect}
-                />
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                  onClick={() => document.getElementById('post-image-upload')?.click()}
-                >
-                  <ImagePlus className="w-4 h-4 mr-2" />
-                  Add Image
-                </Button>
-              </div>
+            <div className="flex items-center justify-end pt-2 border-t border-border/50">
               <Button 
                 onClick={handlePost} 
                 disabled={loading || !content.trim()}
-                className="rounded-full px-6 shadow-sm hover:shadow-md transition-all"
+                className="rounded-full px-6 shadow-sm hover:shadow-md transition-all h-10"
               >
                 {loading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

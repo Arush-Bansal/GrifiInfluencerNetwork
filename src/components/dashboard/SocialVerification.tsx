@@ -121,46 +121,49 @@ export const SocialVerification = ({ user }: SocialVerificationProps) => {
           return (
             <div
               key={platform.name}
-              className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-secondary/20 transition-colors"
+              className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg bg-card hover:bg-secondary/20 transition-all gap-4"
             >
               <div className="flex items-center gap-4">
-                <div className={`p-2 rounded-full bg-secondary ${platform.color} bg-opacity-10`}>
-                  <platform.icon className={`w-6 h-6 ${platform.color}`} />
+                <div className={`p-2.5 rounded-full bg-secondary ${platform.color} bg-opacity-10`}>
+                  <platform.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${platform.color}`} />
                 </div>
                 <div>
-                  <h3 className="font-semibold flex items-center gap-2">
+                  <h3 className="font-semibold flex items-center gap-2 text-sm sm:text-base">
                     {platform.name}
                     {verified && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 uppercase tracking-tight">
                         Verified
                       </span>
                     )}
                   </h3>
-                  <p className="text-sm text-muted-foreground">{platform.description}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{platform.description}</p>
                 </div>
               </div>
 
-              <div>
+              <div className="w-full sm:w-auto">
                 {verified ? (
-                  <Button variant="ghost" disabled className="gap-2 text-green-600 font-medium">
+                  <div className="flex items-center justify-center sm:justify-end gap-2 text-green-600 font-bold text-xs sm:text-sm px-3 py-2 bg-green-50 rounded-md sm:bg-transparent sm:p-0">
                     <CheckCircle2 className="w-4 h-4" />
                     Connected
-                  </Button>
+                  </div>
                 ) : (
                   <Button
                     variant="outline"
                     onClick={() => handleConnect(platform.provider)}
                     disabled={isLoading}
+                    className="w-full sm:w-auto shadow-sm"
+                    size="sm"
                   >
                     {isLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Connecting...
+                        <span className="sm:hidden">Connecting...</span>
+                        <span className="hidden sm:inline">Connecting</span>
                       </>
                     ) : (
                       <>
                         <Link2 className="w-4 h-4 mr-2" />
-                        Connect
+                        Connect {platform.name}
                       </>
                     )}
                   </Button>

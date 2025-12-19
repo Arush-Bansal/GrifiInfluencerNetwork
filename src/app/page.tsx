@@ -45,41 +45,41 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 shrink-0">
             <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
               <span className="text-primary-foreground font-semibold text-lg">G</span>
             </div>
-            <span className="text-xl font-semibold tracking-tight">GRIFI</span>
+            <span className="text-xl font-bold tracking-tight text-foreground sm:block">GRIFI</span>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 sm:gap-6">
             <div className="hidden md:flex items-center gap-6">
               <Link href="/" className="text-sm font-medium text-primary">Home</Link>
               <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">About</Link>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               {!loading && (
                 <>
                   {session ? (
                     <>
                       <Link href="/dashboard">
-                        <Button variant="ghost" size="sm">
-                          <LayoutDashboard className="w-4 h-4 mr-2" />
-                          Dashboard
+                        <Button variant="ghost" size="sm" className="px-2 sm:px-3 text-xs sm:text-sm">
+                          <LayoutDashboard className="w-4 h-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Dashboard</span>
                         </Button>
                       </Link>
-                      <Button variant="outline" size="sm" onClick={handleLogout}>
-                        <LogOut className="w-4 h-4 mr-2" />
-                        Logout
+                      <Button variant="outline" size="sm" onClick={handleLogout} className="px-2 sm:px-3 text-xs sm:text-sm">
+                        <LogOut className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Logout</span>
                       </Button>
                     </>
                   ) : (
                     <>
                       <Link href="/auth">
-                        <Button variant="ghost" size="sm">Log In</Button>
+                        <Button variant="ghost" size="sm" className="text-xs sm:text-sm px-2 sm:px-4">Log In</Button>
                       </Link>
                       <Link href="/auth?mode=signup">
-                        <Button size="sm">Get Started</Button>
+                        <Button size="sm" className="text-xs sm:text-sm px-3 sm:px-4 shadow-md">Get Started</Button>
                       </Link>
                     </>
                   )}
@@ -93,13 +93,13 @@ const Index = () => {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 md:py-32">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center justify-center mb-6 px-4 py-1.5 rounded-full bg-secondary text-secondary-foreground">
-            <span className="font-medium text-xs tracking-wide uppercase">The Professional Network for Creators</span>
+          <div className="inline-flex items-center justify-center mb-6 px-4 py-1.5 rounded-full bg-secondary/50 text-secondary-foreground border border-border/50">
+            <span className="font-bold text-[10px] sm:text-xs tracking-wider uppercase">Professional Network for Creators</span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-tight text-foreground">
-            Connect, Collaborate, & <br/> <span className="text-primary">Grow Together</span>
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tighter mb-6 leading-[1.1] text-foreground">
+            Connect, Collaborate, & <br className="hidden sm:block" /> <span className="text-primary underline decoration-primary/20 underline-offset-8">Grow Together</span>
           </h1>
-          <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed px-4">
             The identity layer for the creator economy. Whether you're a creator, brand, agency, or operator — build your professional network here.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -161,19 +161,19 @@ const Index = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="grid md:grid-cols-3 gap-8 text-center">
-          <div className="p-8 border border-border rounded-xl bg-card shadow-sm">
-            <div className="text-4xl font-bold mb-2 text-primary">10K+</div>
-            <div className="text-muted-foreground font-medium">Influencers</div>
+      <section className="container mx-auto px-4 py-16 sm:py-20 lg:py-32">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 text-center">
+          <div className="p-8 border border-border/50 rounded-2xl bg-card shadow-sm hover:shadow-md transition-shadow">
+            <div className="text-4xl sm:text-5xl font-black mb-2 text-primary tracking-tighter">10K+</div>
+            <div className="text-muted-foreground text-sm uppercase tracking-widest font-bold">Influencers</div>
           </div>
-          <div className="p-8 border border-border rounded-xl bg-card shadow-sm">
-            <div className="text-4xl font-bold mb-2 text-primary">500+</div>
-            <div className="text-muted-foreground font-medium">Brand Partners</div>
+          <div className="p-8 border border-border/50 rounded-2xl bg-card shadow-sm hover:shadow-md transition-shadow">
+            <div className="text-4xl sm:text-5xl font-black mb-2 text-primary tracking-tighter">500+</div>
+            <div className="text-muted-foreground text-sm uppercase tracking-widest font-bold">Brand Partners</div>
           </div>
-          <div className="p-8 border border-border rounded-xl bg-card shadow-sm">
-            <div className="text-4xl font-bold mb-2 text-primary">$5M+</div>
-            <div className="text-muted-foreground font-medium">Deals Closed</div>
+          <div className="p-8 border border-border/50 rounded-2xl bg-card shadow-sm hover:shadow-md transition-shadow sm:col-span-2 lg:col-span-1">
+            <div className="text-4xl sm:text-5xl font-black mb-2 text-primary tracking-tighter">$5M+</div>
+            <div className="text-muted-foreground text-sm uppercase tracking-widest font-bold">Deals Closed</div>
           </div>
         </div>
       </section>
@@ -204,22 +204,22 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border py-8 bg-background">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+      <footer className="border-t border-border py-12 bg-background">
+        <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xs">G</span>
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
+              <span className="text-primary-foreground font-bold text-sm">G</span>
             </div>
-            <span className="font-bold text-sm tracking-tight">GRIFI</span>
+            <span className="font-black text-lg tracking-tighter text-foreground">GRIFI</span>
           </div>
-          <div className="flex gap-8">
-            <Link href="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">Home</Link>
-            <Link href="/about" className="text-sm text-muted-foreground hover:text-primary transition-colors">About</Link>
-            <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">Privacy</Link>
-            <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">Terms</Link>
+          <div className="flex flex-wrap justify-center gap-6 sm:gap-8">
+            <Link href="/" className="text-xs sm:text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Home</Link>
+            <Link href="/about" className="text-xs sm:text-sm font-medium text-muted-foreground hover:text-primary transition-colors">About</Link>
+            <Link href="/privacy" className="text-xs sm:text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Privacy</Link>
+            <Link href="/terms" className="text-xs sm:text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Terms</Link>
           </div>
-          <div className="text-muted-foreground text-sm">
-            © 2024 Grifi Network. All rights reserved.
+          <div className="text-muted-foreground text-[10px] sm:text-xs font-medium uppercase tracking-widest">
+            © 2024 Grifi Network. Built for Creators.
           </div>
         </div>
       </footer>

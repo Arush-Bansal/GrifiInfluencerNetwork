@@ -163,27 +163,27 @@ export default function CollabRequestsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between mb-8 gap-4 text-center sm:text-left">
         <div>
-           <h1 className="text-3xl font-bold tracking-tight">Collaboration Manager</h1>
-           <p className="text-muted-foreground mt-2">Manage requests and chat with your connections.</p>
+           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Collaboration Manager</h1>
+           <p className="text-sm sm:text-base text-muted-foreground mt-2">Manage requests and chat with your connections.</p>
         </div>
       </div>
 
       <Tabs defaultValue="connections" className="w-full">
-        <TabsList className="mb-8 p-1">
-          <TabsTrigger value="connections" className="gap-2 flex-1">
-            <Users className="w-4 h-4" />
-            Connections ({activeConnections.length})
+        <TabsList className="mb-8 w-full h-auto flex-wrap sm:flex-nowrap p-1 bg-muted/50 border">
+          <TabsTrigger value="connections" className="gap-2 flex-1 py-2 text-xs sm:text-sm">
+            <Users className="w-4 h-4 hidden xs:block" />
+            <span>Connections ({activeConnections.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="incoming" className="gap-2 flex-1 relative">
-             <Inbox className="w-4 h-4" />
-             Incoming
-             {incomingRequests.length > 0 && <span className="ml-1 bg-primary text-primary-foreground text-xs rounded-full px-1.5 h-4 flex items-center justify-center">{incomingRequests.length}</span>}
+          <TabsTrigger value="incoming" className="gap-2 flex-1 py-2 text-xs sm:text-sm relative">
+             <Inbox className="w-4 h-4 hidden xs:block" />
+             <span>Incoming</span>
+             {incomingRequests.length > 0 && <span className="ml-1 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 h-4 flex items-center justify-center min-w-[18px]">{incomingRequests.length}</span>}
           </TabsTrigger>
-          <TabsTrigger value="outgoing" className="gap-2 flex-1">
-             <Send className="w-4 h-4" />
-             Sent
+          <TabsTrigger value="outgoing" className="gap-2 flex-1 py-2 text-xs sm:text-sm">
+             <Send className="w-4 h-4 hidden xs:block" />
+             <span>Sent</span>
           </TabsTrigger>
         </TabsList>
 
@@ -210,28 +210,37 @@ export default function CollabRequestsPage() {
                         if (!partner) return null;
 
                         return (
-                           <Card key={req.id} className="flex flex-row overflow-hidden hover:shadow-md transition-shadow">
-                                <div className="w-2 bg-green-500/50"></div>
-                                <div className="flex-1 p-4 flex items-center gap-4">
-                                     <Avatar className="w-12 h-12 border-2 border-background shadow-sm">
-                                         <AvatarImage src={partner.avatar_url} />
-                                         <AvatarFallback><UserIcon className="w-6 h-6 text-muted-foreground" /></AvatarFallback>
-                                     </Avatar>
-                                     <div className="flex-1 overflow-hidden">
-                                         <h4 className="font-semibold truncate">{partner.full_name || partner.username || "User"}</h4>
-                                         <p className="text-xs text-muted-foreground truncate">@{partner.username}</p>
-                                         <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                                             <Badge variant="default" className="text-[10px] h-5 px-1.5">{req.type}</Badge>
-                                             <span>Joined {new Date(req.created_at).toLocaleDateString()}</span>
-                                         </div>
-                                     </div>
-                                     <ChatSheet 
-                                        partnerId={partner.id} 
-                                        partnerName={partner.full_name || partner.username || "User"} 
-                                        partnerAvatar={partner.avatar_url} 
-                                     />
-                                </div>
-                           </Card>
+                            <Card key={req.id} className="flex flex-col xs:flex-row overflow-hidden hover:shadow-md transition-shadow">
+                                 <div className="w-full h-1 xs:w-1 xs:h-auto bg-green-500/50"></div>
+                                 <div className="flex-1 p-4 flex flex-row items-center justify-between gap-4">
+                                      <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
+                                          <Avatar className="w-10 h-10 sm:w-12 sm:h-12 border shadow-sm shrink-0">
+                                              <AvatarImage src={partner.avatar_url} />
+                                              <AvatarFallback><UserIcon className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" /></AvatarFallback>
+                                          </Avatar>
+                                          <div className="min-w-0 transition-all">
+                                              <h4 className="font-semibold text-sm sm:text-base truncate">{partner.full_name || partner.username || "User"}</h4>
+                                              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">@{partner.username}</p>
+                                              <div className="flex items-center gap-2 mt-1 shrink-0">
+                                                  <Badge variant="secondary" className="text-[9px] sm:text-[10px] h-4 sm:h-5 px-1 sm:px-1.5 font-medium">{req.type}</Badge>
+                                              </div>
+                                          </div>
+                                      </div>
+                                      <div className="shrink-0">
+                                          <ChatSheet 
+                                             partnerId={partner.id} 
+                                             partnerName={partner.full_name || partner.username || "User"} 
+                                             partnerAvatar={partner.avatar_url}
+                                             trigger={
+                                               <Button size="sm" variant="ghost" className="h-9 w-9 p-0 sm:w-auto sm:px-3 sm:gap-2 text-primary hover:text-primary hover:bg-primary/10">
+                                                  <MessageSquare className="w-5 h-5" />
+                                                  <span className="hidden sm:inline text-xs font-semibold">Message</span>
+                                               </Button>
+                                             }
+                                          />
+                                      </div>
+                                 </div>
+                            </Card>
                         );
                     })}
                 </div>
@@ -248,29 +257,30 @@ export default function CollabRequestsPage() {
           ) : (
             incomingRequests.map((req) => (
               <Card key={req.id} className="overflow-hidden">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="w-10 h-10">
+                <CardHeader className="pb-3 px-4 sm:px-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <Avatar className="w-10 h-10 border shadow-sm">
                         <AvatarImage src={req.sender?.avatar_url} />
                         <AvatarFallback>{req.sender?.full_name?.charAt(0) || "?"}</AvatarFallback>
                       </Avatar>
-                      <div>
-                        <CardTitle className="text-base">
+                      <div className="min-w-0">
+                        <CardTitle className="text-base truncate">
                           <Link href={`/u/${req.sender?.username}`} className="hover:underline">
                              {req.sender?.full_name || "Unknown User"}
                           </Link>
-                          <span className="font-normal text-muted-foreground text-sm ml-2">
-                             requests a {req.type}
-                          </span>
                         </CardTitle>
-                        <CardDescription className="flex items-center gap-1 mt-1">
+                        <CardDescription className="flex items-center gap-1 mt-0.5 text-xs">
                           <Clock className="w-3 h-3" />
                           {new Date(req.created_at).toLocaleDateString()}
+                          <span className="mx-1">•</span>
+                          <span className="capitalize">{req.type}</span>
                         </CardDescription>
                       </div>
                     </div>
-                    <StatusBadge status={req.status} />
+                    <div className="self-end sm:self-center">
+                      <StatusBadge status={req.status} />
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -279,22 +289,22 @@ export default function CollabRequestsPage() {
                     {req.message}
                   </div>
                   
-                  <div className="flex gap-2 justify-end">
+                  <div className="flex flex-row gap-2 justify-center sm:justify-end">
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        className="flex-1 sm:flex-none text-destructive hover:bg-destructive/10 hover:text-destructive text-xs h-9"
                         onClick={() => handleStatusUpdate(req.id, 'rejected')}
                       >
-                        <X className="w-4 h-4 mr-2" />
+                        <X className="w-3.5 h-3.5 mr-1.5" />
                         Reject
                       </Button>
                       <Button 
                         size="sm" 
-                        className="bg-green-600 hover:bg-green-700"
+                        className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-xs h-9"
                         onClick={() => handleStatusUpdate(req.id, 'accepted')}
                       >
-                        <Check className="w-4 h-4 mr-2" />
+                        <Check className="w-3.5 h-3.5 mr-1.5" />
                         Accept
                       </Button>
                     </div>
@@ -317,22 +327,22 @@ export default function CollabRequestsPage() {
           ) : (
             outgoingRequests.map((req) => (
               <Card key={req.id}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="w-10 h-10">
+                <CardHeader className="pb-3 px-4 sm:px-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <Avatar className="w-10 h-10 border shadow-sm">
                         <AvatarImage src={req.receiver?.avatar_url} />
                         <AvatarFallback>{req.receiver?.full_name?.charAt(0) || "?"}</AvatarFallback>
                       </Avatar>
-                      <div>
-                        <CardTitle className="text-base">
+                      <div className="min-w-0">
+                        <CardTitle className="text-base truncate">
                           To: <Link href={`/u/${req.receiver?.username}`} className="hover:underline">
                              {req.receiver?.full_name || "Unknown User"}
                           </Link>
                         </CardTitle>
-                        <CardDescription className="flex items-center gap-1 mt-1">
+                        <CardDescription className="flex items-center gap-1 mt-0.5 text-xs">
                           <span className="capitalize">{req.type} request</span>
-                          <span>•</span>
+                          <span className="mx-1">•</span>
                           <span className="flex items-center gap-1">
                              <Clock className="w-3 h-3" />
                              {new Date(req.created_at).toLocaleDateString()}
@@ -340,7 +350,9 @@ export default function CollabRequestsPage() {
                         </CardDescription>
                       </div>
                     </div>
-                    <StatusBadge status={req.status} />
+                    <div className="self-end sm:self-center">
+                      <StatusBadge status={req.status} />
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
