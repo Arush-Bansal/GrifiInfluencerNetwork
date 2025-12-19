@@ -89,7 +89,7 @@ export const Navbar = ({ user, username }: NavbarProps) => {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  onClick={() => window.open(`/u/${username || user?.user_metadata?.username}`, '_blank')}
+                  onClick={() => router.push(`/u/${username || user?.user_metadata?.username}`)}
                   className="text-muted-foreground hover:text-foreground"
                 >
                   <ExternalLink className="w-4 h-4 mr-2" />

@@ -115,7 +115,7 @@ export function Sidebar({ className, user, role, profile }: SidebarProps) {
               <Button
                 variant="ghost"
                 className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground h-9 px-3"
-                onClick={() => window.open(`/u/${profile?.username}`, "_blank")}
+                onClick={() => router.push(`/u/${profile?.username}`)}
               >
                 <ExternalLink className="w-4 h-4" />
                 View Public Page
