@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { BottomNav } from "@/components/dashboard/BottomNav";
@@ -18,6 +18,9 @@ export default function DashboardLayout({
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
+
+  const isOnboardingPage = pathname === "/dashboard/onboarding";
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -40,6 +43,18 @@ export default function DashboardLayout({
 
         if (data && !error) {
           setProfile(data);
+          
+          // Check for onboarding completion
+          const isIncomplete = !data.username || !data.full_name || !data.niche || !data.platform;
+          
+          if (isIncomplete && !isOnboardingPage) {
+            router.push("/dashboard/onboarding");
+          } else if (!isIncomplete && isOnboardingPage) {
+            router.push("/dashboard");
+          }
+        } else if (!isOnboardingPage) {
+          // No profile yet, definitely needs onboarding
+          router.push("/dashboard/onboarding");
         }
       } catch (err) {
         console.error("Error fetching profile", err);
@@ -60,7 +75,7 @@ export default function DashboardLayout({
     });
 
     return () => subscription.unsubscribe();
-  }, [router]);
+  }, [router, isOnboardingPage]);
 
   if (loading) {
     return (
@@ -72,6 +87,17 @@ export default function DashboardLayout({
           <Loader2 className="w-4 h-4 animate-spin" />
           <span className="text-sm font-medium">Securing session...</span>
         </div>
+      </div>
+    );
+  }
+
+  // If on onboarding page, render without sidebar/header/bottomnav
+  if (isOnboardingPage) {
+    return (
+      <div className="min-h-screen bg-background">
+        <main className="flex-1 w-full h-full">
+          {children}
+        </main>
       </div>
     );
   }
