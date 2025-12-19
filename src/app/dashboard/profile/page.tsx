@@ -31,6 +31,7 @@ const ProfilePage = () => {
     followers: "",
     platform: "",
     engagementRate: "",
+    banner_url: "",
   });
 
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'unavailable'>('idle');
@@ -68,6 +69,7 @@ const ProfilePage = () => {
             followers: profileData.followers || metadata.followers || "",
             platform: profileData.platform || metadata.platform || "",
             engagementRate: profileData.engagement_rate || metadata.engagementRate || "", // Map db snake_case to state camelCase
+            banner_url: profileData.banner_url || metadata.banner_url || "",
           });
         } else {
           // Fallback to metadata
@@ -81,6 +83,7 @@ const ProfilePage = () => {
             followers: metadata.followers || "",
             platform: metadata.platform || "",
             engagementRate: metadata.engagementRate || "",
+            banner_url: metadata.banner_url || "",
           });
         }
       } catch (err) {
@@ -135,8 +138,6 @@ const ProfilePage = () => {
           setUsernameStatus('available');
         }
       } catch (error) {
-        console.error("Error checking username:", error);
-        setUsernameStatus('idle');
       }
     };
 
@@ -146,6 +147,72 @@ const ProfilePage = () => {
 
     return () => clearTimeout(timeoutId);
   }, [profile.username, user]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'banner') => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${type}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { data, error: uploadError } = await supabase.storage
+        .from('profiles')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('profiles')
+        .getPublicUrl(filePath);
+
+      if (type === 'avatar') {
+        // Update both Auth metadata and Database
+        const { error: authError } = await supabase.auth.updateUser({
+          data: { avatar_url: publicUrl }
+        });
+        if (authError) throw authError;
+
+        const { error: dbError } = await supabase
+          .from('profiles')
+          .update({ avatar_url: publicUrl })
+          .eq('id', user.id);
+        if (dbError) throw dbError;
+
+        toast({ title: "Photo Updated", description: "Your profile photo has been updated." });
+      } else {
+        setProfile(prev => ({ ...prev, banner_url: publicUrl }));
+        // Just update state for now, handleSave will persist to DB
+        toast({ title: "Banner Uploaded", description: "Click Save Changes to persist your new background image." });
+      }
+
+      // Refresh local user state
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) setUser(session.user);
+
+    } catch (error: any) {
+      console.error(`Error uploading ${type}:`, error);
+      toast({
+        title: "Upload Failed",
+        description: error.message || `Failed to upload your ${type}.`,
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
 
   const handleSave = async () => {
@@ -176,6 +243,8 @@ const ProfilePage = () => {
           bio: profile.bio,
           location: profile.location,
           website: profile.website,
+          banner_url: profile.banner_url,
+          avatar_url: user.user_metadata?.avatar_url,
         }
       });
 
@@ -194,6 +263,7 @@ const ProfilePage = () => {
           followers: profile.followers || null,
           platform: profile.platform || null,
           engagement_rate: profile.engagementRate || null,
+          banner_url: profile.banner_url || null,
           updated_at: new Date().toISOString(),
           avatar_url: user.user_metadata?.avatar_url
       };
@@ -257,7 +327,40 @@ const ProfilePage = () => {
               <CardDescription>This information will be displayed on your public profile.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex flex-col sm:flex-row gap-6 items-start">
+              {/* Banner Section */}
+              <div className="space-y-4">
+                <Label>Profile Background</Label>
+                <div className="relative h-40 w-full rounded-xl overflow-hidden bg-secondary border-2 border-dashed border-border group">
+                  {profile.banner_url ? (
+                    <img src={profile.banner_url} alt="Profile Banner" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-primary/5 via-primary/10 to-primary/20 flex items-center justify-center">
+                      <p className="text-muted-foreground text-sm font-medium">No background image set</p>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <input
+                      type="file"
+                      id="banner-upload"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'banner')}
+                    />
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      className="font-bold"
+                      onClick={() => document.getElementById('banner-upload')?.click()}
+                    >
+                      <Camera className="w-4 h-4 mr-2" />
+                      {profile.banner_url ? 'Change Background' : 'Upload Background'}
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest text-center">Recommended size: 1200x400</p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-6 items-start pt-4 border-t border-border">
                 <div className="flex flex-col items-center gap-2">
                   <div className="h-24 w-24 rounded-full bg-secondary flex items-center justify-center border-2 border-border relative overflow-hidden">
                     {user?.user_metadata?.avatar_url ? (
@@ -266,10 +369,24 @@ const ProfilePage = () => {
                       <User className="h-12 w-12 text-muted-foreground" />
                     )}
                   </div>
-                  <Button variant="outline" size="sm" className="w-full text-xs" disabled>
-                    <Camera className="w-3 h-3 mr-2" />
-                    Change Photo
-                  </Button>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      id="avatar-upload"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'avatar')}
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full text-xs" 
+                      onClick={() => document.getElementById('avatar-upload')?.click()}
+                    >
+                      <Camera className="w-3 h-3 mr-2" />
+                      Change Photo
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="flex-1 space-y-4 w-full">

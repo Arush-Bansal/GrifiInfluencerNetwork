@@ -18,6 +18,7 @@ interface FeedPost {
   author_id: string;
   author_username: string;
   author_avatar?: string;
+  image_url?: string;
 }
 
 export function UnifiedFeed({ userId }: { userId: string }) {
@@ -58,6 +59,7 @@ export function UnifiedFeed({ userId }: { userId: string }) {
           .select(`
             id, 
             content, 
+            image_url,
             created_at, 
             community_id,
             communities:community_id(name),
@@ -76,7 +78,8 @@ export function UnifiedFeed({ userId }: { userId: string }) {
             community_name: p.communities?.name,
             author_id: p.author_id,
             author_username: p.profiles?.username || 'user',
-            author_avatar: p.profiles?.avatar_url
+            author_avatar: p.profiles?.avatar_url,
+            image_url: p.image_url
           }));
         }
       }
@@ -88,6 +91,7 @@ export function UnifiedFeed({ userId }: { userId: string }) {
         .select(`
           id,
           content,
+          image_url,
           created_at,
           author_id,
           profiles:author_id(username, avatar_url)
@@ -103,7 +107,8 @@ export function UnifiedFeed({ userId }: { userId: string }) {
           type: 'personal',
           author_id: p.author_id,
           author_username: p.profiles?.username || 'user',
-          author_avatar: p.profiles?.avatar_url
+          author_avatar: p.profiles?.avatar_url,
+          image_url: p.image_url
         }));
       }
 
@@ -193,8 +198,17 @@ export function UnifiedFeed({ userId }: { userId: string }) {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <p className="whitespace-pre-wrap text-sm leading-relaxed">{post.content}</p>
+            {post.image_url && (
+              <div className="rounded-xl overflow-hidden border border-border/50 bg-muted/30">
+                <img 
+                  src={post.image_url} 
+                  alt="Post content" 
+                  className="w-full h-auto max-h-[500px] object-cover"
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
       ))}

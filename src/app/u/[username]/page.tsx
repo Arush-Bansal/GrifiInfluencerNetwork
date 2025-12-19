@@ -32,6 +32,7 @@ interface Profile {
   location: string;
   website: string;
   join_date: string;
+  banner_url?: string;
 }
 
 export default function PublicProfilePage() {
@@ -87,6 +88,7 @@ export default function PublicProfilePage() {
             location: data.location || "Earth",
             website: data.website,
             join_date: data.created_at || new Date().toISOString(),
+            banner_url: data.banner_url,
           });
 
           // Check ownership
@@ -260,7 +262,26 @@ export default function PublicProfilePage() {
         {/* Profile Header Card */}
         <Card className="overflow-hidden border-none shadow-sm mb-8 bg-card/50 backdrop-blur-sm">
           <div className="h-40 md:h-64 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/20 relative">
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+            {profile.banner_url ? (
+               <img 
+                 src={profile.banner_url} 
+                 alt="Profile Banner" 
+                 className="absolute inset-0 w-full h-full object-cover"
+               />
+            ) : (
+               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+            )}
+            {isOwnProfile && (
+              <Button 
+                onClick={() => router.push("/dashboard/profile")} 
+                variant="secondary" 
+                size="sm" 
+                className="absolute top-4 right-4 bg-background/80 backdrop-blur-sm hover:bg-background shadow-lg"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Header
+              </Button>
+            )}
           </div>
           <CardContent className="px-6 pb-8 relative">
             <div className="-mt-20 md:-mt-24 mb-6 flex flex-col md:flex-row items-center md:items-end gap-6 text-center md:text-left">
@@ -384,7 +405,7 @@ export default function PublicProfilePage() {
                 <h3 className="font-black text-xl flex items-center gap-2.5">
                   <MessageCircle className="w-6 h-6 text-primary" /> Recent Activity
                 </h3>
-                <Badge variant="secondary" className="font-bold">Latest {userPosts.length}</Badge>
+                <Badge variant="default" className="font-bold">Latest {userPosts.length}</Badge>
               </div>
               {userPosts.length === 0 ? (
                 <Card className="border-none bg-card/30 py-16 text-center shadow-sm">

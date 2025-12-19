@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ImagePlus, Send, Loader2 } from "lucide-react";
+import { ImagePlus, Send, Loader2, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface CreatePostProps {
@@ -21,18 +21,66 @@ interface CreatePostProps {
 export function CreatePost({ userId, onPostCreated, userProfile }: CreatePostProps) {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please upload an image smaller than 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
   const handlePost = async () => {
-    if (!content.trim()) return;
+    if (!content.trim() && !imageFile) return;
 
     setLoading(true);
     try {
+      let imageUrl = null;
+
+      if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `${userId}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `${userId}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('posts')
+          .upload(filePath, imageFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('posts')
+          .getPublicUrl(filePath);
+        
+        imageUrl = publicUrl;
+      }
+
       const { error } = await supabase
         .from("posts" as any)
         .insert({
           author_id: userId,
           content: content.trim(),
+          image_url: imageUrl,
         });
 
       if (error) throw error;
@@ -43,6 +91,8 @@ export function CreatePost({ userId, onPostCreated, userProfile }: CreatePostPro
       });
       
       setContent("");
+      setImageFile(null);
+      setImagePreview(null);
       if (onPostCreated) onPostCreated();
     } catch (error: any) {
       console.error("Error creating post:", error);
@@ -71,11 +121,40 @@ export function CreatePost({ userId, onPostCreated, userProfile }: CreatePostPro
               onChange={(e) => setContent(e.target.value)}
               className="min-h-[100px] bg-secondary/50 border-none focus-visible:ring-primary/20 resize-none text-sm"
             />
+
+            {imagePreview && (
+              <div className="relative w-full max-h-[300px] rounded-lg overflow-hidden border border-border/50 group">
+                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={removeImage}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+
             <div className="flex items-center justify-between pt-2 border-t border-border/50">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary transition-colors">
-                <ImagePlus className="w-4 h-4 mr-2" />
-                Add Image
-              </Button>
+              <div className="relative">
+                <input
+                  type="file"
+                  id="post-image-upload"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                />
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                  onClick={() => document.getElementById('post-image-upload')?.click()}
+                >
+                  <ImagePlus className="w-4 h-4 mr-2" />
+                  Add Image
+                </Button>
+              </div>
               <Button 
                 onClick={handlePost} 
                 disabled={loading || !content.trim()}

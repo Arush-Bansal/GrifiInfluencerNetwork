@@ -17,7 +17,9 @@ interface FeedPost {
   };
   profiles: {
     username: string;
+    avatar_url?: string;
   };
+  image_url?: string;
 }
 
 export function CommunityFeed({ userId }: { userId: string }) {
@@ -61,10 +63,11 @@ export function CommunityFeed({ userId }: { userId: string }) {
         .select(`
           id, 
           content, 
+          image_url,
           created_at, 
           community_id,
           communities:community_id(name),
-          profiles:author_id(username)
+          profiles:author_id(username, avatar_url)
         `)
         .in("community_id", communityIds)
         .eq("status", "approved")
@@ -114,8 +117,14 @@ export function CommunityFeed({ userId }: { userId: string }) {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary text-xs font-bold">
-                  {post.profiles?.username?.[0].toUpperCase() || 'U'}
+                <div className="w-8 h-8 rounded-full overflow-hidden border border-border/50">
+                  {post.profiles?.avatar_url ? (
+                    <img src={post.profiles.avatar_url} alt={post.profiles.username} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
+                      {post.profiles?.username?.[0].toUpperCase() || 'U'}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
@@ -135,8 +144,17 @@ export function CommunityFeed({ userId }: { userId: string }) {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <p className="whitespace-pre-wrap text-sm leading-relaxed">{post.content}</p>
+            {post.image_url && (
+              <div className="rounded-xl overflow-hidden border border-border/50 bg-muted/30">
+                <img 
+                  src={post.image_url} 
+                  alt="Post content" 
+                  className="w-full h-auto max-h-[400px] object-cover"
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
       ))}
