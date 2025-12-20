@@ -210,188 +210,219 @@ function SearchContent() {
   };
 
   return (
-    <div className="min-h-screen bg-secondary/30">
-      <main className="container mx-auto px-4 py-8">
-        <Card className="mb-8">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Find People</CardTitle>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setShowFilters(!showFilters)}
-              className="text-muted-foreground"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              {showFilters ? "Hide Filters" : "Show Filters"}
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <form onSubmit={handleSearch} className="flex gap-2">
-              <div className="relative flex-1">
-                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name or username..."
-                  value={query}
-                  onChange={(e) => {
-                    setQuery(e.target.value);
-                    setActiveIndex(-1);
-                  }}
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => {
-                    // Slight delay to allow clicking suggestions
-                    setTimeout(() => setIsFocused(false), 200);
-                  }}
-                  onKeyDown={handleKeyDown}
-                  className="pl-9"
-                />
-                
-                {isFocused && (
-                  <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-background border rounded-md shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                    {isLoadingSuggestions ? (
-                      <div className="p-4 flex items-center justify-center">
-                        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-                      </div>
-                    ) : suggestions.length > 0 ? (
-                      <div className="py-2">
-                        {suggestions.map((suggestion, index) => (
-                          <button
-                            key={suggestion.id}
-                            type="button"
-                            className={`w-full px-4 py-2 flex items-center gap-3 hover:bg-accent text-left transition-colors ${
-                              activeIndex === index ? "bg-accent" : ""
-                            }`}
-                            onClick={() => {
-                              setQuery(suggestion.username || suggestion.full_name || "");
-                              router.push(`/u/${suggestion.username}`);
-                            }}
-                            onMouseEnter={() => setActiveIndex(index)}
-                          >
-                            <Avatar className="w-8 h-8">
-                              <AvatarImage src={suggestion.avatar_url || ""} />
-                              <AvatarFallback>
-                                <User className="w-4 h-4" />
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm truncate">
-                                {suggestion.full_name || suggestion.username}
-                              </p>
-                              {suggestion.username && (
-                                <p className="text-xs text-muted-foreground truncate">
-                                  @{suggestion.username}
+    <div className="min-h-screen bg-background text-foreground">
+      <main className="container max-w-3xl mx-auto px-4 py-8 md:py-10">
+        <div className="mb-6 md:mb-8 text-center px-4">
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mb-2 text-primary">
+            Find people
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Search influencers and brands in our network.
+          </p>
+        </div>
+
+        <div className="mb-6 md:mb-8 relative">
+          <Card className="border-none bg-card shadow-xl shadow-primary/5 rounded-2xl md:rounded-3xl">
+            <CardContent className="p-2 md:p-3 space-y-3">
+              <form onSubmit={handleSearch} className="flex gap-2 items-center">
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`h-11 md:h-12 w-11 md:w-12 p-0 rounded-xl md:rounded-2xl shrink-0 transition-all border-none bg-secondary/50 hover:bg-primary/10 ${showFilters ? 'text-primary bg-primary/10' : ''}`}
+                  title="Toggle Filters"
+                >
+                  <Filter className="w-4 h-4" />
+                </Button>
+
+                <div className="relative flex-1 group min-w-0">
+                  <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                  <Input
+                    placeholder="Search name or @username"
+                    value={query}
+                    onChange={(e) => {
+                      setQuery(e.target.value);
+                      setActiveIndex(-1);
+                    }}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => {
+                      setTimeout(() => setIsFocused(false), 200);
+                    }}
+                    onKeyDown={handleKeyDown}
+                    className="pl-9 h-11 md:h-12 bg-secondary/50 border-transparent focus:bg-background focus:border-primary/30 transition-all rounded-xl md:rounded-2xl text-sm w-full"
+                  />
+                  
+                  {isFocused && (
+                    <div className="absolute top-full left-0 right-0 mt-2 z-[100] bg-background border border-primary/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200">
+                      {isLoadingSuggestions ? (
+                        <div className="p-4 flex items-center justify-center">
+                          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        </div>
+                      ) : suggestions.length > 0 ? (
+                        <div className="max-h-[300px] overflow-y-auto">
+                          {suggestions.map((suggestion, index) => (
+                            <button
+                              key={suggestion.id}
+                              type="button"
+                              className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-primary/5 text-left transition-all ${
+                                activeIndex === index ? "bg-primary/10" : ""
+                              }`}
+                              onClick={() => {
+                                setQuery(suggestion.username || suggestion.full_name || "");
+                                router.push(`/u/${suggestion.username}`);
+                              }}
+                              onMouseEnter={() => setActiveIndex(index)}
+                            >
+                              <Avatar className="w-9 h-9 border border-border/50">
+                                <AvatarImage src={suggestion.avatar_url || ""} />
+                                <AvatarFallback className="bg-primary/5">
+                                  <User className="w-4 h-4 text-primary/30" />
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-sm truncate">
+                                  {suggestion.full_name || suggestion.username}
                                 </p>
-                              )}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="p-4 text-center text-sm text-muted-foreground">
-                        No results found
-                      </div>
-                    )}
+                                {suggestion.username && (
+                                  <p className="text-[11px] text-muted-foreground truncate">
+                                    @{suggestion.username}
+                                  </p>
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      ) : query.trim() ? (
+                        <div className="p-4 text-center text-xs text-muted-foreground">
+                          No results found
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
+
+                <Button type="submit" disabled={loading} className="h-11 md:h-12 px-5 md:px-8 rounded-xl md:rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 shrink-0">
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
+                </Button>
+              </form>
+
+              {showFilters && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider ml-1">Niche</Label>
+                    <MultiSelect
+                      options={NICHE_OPTIONS}
+                      selected={filters.niches}
+                      onChange={(v) => setFilters({ ...filters, niches: v })}
+                      placeholder="Niches"
+                      className="bg-secondary/50 border-transparent rounded-lg text-xs h-9"
+                    />
                   </div>
-                )}
-              </div>
-              <Button type="submit" disabled={loading}>
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
-              </Button>
-            </form>
-
-            {showFilters && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                <div className="space-y-2">
-                  <Label>Content Niches</Label>
-                  <MultiSelect
-                    options={NICHE_OPTIONS}
-                    selected={filters.niches}
-                    onChange={(v) => setFilters({ ...filters, niches: v })}
-                    placeholder="All Niches"
-                  />
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider ml-1">Platform</Label>
+                    <MultiSelect
+                      options={PLATFORM_OPTIONS}
+                      selected={filters.platforms}
+                      onChange={(v) => setFilters({ ...filters, platforms: v })}
+                      placeholder="Platforms"
+                      className="bg-secondary/50 border-transparent rounded-lg text-xs h-9"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider ml-1">Followers</Label>
+                    <Input
+                      placeholder="Min."
+                      value={filters.minFollowers}
+                      onChange={(e) => setFilters({ ...filters, minFollowers: e.target.value })}
+                      className="h-9 bg-secondary/50 border-transparent rounded-lg text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider ml-1">Eng.</Label>
+                    <Input
+                      placeholder="Min. %"
+                      value={filters.minEngagement}
+                      onChange={(e) => setFilters({ ...filters, minEngagement: e.target.value })}
+                      className="h-9 bg-secondary/50 border-transparent rounded-lg text-xs"
+                    />
+                  </div>
                 </div>
-
-                <div className="space-y-2">
-                  <Label>Main Platforms</Label>
-                  <MultiSelect
-                    options={PLATFORM_OPTIONS}
-                    selected={filters.platforms}
-                    onChange={(v) => setFilters({ ...filters, platforms: v })}
-                    placeholder="All Platforms"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Min Followers</Label>
-                  <Input
-                    type="text"
-                    placeholder="e.g. 10000"
-                    value={filters.minFollowers}
-                    onChange={(e) => setFilters({ ...filters, minFollowers: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Min Engagement (%)</Label>
-                  <Input
-                    type="text"
-                    placeholder="e.g. 2.5"
-                    value={filters.minEngagement}
-                    onChange={(e) => setFilters({ ...filters, minEngagement: e.target.value })}
-                  />
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="space-y-4">
           {loading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            <div className="flex flex-col items-center justify-center py-12 gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Searching</p>
             </div>
           ) : results.length > 0 ? (
-            results.map((profile) => (
-              <Card key={profile.id} className="overflow-hidden hover:bg-accent/5 transition-colors">
-                <CardContent className="p-4 flex items-center gap-4">
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={profile.avatar_url || ""} />
-                    <AvatarFallback>
-                      <User className="w-6 h-6 text-muted-foreground" />
-                    </AvatarFallback>
-                  </Avatar>
+            <div className="bg-card/40 border border-border/50 rounded-2xl md:rounded-3xl overflow-hidden divide-y divide-border/20">
+              {results.map((profile) => (
+                <div 
+                  key={profile.id} 
+                  className="group flex items-center gap-3 md:gap-4 p-3 md:p-4 hover:bg-primary/[0.02] transition-all duration-200"
+                >
+                  <div className="relative shrink-0">
+                    <Avatar className="w-12 h-12 md:w-14 h-14 border border-border/50 shadow-sm">
+                      <AvatarImage src={profile.avatar_url || ""} className="object-cover" />
+                      <AvatarFallback className="bg-secondary">
+                        <User className="w-6 h-6 text-muted-foreground/30" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-background rounded-full border border-border shadow-sm flex items-center justify-center">
+                      <Bot className="w-2.5 h-2.5 text-primary" />
+                    </div>
+                  </div>
+                  
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold truncate">
-                      {profile.full_name || "Unnamed User"}
-                    </h3>
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <h3 className="font-bold text-sm md:text-base truncate group-hover:text-primary transition-colors">
+                        {profile.full_name || "Guest User"}
+                      </h3>
+                      <div className="w-3.5 h-3.5 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
+                        <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    </div>
+                    
                     {profile.username && (
-                      <p className="text-sm text-muted-foreground truncate">
+                      <p className="text-[12px] md:text-[13px] font-medium text-primary/60 mb-1">
                         @{profile.username}
                       </p>
                     )}
+                    
                     {profile.bio && (
-                      <p className="text-sm text-muted-foreground truncate mt-1">
+                      <p className="text-[11px] md:text-xs text-muted-foreground line-clamp-1 leading-tight max-w-[90%] font-medium">
                         {profile.bio}
                       </p>
                     )}
                   </div>
+                  
                   <Button 
-                    variant="outline" 
                     size="sm"
                     onClick={() => router.push(`/u/${profile.username}`)}
+                    className="shrink-0 h-8 md:h-9 px-4 md:px-5 rounded-full font-bold text-[11px] md:text-xs bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all border-none"
                   >
                     View
                   </Button>
-                </CardContent>
-              </Card>
-            ))
+                </div>
+              ))}
+            </div>
           ) : hasSearched ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>No users found matching "{query}"</p>
+            <div className="text-center py-16 bg-card/20 border border-dashed border-border/50 rounded-2xl">
+              <SearchIcon className="w-8 h-8 text-muted-foreground/20 mx-auto mb-3" />
+              <h3 className="text-sm font-bold secondary-foreground">No matches found</h3>
+              <p className="text-[11px] text-muted-foreground">Try other terms or filters.</p>
             </div>
           ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <SearchIcon className="w-12 h-12 mx-auto mb-4 opacity-20" />
-              <p>Enter a name or username to start searching</p>
+            <div className="text-center py-16 bg-card/20 border border-dashed border-border/50 rounded-2xl">
+              <User className="w-8 h-8 text-primary/10 mx-auto mb-3" />
+              <h3 className="text-sm font-bold">Search our network</h3>
+              <p className="text-[11px] text-muted-foreground">Find influencers, brands, and creators.</p>
             </div>
           )}
         </div>
