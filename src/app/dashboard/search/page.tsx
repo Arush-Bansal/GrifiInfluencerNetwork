@@ -267,9 +267,11 @@ function SearchContent() {
                               className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-primary/5 text-left transition-all ${
                                 activeIndex === index ? "bg-primary/10" : ""
                               }`}
-                              onClick={() => {
+                              onMouseDown={(e) => {
+                                e.preventDefault();
                                 setQuery(suggestion.username || suggestion.full_name || "");
                                 router.push(`/u/${suggestion.username}`);
+                                setIsFocused(false);
                               }}
                               onMouseEnter={() => setActiveIndex(index)}
                             >
