@@ -16,11 +16,17 @@ import {
   CheckCircle2, 
   XCircle, 
   MoreVertical,
-  UserPlus,
-  UserMinus,
   Plus
 } from "lucide-react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { 
+  useCommunity, 
+  useCommunityPosts, 
+  useCommunityMembers, 
+  useUserMembership, 
+  useUserFollowStatus 
+} from "@/hooks/use-community";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 
 interface Community {
   id: string;
@@ -51,245 +57,138 @@ interface Member {
 export default function CommunityDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [profile, setProfile] = useState<any>(null);
-  const [community, setCommunity] = useState<Community | null>(null);
-  const [membership, setMembership] = useState<Member | null>(null);
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [pendingPosts, setPendingPosts] = useState<Post[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState(true);
   const [postContent, setPostContent] = useState("");
-  const [submittingPost, setSubmittingPost] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    fetchInitialData();
-  }, [id]);
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+  }, []);
 
-  const fetchInitialData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
+  // Queries
+  const { data: community, isLoading: loadingCommunity } = useCommunity(id);
+  const { data: posts = [], isLoading: loadingPosts } = useCommunityPosts(id, "approved");
+  const { data: pendingPosts = [], isLoading: loadingPending } = useCommunityPosts(id, "pending");
+  const { data: members = [], isLoading: loadingMembers } = useCommunityMembers(id);
+  const { data: membership, isLoading: loadingMembership } = useUserMembership(id, user?.id);
+  const { data: isFollowing, isLoading: loadingFollow } = useUserFollowStatus(id, user?.id);
 
-    let currentMembership: any = null;
-    if (user) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      setProfile(profile);
-
-      // Check membership
-      const { data: memberData } = await supabase
-        .from("community_members" as any)
-        .select("*")
-        .eq("community_id", id)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      currentMembership = memberData as any;
-      setMembership(memberData as any);
-
-      // Check following
-      const { data: followData } = await supabase
-        .from("community_followers" as any)
-        .select("*")
-        .eq("community_id", id)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      setIsFollowing(!!followData);
-    }
-
-    // Fetch community info
-    const result = await supabase
-      .from("communities" as any)
-      .select("*")
-      .eq("id", id)
-      .single();
-    
-    const communityData = result.data as any;
-    setCommunity(communityData);
-
-    // Fetch approved posts
-    fetchApprovedPosts();
-    
-    // If mod/admin or owner, fetch pending posts
-    const isModOrOwner = currentMembership?.role === 'admin' || 
-                         currentMembership?.role === 'moderator' || 
-                         communityData?.created_by === user?.id;
-                         
-    if (isModOrOwner) {
-       fetchPendingPosts();
-    }
-
-    // Fetch members
-    fetchMembers();
-
-    setLoading(false);
-  };
-
-  const fetchApprovedPosts = async () => {
-    const { data } = await supabase
-      .from("community_posts" as any)
-      .select("*, profiles:author_id(username)")
-      .eq("community_id", id)
-      .eq("status", "approved")
-      .order("created_at", { ascending: false });
-    setPosts((data as any) || []);
-  };
-
-  const fetchPendingPosts = async () => {
-    const { data } = await supabase
-      .from("community_posts" as any)
-      .select("*, profiles:author_id(username)")
-      .eq("community_id", id)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false });
-    setPendingPosts((data as any) || []);
-  };
-
-  const fetchMembers = async () => {
-    const { data } = await supabase
-      .from("community_members" as any)
-      .select("*, profiles:user_id(username)")
-      .eq("community_id", id);
-    setMembers((data as any) || []);
-  };
-
-  const handleJoin = async () => {
-    if (!user) return;
-    try {
+  // Mutations
+  const joinMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) return;
       const { error } = await supabase
         .from("community_members" as any)
-        .insert({
-          community_id: id,
-          user_id: user.id,
-          role: 'member'
-        });
+        .insert({ community_id: id, user_id: user.id, role: 'member' });
       if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["community-membership", id, user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["community-members", id] });
       toast({ title: "Joined!", description: "You are now a member." });
-      fetchInitialData();
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    }
-  };
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
 
-  const handleLeave = async () => {
-    if (!user) return;
-    try {
+  const leaveMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) return;
       const { error } = await supabase
         .from("community_members" as any)
         .delete()
         .eq("community_id", id)
         .eq("user_id", user.id);
       if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["community-membership", id, user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["community-members", id] });
       toast({ title: "Left community" });
-      fetchInitialData();
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    }
-  };
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
 
-  const handleFollow = async () => {
-    if (!user) return;
-    try {
-      const { error } = await supabase
-        .from("community_followers" as any)
-        .insert({ community_id: id, user_id: user.id });
-      if (error) throw error;
-      setIsFollowing(true);
-      toast({ title: "Following" });
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    }
-  };
+  const followMutation = useMutation({
+    mutationFn: async (follow: boolean) => {
+      if (!user) return;
+      if (follow) {
+        const { error } = await supabase
+          .from("community_followers" as any)
+          .insert({ community_id: id, user_id: user.id });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("community_followers" as any)
+          .delete()
+          .eq("community_id", id)
+          .eq("user_id", user.id);
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, follow) => {
+      queryClient.invalidateQueries({ queryKey: ["community-follow", id, user?.id] });
+      toast({ title: follow ? "Following" : "Unfollowed" });
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
 
-  const handleUnfollow = async () => {
-    if (!user) return;
-    try {
-      const { error } = await supabase
-        .from("community_followers" as any)
-        .delete()
-        .eq("community_id", id)
-        .eq("user_id", user.id);
-      if (error) throw error;
-      setIsFollowing(false);
-      toast({ title: "Unfollowed" });
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    }
-  };
-
-  const handleSubmitPost = async () => {
-    if (!postContent.trim() || !user) return;
-    setSubmittingPost(true);
-    try {
+  const submitPostMutation = useMutation({
+    mutationFn: async (content: string) => {
+      if (!user) return;
       const { error } = await supabase
         .from("community_posts" as any)
-        .insert({
-          community_id: id,
-          author_id: user.id,
-          content: postContent,
-          status: 'pending'
-        });
+        .insert({ community_id: id, author_id: user.id, content, status: 'pending' });
       if (error) throw error;
-      toast({
-        title: "Post Submitted",
-        description: "Your post is pending approval by moderators.",
-      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["community-posts", id, "pending"] });
+      toast({ title: "Post Submitted", description: "Your post is pending approval." });
       setPostContent("");
-      
-      // Auto-refresh pending list for mods/owners
-      if (isModerator) {
-        fetchPendingPosts();
-      }
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    } finally {
-      setSubmittingPost(false);
-    }
-  };
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
 
-  const handleModerate = async (postId: string, status: 'approved' | 'rejected') => {
-    try {
+  const moderateMutation = useMutation({
+    mutationFn: async ({ postId, status }: { postId: string, status: 'approved' | 'rejected' }) => {
       const { error } = await supabase
         .from("community_posts" as any)
         .update({ status, moderated_by: user?.id, moderated_at: new Date().toISOString() })
         .eq("id", postId);
       if (error) throw error;
+    },
+    onSuccess: (_, { status }) => {
+      queryClient.invalidateQueries({ queryKey: ["community-posts", id] });
       toast({ title: `Post ${status}` });
-      fetchPendingPosts();
-      if (status === 'approved') fetchApprovedPosts();
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    }
-  };
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
 
-  const handlePromote = async (memberUserId: string, newRole: 'admin' | 'moderator' | 'member') => {
-    try {
+  const promoteMutation = useMutation({
+    mutationFn: async ({ memberUserId, newRole }: { memberUserId: string, newRole: string }) => {
       const { error } = await supabase
         .from("community_members" as any)
         .update({ role: newRole })
         .eq("community_id", id)
         .eq("user_id", memberUserId);
       if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["community-members", id] });
       toast({ title: "Role updated" });
-      fetchMembers();
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    }
-  };
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
 
-  if (loading || !community) {
+  const isModerator = (membership as any)?.role === 'admin' || (membership as any)?.role === 'moderator' || (community as any)?.created_by === user?.id;
+  const isAdmin = (membership as any)?.role === 'admin' || (community as any)?.created_by === user?.id;
+
+  if (loadingCommunity || !community) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Clock className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
-
-  const isModerator = membership?.role === 'admin' || membership?.role === 'moderator' || community?.created_by === user?.id;
-  const isAdmin = membership?.role === 'admin' || community?.created_by === user?.id;
 
   return (
     <div className="min-h-screen bg-secondary/30">
@@ -304,26 +203,36 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                   <Users className="w-12 h-12" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold">{community.name}</h1>
-                  <p className="text-muted-foreground">{community.description}</p>
+                  <h1 className="text-3xl font-bold">{(community as any).name}</h1>
+                  <p className="text-muted-foreground">{(community as any).description}</p>
                 </div>
               </div>
               
               <div className="flex gap-2">
                 <Button 
                   variant={isFollowing ? "outline" : "secondary"}
-                  onClick={isFollowing ? handleUnfollow : handleFollow}
+                  onClick={() => followMutation.mutate(!isFollowing)}
+                  disabled={followMutation.isPending}
                   className="rounded-full"
                 >
                   {isFollowing ? "Following" : "Follow"}
                 </Button>
                 
                 {membership ? (
-                  <Button variant="destructive" onClick={handleLeave} className="rounded-full">
+                  <Button 
+                    variant="destructive" 
+                    onClick={() => leaveMutation.mutate()} 
+                    disabled={leaveMutation.isPending}
+                    className="rounded-full"
+                  >
                     Leave
                   </Button>
                 ) : (
-                  <Button onClick={handleJoin} className="rounded-full">
+                  <Button 
+                    onClick={() => joinMutation.mutate()} 
+                    disabled={joinMutation.isPending}
+                    className="rounded-full"
+                  >
                     Join Community
                   </Button>
                 )}
@@ -369,8 +278,11 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                     />
                   </div>
                   <div className="flex justify-end">
-                    <Button onClick={handleSubmitPost} disabled={submittingPost || !postContent.trim()}>
-                      {submittingPost ? <Clock className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+                    <Button 
+                      onClick={() => submitPostMutation.mutate(postContent)} 
+                      disabled={submitPostMutation.isPending || !postContent.trim()}
+                    >
+                      {submitPostMutation.isPending ? <Clock className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
                       Post for Approval
                     </Button>
                   </div>
@@ -385,7 +297,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                   <p className="text-muted-foreground">No approved posts yet. Be the first to share something!</p>
                 </div>
               ) : (
-                posts.map(post => (
+                posts.map((post: any) => (
                   <Card key={post.id} className="border-none bg-card/80 backdrop-blur-sm">
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
@@ -418,7 +330,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
             <Card className="border-none bg-card/80">
               <CardContent className="pt-6">
                 <div className="space-y-4">
-                  {members.map(member => (
+                  {members.map((member: any) => (
                     <div key={member.user_id} className="flex items-center justify-between py-2 border-b last:border-0">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-primary/5 rounded-full flex items-center justify-center text-primary font-bold">
@@ -434,12 +346,22 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                       {isAdmin && member.user_id !== user?.id && (
                         <div className="flex gap-2">
                           {member.role === 'member' && (
-                            <Button size="sm" variant="outline" onClick={() => handlePromote(member.user_id, 'moderator')}>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => promoteMutation.mutate({ memberUserId: member.user_id, newRole: 'moderator' })}
+                              disabled={promoteMutation.isPending}
+                            >
                               Make Moderator
                             </Button>
                           )}
                           {member.role === 'moderator' && (
-                             <Button size="sm" variant="outline" onClick={() => handlePromote(member.user_id, 'member')}>
+                             <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => promoteMutation.mutate({ memberUserId: member.user_id, newRole: 'member' })}
+                              disabled={promoteMutation.isPending}
+                            >
                               Revoke Moderator
                              </Button>
                           )}
@@ -460,7 +382,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                   <p className="text-muted-foreground">All caught up! No pending posts.</p>
                 </div>
               ) : (
-                pendingPosts.map(post => (
+                pendingPosts.map((post: any) => (
                   <Card key={post.id} className="border-none bg-card/80 shadow-md">
                     <CardHeader className="pb-2">
                       <div className="flex items-center gap-2">
@@ -481,12 +403,14 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                         <Button 
                           variant="outline" 
                           className="text-destructive hover:bg-destructive/10"
-                          onClick={() => handleModerate(post.id, 'rejected')}
+                          onClick={() => moderateMutation.mutate({ postId: post.id, status: 'rejected' })}
+                          disabled={moderateMutation.isPending}
                         >
                           <XCircle className="w-4 h-4 mr-2" /> Reject
                         </Button>
                         <Button 
-                          onClick={() => handleModerate(post.id, 'approved')}
+                          onClick={() => moderateMutation.mutate({ postId: post.id, status: 'approved' })}
+                          disabled={moderateMutation.isPending}
                           className="bg-green-600 hover:bg-green-700"
                         >
                           <CheckCircle2 className="w-4 h-4 mr-2" /> Approve

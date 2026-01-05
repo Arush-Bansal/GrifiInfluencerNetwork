@@ -33,7 +33,8 @@ import {
   CardContent 
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { useProfile, useUserPosts, useFollowStatus } from "@/hooks/use-profile";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 
 interface Profile {
   id: string;
@@ -51,225 +52,112 @@ interface Profile {
   banner_url?: string;
 }
 
+const PublicNavbar = () => (
+  <nav className="h-16 border-b border-border bg-background flex items-center justify-between px-6 sticky top-0 z-50">
+    <div className="flex items-center gap-2">
+      <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+        <span className="text-primary-foreground font-bold">G</span>
+      </div>
+      <span className="font-bold text-lg tracking-tight">GRIFI</span>
+    </div>
+    <div className="flex items-center gap-2">
+      <Button variant="ghost" size="sm" asChild>
+        <Link href="/auth">Login</Link>
+      </Button>
+      <Button size="sm" asChild>
+        <Link href="/auth">Sign Up</Link>
+      </Button>
+    </div>
+  </nav>
+);
+
 export default function PublicProfilePage() {
   const params = useParams();
   const username = params.username as string;
   const router = useRouter();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const [viewerProfile, setViewerProfile] = useState<any>(null);
   const [viewerRole, setViewerRole] = useState<string | null>(null);
-  const [isOwnProfile, setIsOwnProfile] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [userPosts, setUserPosts] = useState<any[]>([]);
-  const [followLoading, setFollowLoading] = useState(false);
 
+  // Queries
+  const { data: profileData, isLoading: loadingProfile } = useProfile(username);
+  const profile: Profile | null = profileData ? {
+    id: profileData.id,
+    username: profileData.username || username,
+    full_name: profileData.full_name || username,
+    avatar_url: profileData.avatar_url,
+    bio: profileData.bio || "No bio yet.",
+    niche: profileData.niche || "General",
+    followers: profileData.followers || "0",
+    platform: profileData.platform || "None",
+    engagement_rate: profileData.engagement_rate || profileData.engagementRate || "0",
+    location: profileData.location || "Earth",
+    website: profileData.website,
+    join_date: profileData.created_at || new Date().toISOString(),
+    banner_url: profileData.banner_url,
+  } : null;
+
+  const { data: userPosts = [] } = useUserPosts(profile?.id);
+  
   useEffect(() => {
-    const fetchProfileAndUser = async () => {
-      try {
-        setLoading(true);
-        
-        // 1. Get current session
-        const { data: { session } } = await supabase.auth.getSession();
-        setCurrentUser(session?.user ?? null);
-
-        // 2. Fetch public profile
-        // Note: We're selecting * to get all fields. 
-        // Ensure your 'profiles' table has these fields or adjust accordingly.
-        const { data, error } = await supabase
+    const fetchViewerData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setCurrentUser(session.user);
+        setViewerRole(session.user.user_metadata?.role || "influencer");
+        const { data: vProfile } = await supabase
           .from("profiles")
           .select("*")
-          .eq("username", username)
+          .eq("id", session.user.id)
           .single();
-
-        if (error) {
-          throw error;
-        }
-
-        if (data) {
-          // Normalize data structure if needed
-          setProfile({
-            id: data.id,
-            username: data.username || username,
-            full_name: data.full_name || username,
-            avatar_url: data.avatar_url,
-            bio: data.bio || "No bio yet.",
-            niche: data.niche || "General",
-            followers: data.followers || "0",
-            platform: data.platform || "None",
-            engagement_rate: data.engagement_rate || data.engagementRate || "0",
-            location: data.location || "Earth",
-            website: data.website,
-            join_date: data.created_at || new Date().toISOString(),
-            banner_url: data.banner_url,
-          });
-
-          // Check ownership
-          if (session?.user?.id === data.id) {
-            setIsOwnProfile(true);
-          }
-        }
-
-        // 3. If logged in, fetch viewer's profile
-        if (session?.user) {
-          setViewerRole(session.user.user_metadata?.role || "influencer");
-          const { data: vProfile } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", session.user.id)
-            .single();
-          if (vProfile) setViewerProfile(vProfile);
-        }
-
-      } catch (error: any) {
-        console.error("Error fetching profile:", error);
-        toast({
-          title: "Profile not found",
-          description: "We couldn't find a user with that username.",
-          variant: "destructive",
-        });
-        // Optionally redirect or show 404 state
-      } finally {
-        setLoading(false);
+        if (vProfile) setViewerProfile(vProfile);
       }
     };
+    fetchViewerData();
+  }, []);
 
-    const fetchPosts = async (userId: string) => {
-      try {
-        const { data, error } = await supabase
-          .from("posts" as any)
-          .select("*")
-          .eq("author_id", userId)
-          .order("created_at", { ascending: false });
-        if (!error && data) setUserPosts(data);
-      } catch (err) {
-        console.error("Error fetching user posts:", err);
-      }
-    };
+  const isOwnProfile = currentUser?.id === profile?.id;
+  const { data: isFollowing } = useFollowStatus(currentUser?.id, profile?.id);
 
-    const fetchFollowingStatus = async (currentUserId: string, profileUserId: string) => {
-      try {
-        const { data, error } = await supabase
-          .from("follows" as any)
-          .select("id")
-          .eq("follower_id", currentUserId)
-          .eq("following_id", profileUserId)
-          .maybeSingle();
-        if (!error && data) setIsFollowing(true);
-      } catch (err) {
-        console.error("Error fetching following status:", err);
-      }
-    };
-
-    if (username) {
-      fetchProfileAndUser().then(async () => {
-        // We need the profile ID from fetchProfileAndUser
-      });
-    }
-  }, [username, toast]);
-
-  // Nested useEffect to handle secondary fetches once profile is loaded
-  useEffect(() => {
-    if (profile && currentUser) {
-      if (!isOwnProfile) {
-        fetchFollowingStatus(currentUser.id, profile.id);
-      }
-      fetchPosts(profile.id);
-    } else if (profile) {
-      fetchPosts(profile.id);
-    }
-  }, [profile, currentUser, isOwnProfile]);
-
-  const fetchPosts = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("posts" as any)
-        .select("*")
-        .eq("author_id", userId)
-        .order("created_at", { ascending: false });
-      if (!error && data) setUserPosts(data);
-    } catch (err) {
-      console.error("Error fetching user posts:", err);
-    }
-  };
-
-  const fetchFollowingStatus = async (currentUserId: string, profileUserId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("follows" as any)
-        .select("id")
-        .eq("follower_id", currentUserId)
-        .eq("following_id", profileUserId)
-        .maybeSingle();
-      setIsFollowing(!!data);
-    } catch (err) {
-      console.error("Error fetching following status:", err);
-    }
-  };
-
-  const handleFollow = async () => {
-    if (!currentUser) {
-      toast({
-        title: "Login required",
-        description: "You need to be logged in to follow users.",
-      });
-      return;
-    }
-
-    setFollowLoading(true);
-    try {
+  // Mutations
+  const followMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentUser || !profile) return;
       if (isFollowing) {
         const { error } = await supabase
           .from("follows" as any)
           .delete()
           .eq("follower_id", currentUser.id)
-          .eq("following_id", profile?.id);
+          .eq("following_id", profile.id);
         if (error) throw error;
-        setIsFollowing(false);
-        toast({ title: "Unfollowed", description: `You are no longer following @${profile?.username}` });
       } else {
         const { error } = await supabase
           .from("follows" as any)
           .insert({
             follower_id: currentUser.id,
-            following_id: profile?.id
+            following_id: profile.id
           });
         if (error) throw error;
-        setIsFollowing(true);
-        toast({ title: "Following", description: `You are now following @${profile?.username}` });
       }
-    } catch (error: any) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["follow-status", currentUser?.id, profile?.id] });
+      toast({ 
+        title: isFollowing ? "Unfollowed" : "Following", 
+        description: isFollowing ? `You are no longer following @${profile?.username}` : `You are now following @${profile?.username}` 
+      });
+    },
+    onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message || "Something went wrong.",
         variant: "destructive"
       });
-    } finally {
-      setFollowLoading(false);
     }
-  };
-
-  const PublicNavbar = () => (
-    <nav className="h-16 border-b border-border bg-background flex items-center justify-between px-6 sticky top-0 z-50">
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-          <span className="text-primary-foreground font-bold">G</span>
-        </div>
-        <span className="font-bold text-lg tracking-tight">GRIFI</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/auth">Login</Link>
-        </Button>
-        <Button size="sm" asChild>
-          <Link href="/auth">Sign Up</Link>
-        </Button>
-      </div>
-    </nav>
-  );
+  });
 
   const ProfileContent = () => {
     if (!profile) return null;
@@ -357,10 +245,10 @@ export default function PublicProfilePage() {
                         "w-full sm:w-auto font-semibold rounded-lg h-10 px-8 text-sm",
                         !isFollowing && "shadow-sm"
                       )}
-                      onClick={handleFollow}
-                      disabled={followLoading}
+                      onClick={() => followMutation.mutate()}
+                      disabled={followMutation.isPending}
                     >
-                      {followLoading ? (
+                      {followMutation.isPending ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : isFollowing ? (
                         <>
@@ -437,7 +325,7 @@ export default function PublicProfilePage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {userPosts.map(post => (
+                    {userPosts.map((post: any) => (
                       <div key={post.id} className="p-6 bg-card rounded-lg border border-border hover:border-muted-foreground/20 transition-all shadow-sm group">
                         <div className="flex items-center gap-2 mb-4">
                           <Clock className="w-3.5 h-3.5 text-muted-foreground/50" />
@@ -491,10 +379,10 @@ export default function PublicProfilePage() {
                 <div className="p-8 bg-secondary/20 rounded-[2.5rem] border border-border/50 space-y-4">
                   <h4 className="font-black text-sm uppercase tracking-widest text-muted-foreground">Networking</h4>
                   <p className="text-sm font-bold text-foreground leading-relaxed italic opacity-60">
-                    "Expanding horizons through creative partnerships and authentic storytelling..."
+                    &ldquo;Expanding horizons through creative partnerships and authentic storytelling...&rdquo;
                   </p>
                   <Button variant="link" className="p-0 h-auto font-black text-primary text-xs uppercase tracking-widest">
-                    Browse More Creators →
+                    Browse More Creators &rarr;
                   </Button>
                 </div>
               </div>
@@ -505,7 +393,7 @@ export default function PublicProfilePage() {
     );
   };
 
-  if (loading) {
+  if (loadingProfile) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center animate-bounce shadow-xl shadow-primary/20">
@@ -528,7 +416,7 @@ export default function PublicProfilePage() {
              <Users className="w-10 h-10 text-muted-foreground/50" />
           </div>
           <h2 className="text-3xl font-black italic">USER NOT FOUND</h2>
-          <p className="text-muted-foreground max-w-md">The profile @{username} doesn't seem to exist or has been moved.</p>
+          <p className="text-muted-foreground max-w-md">The profile @{username} doesn&apos;t seem to exist or has been moved.</p>
           <Button onClick={() => router.push("/")} className="font-bold rounded-xl h-11 px-8">Back to Home</Button>
         </div>
       </div>
@@ -539,7 +427,6 @@ export default function PublicProfilePage() {
     <div className="min-h-screen bg-background">
       {currentUser ? (
         <div className="flex min-h-screen">
-          {/* Laptop Sidebar */}
           <Sidebar 
             user={currentUser} 
             role={viewerRole} 
@@ -548,15 +435,12 @@ export default function PublicProfilePage() {
           />
 
           <div className="flex-1 flex flex-col min-w-0">
-            {/* Mobile Header */}
             <DashboardHeader user={currentUser} profile={viewerProfile} />
 
-            {/* Main Content Area */}
             <main className="flex-1 overflow-x-hidden pt-16 lg:pt-0 pb-20 lg:pb-0">
               <ProfileContent />
             </main>
 
-            {/* Mobile Bottom Nav */}
             <BottomNav role={viewerRole} className="lg:hidden" />
           </div>
         </div>
