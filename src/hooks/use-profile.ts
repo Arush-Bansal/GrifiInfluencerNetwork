@@ -24,7 +24,7 @@ export function useUserPosts(userId?: string) {
     queryFn: async () => {
       if (!userId) return [];
       const { data, error } = await supabase
-        .from("posts" as any)
+        .from("posts")
         .select("*")
         .eq("author_id", userId)
         .order("created_at", { ascending: false });
@@ -41,7 +41,7 @@ export function useFollowStatus(followerId?: string, followingId?: string) {
     queryFn: async () => {
       if (!followerId || !followingId) return false;
       const { data, error } = await supabase
-        .from("follows" as any)
+        .from("follows")
         .select("id")
         .eq("follower_id", followerId)
         .eq("following_id", followingId)

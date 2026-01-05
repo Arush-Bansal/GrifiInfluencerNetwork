@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, MessageSquare, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Image from "next/image";
+import { Database } from "@/integrations/supabase/types";
 
 interface FeedPost {
   id: string;
@@ -38,7 +40,7 @@ export function UnifiedFeed({ userId }: { userId: string }) {
       // Fetch Personal Posts (from followed users or connections)
       // RLS handles the filtering, so we just select * from posts
       const { data: personalPostsRaw, error: personalPostsError } = await supabase
-        .from("posts" as any)
+        .from("posts")
         .select(`
           id,
           content,
@@ -51,7 +53,7 @@ export function UnifiedFeed({ userId }: { userId: string }) {
 
       let personalPosts: FeedPost[] = [];
       if (!personalPostsError && personalPostsRaw) {
-        personalPosts = personalPostsRaw.map((p: any) => ({
+        personalPosts = (personalPostsRaw as unknown as any[]).map((p) => ({
           id: p.id,
           content: p.content,
           created_at: p.created_at,
@@ -135,11 +137,12 @@ export function UnifiedFeed({ userId }: { userId: string }) {
           <CardContent className="space-y-4">
             <p className="whitespace-pre-wrap text-sm leading-relaxed">{post.content}</p>
             {post.image_url && (
-              <div className="rounded-xl overflow-hidden border border-border/50 bg-muted/30">
-                <img 
+              <div className="relative rounded-xl overflow-hidden border border-border/50 bg-muted/30 aspect-video">
+                <Image 
                   src={post.image_url} 
                   alt="Post content" 
-                  className="w-full h-auto max-h-[500px] object-cover"
+                  fill
+                  className="object-cover"
                 />
               </div>
             )}

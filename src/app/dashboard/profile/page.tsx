@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -138,6 +139,7 @@ const ProfilePage = () => {
           setUsernameStatus('available');
         }
       } catch (error) {
+        // Error is expected if user doesn't exist
       }
     };
 
@@ -168,7 +170,7 @@ const ProfilePage = () => {
       const fileName = `${user.id}-${type}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
 
-      const { data, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('profiles')
         .upload(filePath, file);
 
@@ -202,11 +204,12 @@ const ProfilePage = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) setUser(session.user);
 
-    } catch (error: any) {
-      console.error(`Error uploading ${type}:`, error);
+    } catch (error: unknown) {
+      const err = error as Error;
+      console.error(`Error uploading ${type}:`, err);
       toast({
         title: "Upload Failed",
-        description: error.message || `Failed to upload your ${type}.`,
+        description: err.message || `Failed to upload your ${type}.`,
         variant: "destructive",
       });
     } finally {
@@ -291,11 +294,12 @@ const ProfilePage = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) setUser(session.user);
 
-    } catch (error: any) {
-      console.error("Critical error saving profile:", error);
+    } catch (error: unknown) {
+      const err = error as Error;
+      console.error("Critical error saving profile:", err);
       toast({
         title: "Error",
-        description: error.message || "Failed to update profile.",
+        description: err.message || "Failed to update profile.",
         variant: "destructive",
       });
     } finally {
@@ -359,7 +363,12 @@ const ProfilePage = () => {
                 </div>
                 <div className="relative h-32 sm:h-40 w-full rounded-xl overflow-hidden bg-secondary border-2 border-dashed border-border group">
                   {profile.banner_url ? (
-                    <img src={profile.banner_url} alt="Profile Banner" className="w-full h-full object-cover" />
+                    <Image 
+                      src={profile.banner_url} 
+                      alt="Profile Banner" 
+                      fill
+                      className="object-cover" 
+                    />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-primary/5 via-primary/10 to-primary/20 flex items-center justify-center">
                       <p className="text-muted-foreground text-xs font-medium">No background image set</p>
@@ -400,7 +409,12 @@ const ProfilePage = () => {
                 <div className="flex flex-col items-center gap-3 shrink-0">
                   <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-full bg-secondary flex items-center justify-center border-4 border-background shadow-xl relative overflow-hidden group">
                     {user?.user_metadata?.avatar_url ? (
-                      <img src={user.user_metadata.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+                      <Image 
+                        src={user.user_metadata.avatar_url} 
+                        alt="Avatar" 
+                        fill
+                        className="object-cover" 
+                      />
                     ) : (
                       <User className="h-12 w-12 text-muted-foreground" />
                     )}

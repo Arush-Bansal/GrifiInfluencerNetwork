@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Zap, Users, TrendingUp, Bot, LogOut, LayoutDashboard, Heart, Shield, Globe, Sparkles } from "lucide-react";
+import { Users, TrendingUp, Bot, LogOut, LayoutDashboard, Heart, Shield, Globe, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useRouter } from "next/navigation";
 import { Session } from "@supabase/supabase-js";
@@ -106,7 +106,7 @@ const AboutPage = () => {
             Building the Professional Layer <br/> of the <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Creator Economy</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed font-sans">
-            GRIFI is more than just a matching platform. We're building the infrastructure that allows creators and brands to build lasting, professional relationships.
+            GRIFI is more than just a matching platform. We&apos;re building the infrastructure that allows creators and brands to build lasting, professional relationships.
           </p>
         </div>
       </section>
@@ -134,7 +134,7 @@ const AboutPage = () => {
             <ValueCard
               icon={<Globe className="w-6 h-6 text-green-500" />}
               title="Global Connectivity"
-              description="Talent has no borders. We're connecting the best creators with the most innovative brands across the globe."
+              description="Talent has no borders. We&apos;re connecting the best creators with the most innovative brands across the globe."
             />
           </div>
         </div>
@@ -147,7 +147,7 @@ const AboutPage = () => {
             <h2 className="text-3xl font-bold mb-6 font-sans uppercase tracking-tight">Why we built GRIFI</h2>
             <div className="space-y-6">
               <p className="text-lg text-muted-foreground font-sans">
-                The creator economy is booming, but the professional infrastructure hasn't kept pace. Finding the right talent is hard for brands, and finding the right brands is exhausting for creators.
+                The creator economy is booming, but the professional infrastructure hasn&apos;t kept pace. Finding the right talent is hard for brands, and finding the right brands is exhausting for creators.
               </p>
               <p className="text-lg text-muted-foreground font-sans">
                 Most platforms focus only on the transaction. We focus on the <span className="text-primary font-semibold italic">network</span>. By creating a professional identity layer, we make collaboration seamless, safe, and scalable.
@@ -185,7 +185,7 @@ const AboutPage = () => {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tighter uppercase font-sans">Start Building Your Network</h2>
           <p className="text-xl mb-10 opacity-90 max-w-2xl mx-auto text-primary-foreground/80 font-sans">
-            Whether you're an influencer looking for your next big deal or a brand seeking authentic voices, GRIFI is your home.
+            Whether you&apos;re an influencer looking for your next big deal or a brand seeking authentic voices, GRIFI is your home.
           </p>
           {!loading && (
              session ? (

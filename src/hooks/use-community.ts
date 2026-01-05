@@ -1,12 +1,21 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
+
+type CommunityPost = Database["public"]["Tables"]["community_posts"]["Row"] & {
+  profiles: { username: string | null } | null;
+};
+
+type CommunityMember = Database["public"]["Tables"]["community_members"]["Row"] & {
+  profiles: { username: string | null } | null;
+};
 
 export function useCommunity(communityId: string) {
   return useQuery({
     queryKey: ["community", communityId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("communities" as any)
+        .from("communities")
         .select("*")
         .eq("id", communityId)
         .single();
@@ -22,13 +31,13 @@ export function useCommunityPosts(communityId: string, status: 'approved' | 'pen
     queryKey: ["community-posts", communityId, status],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("community_posts" as any)
+        .from("community_posts")
         .select("*, profiles:author_id(username)")
         .eq("community_id", communityId)
         .eq("status", status)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      return data as unknown as CommunityPost[];
     },
     enabled: !!communityId,
   });
@@ -39,11 +48,11 @@ export function useCommunityMembers(communityId: string) {
     queryKey: ["community-members", communityId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("community_members" as any)
+        .from("community_members")
         .select("*, profiles:user_id(username)")
         .eq("community_id", communityId);
       if (error) throw error;
-      return data;
+      return data as unknown as CommunityMember[];
     },
     enabled: !!communityId,
   });
@@ -55,7 +64,7 @@ export function useUserMembership(communityId: string, userId?: string) {
     queryFn: async () => {
       if (!userId) return null;
       const { data, error } = await supabase
-        .from("community_members" as any)
+        .from("community_members")
         .select("*")
         .eq("community_id", communityId)
         .eq("user_id", userId)
@@ -73,7 +82,7 @@ export function useUserFollowStatus(communityId: string, userId?: string) {
     queryFn: async () => {
       if (!userId) return false;
       const { data, error } = await supabase
-        .from("community_followers" as any)
+        .from("community_followers")
         .select("*")
         .eq("community_id", communityId)
         .eq("user_id", userId)

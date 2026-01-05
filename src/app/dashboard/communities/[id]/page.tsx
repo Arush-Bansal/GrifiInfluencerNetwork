@@ -3,8 +3,6 @@
 import { useState, useEffect, use } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +25,9 @@ import {
   useUserFollowStatus 
 } from "@/hooks/use-community";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
+
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Community {
   id: string;
@@ -67,18 +68,18 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
 
   // Queries
   const { data: community, isLoading: loadingCommunity } = useCommunity(id);
-  const { data: posts = [], isLoading: loadingPosts } = useCommunityPosts(id, "approved");
-  const { data: pendingPosts = [], isLoading: loadingPending } = useCommunityPosts(id, "pending");
-  const { data: members = [], isLoading: loadingMembers } = useCommunityMembers(id);
-  const { data: membership, isLoading: loadingMembership } = useUserMembership(id, user?.id);
-  const { data: isFollowing, isLoading: loadingFollow } = useUserFollowStatus(id, user?.id);
+  const { data: posts = [] } = useCommunityPosts(id, "approved");
+  const { data: pendingPosts = [] } = useCommunityPosts(id, "pending");
+  const { data: members = [] } = useCommunityMembers(id);
+  const { data: membership } = useUserMembership(id, user?.id);
+  const { data: isFollowing } = useUserFollowStatus(id, user?.id);
 
   // Mutations
   const joinMutation = useMutation({
     mutationFn: async () => {
       if (!user) return;
       const { error } = await supabase
-        .from("community_members" as any)
+        .from("community_members")
         .insert({ community_id: id, user_id: user.id, role: 'member' });
       if (error) throw error;
     },
@@ -87,14 +88,14 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
       queryClient.invalidateQueries({ queryKey: ["community-members", id] });
       toast({ title: "Joined!", description: "You are now a member." });
     },
-    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
   const leaveMutation = useMutation({
     mutationFn: async () => {
       if (!user) return;
       const { error } = await supabase
-        .from("community_members" as any)
+        .from("community_members")
         .delete()
         .eq("community_id", id)
         .eq("user_id", user.id);
@@ -105,7 +106,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
       queryClient.invalidateQueries({ queryKey: ["community-members", id] });
       toast({ title: "Left community" });
     },
-    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
   const followMutation = useMutation({
@@ -113,12 +114,12 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
       if (!user) return;
       if (follow) {
         const { error } = await supabase
-          .from("community_followers" as any)
+          .from("community_followers")
           .insert({ community_id: id, user_id: user.id });
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from("community_followers" as any)
+          .from("community_followers")
           .delete()
           .eq("community_id", id)
           .eq("user_id", user.id);
@@ -129,14 +130,14 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
       queryClient.invalidateQueries({ queryKey: ["community-follow", id, user?.id] });
       toast({ title: follow ? "Following" : "Unfollowed" });
     },
-    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
   const submitPostMutation = useMutation({
     mutationFn: async (content: string) => {
       if (!user) return;
       const { error } = await supabase
-        .from("community_posts" as any)
+        .from("community_posts")
         .insert({ community_id: id, author_id: user.id, content, status: 'pending' });
       if (error) throw error;
     },
@@ -145,13 +146,13 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
       toast({ title: "Post Submitted", description: "Your post is pending approval." });
       setPostContent("");
     },
-    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
   const moderateMutation = useMutation({
     mutationFn: async ({ postId, status }: { postId: string, status: 'approved' | 'rejected' }) => {
       const { error } = await supabase
-        .from("community_posts" as any)
+        .from("community_posts")
         .update({ status, moderated_by: user?.id, moderated_at: new Date().toISOString() })
         .eq("id", postId);
       if (error) throw error;
@@ -160,14 +161,14 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
       queryClient.invalidateQueries({ queryKey: ["community-posts", id] });
       toast({ title: `Post ${status}` });
     },
-    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
   const promoteMutation = useMutation({
     mutationFn: async ({ memberUserId, newRole }: { memberUserId: string, newRole: string }) => {
       const { error } = await supabase
-        .from("community_members" as any)
-        .update({ role: newRole })
+        .from("community_members")
+        .update({ role: newRole as any })
         .eq("community_id", id)
         .eq("user_id", memberUserId);
       if (error) throw error;
@@ -176,7 +177,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
       queryClient.invalidateQueries({ queryKey: ["community-members", id] });
       toast({ title: "Role updated" });
     },
-    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
   const isModerator = (membership as any)?.role === 'admin' || (membership as any)?.role === 'moderator' || (community as any)?.created_by === user?.id;
@@ -203,8 +204,8 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                   <Users className="w-12 h-12" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold">{(community as any).name}</h1>
-                  <p className="text-muted-foreground">{(community as any).description}</p>
+                  <h1 className="text-3xl font-bold">{community.name}</h1>
+                  <p className="text-muted-foreground">{community.description}</p>
                 </div>
               </div>
               
@@ -297,7 +298,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                   <p className="text-muted-foreground">No approved posts yet. Be the first to share something!</p>
                 </div>
               ) : (
-                posts.map((post: any) => (
+                posts.map((post: Post) => (
                   <Card key={post.id} className="border-none bg-card/80 backdrop-blur-sm">
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
@@ -330,7 +331,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
             <Card className="border-none bg-card/80">
               <CardContent className="pt-6">
                 <div className="space-y-4">
-                  {members.map((member: any) => (
+                  {members.map((member: Member) => (
                     <div key={member.user_id} className="flex items-center justify-between py-2 border-b last:border-0">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-primary/5 rounded-full flex items-center justify-center text-primary font-bold">
@@ -382,7 +383,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                   <p className="text-muted-foreground">All caught up! No pending posts.</p>
                 </div>
               ) : (
-                pendingPosts.map((post: any) => (
+                pendingPosts.map((post: Post) => (
                   <Card key={post.id} className="border-none bg-card/80 shadow-md">
                     <CardHeader className="pb-2">
                       <div className="flex items-center gap-2">
