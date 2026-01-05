@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, Clock, MessageSquare, User as UserIcon } from "lucide-react";
+import { Clock, MessageSquare, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -35,56 +35,7 @@ export function UnifiedFeed({ userId }: { userId: string }) {
     try {
       setLoading(true);
       
-      // 1. Get joined communities & followed communities
-      const { data: memberships } = await supabase
-        .from("community_members" as any)
-        .select("community_id")
-        .eq("user_id", userId);
-
-      const { data: communityFollows } = await supabase
-        .from("community_followers" as any)
-        .select("community_id")
-        .eq("user_id", userId);
-
-      const communityIds = Array.from(new Set([
-        ...((memberships as any[])?.map(m => m.community_id) || []),
-        ...((communityFollows as any[])?.map(f => f.community_id) || [])
-      ]));
-
-      // 2. Fetch Community Posts
-      let communityPosts: FeedPost[] = [];
-      if (communityIds.length > 0) {
-        const { data, error } = await supabase
-          .from("community_posts" as any)
-          .select(`
-            id, 
-            content, 
-            image_url,
-            created_at, 
-            community_id,
-            communities:community_id(name),
-            profiles:author_id(username, avatar_url)
-          `)
-          .in("community_id", communityIds)
-          .eq("status", "approved");
-
-        if (!error && data) {
-          communityPosts = data.map((p: any) => ({
-            id: p.id,
-            content: p.content,
-            created_at: p.created_at,
-            type: 'community',
-            community_id: p.community_id,
-            community_name: p.communities?.name,
-            author_id: p.author_id,
-            author_username: p.profiles?.username || 'user',
-            author_avatar: p.profiles?.avatar_url,
-            image_url: p.image_url
-          }));
-        }
-      }
-
-      // 3. Fetch Personal Posts (from followed users or connections)
+      // Fetch Personal Posts (from followed users or connections)
       // RLS handles the filtering, so we just select * from posts
       const { data: personalPostsRaw, error: personalPostsError } = await supabase
         .from("posts" as any)
@@ -112,12 +63,7 @@ export function UnifiedFeed({ userId }: { userId: string }) {
         }));
       }
 
-      // 4. Combine and Sort
-      const combined = [...communityPosts, ...personalPosts].sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-
-      setPosts(combined);
+      setPosts(personalPosts);
     } catch (err) {
       console.error("Error fetching feed:", err);
     } finally {
@@ -143,12 +89,8 @@ export function UnifiedFeed({ userId }: { userId: string }) {
             <MessageSquare className="w-6 h-6" />
           </div>
           <p className="font-medium text-lg mb-1">Your feed is empty</p>
-          <p className="text-muted-foreground text-sm mb-6">Join communities or follow users to see updates here.</p>
+          <p className="text-muted-foreground text-sm mb-6">Follow users to see updates here.</p>
           <div className="flex justify-center gap-4">
-            <Link href="/dashboard/communities">
-              <span className="text-primary font-semibold hover:underline cursor-pointer">Explore Communities</span>
-            </Link>
-            <span className="text-muted-foreground">|</span>
             <Link href="/dashboard/search">
                <span className="text-primary font-semibold hover:underline cursor-pointer">Find People</span>
             </Link>
@@ -177,18 +119,10 @@ export function UnifiedFeed({ userId }: { userId: string }) {
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-sm">@{post.author_username}</span>
                     <span className="text-xs text-muted-foreground">•</span>
-                    {post.type === 'community' ? (
-                      <Link href={`/dashboard/communities/${post.community_id}`}>
-                        <Badge variant="default" className="hover:bg-primary/20 transition-colors cursor-pointer text-[10px] h-4">
-                          {post.community_name}
-                        </Badge>
-                      </Link>
-                    ) : (
-                      <Badge variant="outline" className="text-[10px] h-4">
-                        <UserIcon className="w-2 h-2 mr-1" />
-                        Personal
-                      </Badge>
-                    )}
+                    <Badge variant="outline" className="text-[10px] h-4">
+                      <UserIcon className="w-2 h-2 mr-1" />
+                      Personal
+                    </Badge>
                   </div>
                   <div className="text-[10px] text-muted-foreground flex items-center gap-1">
                     <Clock className="w-3 h-3" />

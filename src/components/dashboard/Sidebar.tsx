@@ -8,9 +8,6 @@ import {
   LayoutDashboard,
   Search,
   MessageSquare,
-  Users,
-  Briefcase,
-  User,
   LogOut,
   PlusCircle,
   ExternalLink,
@@ -66,11 +63,6 @@ export function Sidebar({ className, user, role, profile }: SidebarProps) {
       title: "Collaborations",
       href: "/dashboard/collabs",
       icon: MessageSquare,
-    },
-    {
-      title: "Communities",
-      href: "/dashboard/communities",
-      icon: Users,
     },
   ];
 

@@ -5,11 +5,21 @@ import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Loader2, MapPin, Link as LinkIcon, Calendar, Edit, MessageCircle, Share2, Briefcase, Users, Star, UserPlus, UserMinus, Clock } from "lucide-react";
-import { Navbar } from "@/components/dashboard/Navbar";
+import { 
+  Loader2, 
+  MapPin, 
+  Link as LinkIcon, 
+  Calendar, 
+  Edit, 
+  Share2, 
+  Briefcase, 
+  Users, 
+  Star, 
+  UserPlus, 
+  UserMinus, 
+  Clock,
+  Check
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { SuggestCollabModal } from "@/components/collabs/SuggestCollabModal";
@@ -18,6 +28,12 @@ import { BottomNav } from "@/components/dashboard/BottomNav";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { 
+  Card, 
+  CardContent 
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 interface Profile {
   id: string;
@@ -258,216 +274,231 @@ export default function PublicProfilePage() {
   const ProfileContent = () => {
     if (!profile) return null;
     return (
-      <main className="container mx-auto px-4 py-8 lg:py-12 max-w-5xl">
-        {/* Profile Header Card */}
-        <Card className="overflow-hidden border-none shadow-sm mb-8 bg-card/50 backdrop-blur-sm">
-          <div className="h-40 md:h-64 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/20 relative">
-            {profile.banner_url ? (
-               <img 
-                 src={profile.banner_url} 
-                 alt="Profile Banner" 
-                 className="absolute inset-0 w-full h-full object-cover"
-               />
-            ) : (
-               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-            )}
-            {isOwnProfile && (
-              <Button 
-                onClick={() => router.push("/dashboard/profile")} 
-                variant="secondary" 
-                size="sm" 
-                className="absolute top-4 right-4 bg-background/80 backdrop-blur-sm hover:bg-background shadow-lg"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Header
-              </Button>
-            )}
-          </div>
-          <CardContent className="px-6 pb-8 relative">
-            <div className="-mt-20 md:-mt-24 mb-6 flex flex-col md:flex-row items-center md:items-end gap-6 text-center md:text-left">
-              <Avatar className="w-40 h-40 border-8 border-background shadow-xl ring-1 ring-border/50">
-                <AvatarImage src={profile.avatar_url} alt={profile.full_name} className="object-cover" />
-                <AvatarFallback className="text-4xl font-bold bg-secondary text-primary">
-                  {profile.full_name?.charAt(0) || "U"}
-                </AvatarFallback>
-              </Avatar>
-              
-              <div className="flex-1 space-y-2 pb-2">
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                  <h1 className="text-3xl md:text-4xl font-black tracking-tight">{profile.full_name}</h1>
-                  <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 px-3 flex items-center gap-1.5 py-1">
-                    <Star className="w-3.5 h-3.5 fill-primary" /> Verified Creator
+      <main className="min-h-screen bg-muted/50 pb-20">
+        {/* Muted Banner Section */}
+        <section className="relative h-48 md:h-64 overflow-hidden bg-muted border-b border-border">
+          {profile.banner_url ? (
+            <img 
+              src={profile.banner_url} 
+              alt="Profile Banner" 
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-muted/30" />
+          )}
+          
+          {isOwnProfile && (
+            <Button 
+              onClick={() => router.push("/dashboard/profile")} 
+              variant="outline" 
+              size="sm" 
+              className="absolute top-4 right-4 bg-background/80 backdrop-blur-sm shadow-sm"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Banner
+            </Button>
+          )}
+        </section>
+
+        {/* Profile Header Card (Floating & Centered) */}
+        <div className="container mx-auto px-4 max-w-4xl relative">
+          <Card className="border border-border shadow-sm -mt-20 relative z-10 overflow-visible bg-card rounded-xl">
+            <CardContent className="pt-0 pb-10 px-6 md:px-12 text-center">
+              {/* Centered Avatar */}
+              <div className="relative -mt-16 mb-6 inline-block">
+                <Avatar className="w-32 h-32 border-4 border-background shadow-md ring-1 ring-border relative z-10">
+                  <AvatarImage src={profile.avatar_url} alt={profile.full_name} className="object-cover" />
+                  <AvatarFallback className="text-3xl font-semibold bg-muted text-muted-foreground">
+                    {profile.full_name?.charAt(0) || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute -bottom-1 -right-1 z-20">
+                  <Badge className="bg-primary text-primary-foreground border-none px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                    <Star className="w-3 h-3 fill-primary-foreground" />
+                    <span className="font-semibold text-[10px]">Verified</span>
                   </Badge>
                 </div>
-                <p className="text-lg text-muted-foreground font-semibold">@{profile.username}</p>
+              </div>
+
+              {/* Name & Username */}
+              <div className="space-y-1 mb-8">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                  {profile.full_name}
+                </h1>
+                <p className="text-sm text-muted-foreground font-medium">@{profile.username}</p>
                 
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-2 text-sm text-muted-foreground pt-2">
-                  <span className="flex items-center gap-1.5 bg-secondary/50 px-2.5 py-1 rounded-full border border-border/50">
+                <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 pt-3">
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                     <MapPin className="w-3.5 h-3.5" /> {profile.location}
                   </span>
                   {profile.website && (
-                    <a href={profile.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-primary hover:text-primary/80 font-medium transition-colors">
+                    <a href={profile.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline transition-colors">
                       <LinkIcon className="w-3.5 h-3.5" /> Website
                     </a>
                   )}
-                  <span className="flex items-center gap-1.5 opacity-70">
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                     <Calendar className="w-3.5 h-3.5" /> Joined {new Date(profile.join_date).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
                   </span>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 w-full md:w-auto pt-6 md:pt-0">
-                <div className="flex items-center gap-2">
-                  {isOwnProfile ? (
-                    <Button onClick={() => router.push("/dashboard/profile")} variant="outline" className="flex-1 md:flex-none font-bold rounded-xl h-11 border-primary/20 hover:bg-primary/5">
-                      <Edit className="w-4 h-4 mr-2" />
-                      Edit Profile
-                    </Button>
-                  ) : (
-                    <>
-                      <Button 
-                        variant={isFollowing ? "secondary" : "default"} 
-                        className={cn(
-                          "flex-1 md:flex-none font-bold rounded-xl h-11 px-8 shadow-lg shadow-primary/10",
-                          isFollowing && "bg-secondary hover:bg-secondary/80 border-border"
-                        )}
-                        onClick={handleFollow}
-                        disabled={followLoading}
-                      >
-                        {followLoading ? (
-                          <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                        ) : isFollowing ? (
-                          <>
-                            <UserMinus className="w-4 h-4 mr-2" />
-                            Unfollow
-                          </>
-                        ) : (
-                          <>
-                            <UserPlus className="w-4 h-4 mr-2" />
-                            Follow
-                          </>
-                        )}
-                      </Button>
-                      <SuggestCollabModal 
-                        receiverId={profile.id} 
-                        receiverName={profile.full_name}
-                        trigger={
-                          <Button variant="outline" className="flex-1 md:flex-none font-bold rounded-xl h-11 border-primary/20 hover:bg-primary/5">
-                            Connect
-                          </Button>
-                        }
-                      />
-                    </>
-                  )}
-                  <Button variant="ghost" size="icon" className="h-11 w-11 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors">
-                    <Share2 className="w-4 h-4" />
+              {/* Primary Actions */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                {isOwnProfile ? (
+                  <Button onClick={() => router.push("/dashboard/profile")} variant="outline" className="w-full sm:w-auto font-semibold rounded-lg h-10 px-6">
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Profile
                   </Button>
-                </div>
+                ) : (
+                  <>
+                    <Button 
+                      variant={isFollowing ? "outline" : "default"} 
+                      className={cn(
+                        "w-full sm:w-auto font-semibold rounded-lg h-10 px-8 text-sm",
+                        !isFollowing && "shadow-sm"
+                      )}
+                      onClick={handleFollow}
+                      disabled={followLoading}
+                    >
+                      {followLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : isFollowing ? (
+                        <>
+                          <UserMinus className="w-4 h-4 mr-2" />
+                          Unfollow
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Follow
+                        </>
+                      )}
+                    </Button>
+                    <SuggestCollabModal 
+                      receiverId={profile.id} 
+                      receiverName={profile.full_name}
+                      trigger={
+                        <Button variant="outline" className="w-full sm:w-auto font-semibold rounded-lg h-10 border-border hover:bg-muted text-sm px-6 text-foreground">
+                          Connect
+                        </Button>
+                      }
+                    />
+                  </>
+                )}
+                <Button variant="ghost" size="icon" className="h-10 w-10 border border-border hover:bg-muted rounded-lg text-muted-foreground">
+                  <Share2 className="w-4 h-4" />
+                </Button>
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            <div className="mt-8 p-6 bg-secondary/20 rounded-2xl border border-border/50">
-              <h3 className="font-bold text-sm uppercase tracking-widest text-muted-foreground mb-3">About</h3>
-              <p className="text-foreground leading-relaxed whitespace-pre-wrap text-lg">
-                {profile.bio || "No bio information provided yet."}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content Column */}
-          <div className="lg:col-span-2 space-y-8">
-            
-            {/* Detailed Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { label: 'Followers', value: profile.followers, icon: Users, color: 'blue' },
-                { label: 'Engagement', value: `${profile.engagement_rate}%`, icon: Star, color: 'amber' },
-                { label: 'Platform', value: profile.platform, icon: Share2, color: 'purple' },
-                { label: 'Niche', value: profile.niche, icon: Briefcase, color: 'green' }
-              ].map((stat, i) => (
-                <Card key={i} className="border-none shadow-sm bg-card/40 hover:bg-card/60 transition-colors group overflow-hidden">
-                  <div className={cn("h-1 w-full bg-primary/20 group-hover:bg-primary/40 transition-colors")} />
-                  <CardContent className="pt-6 pb-6 text-center">
-                    <div className="text-2xl font-black text-foreground mb-1">{stat.value}</div>
-                    <div className="text-[10px] text-muted-foreground uppercase font-black tracking-widest flex items-center justify-center gap-1.5">
-                      <stat.icon className="w-3 h-3" /> {stat.label}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Activity / Posts */}
-            <section className="space-y-4">
-              <div className="flex items-center justify-between px-2">
-                <h3 className="font-black text-xl flex items-center gap-2.5">
-                  <MessageCircle className="w-6 h-6 text-primary" /> Recent Activity
-                </h3>
-                <Badge variant="default" className="font-bold">Latest {userPosts.length}</Badge>
-              </div>
-              {userPosts.length === 0 ? (
-                <Card className="border-none bg-card/30 py-16 text-center shadow-sm">
-                  <p className="text-muted-foreground font-medium">No recent activity to show yet.</p>
-                </Card>
-              ) : (
-                <div className="grid gap-4">
-                  {userPosts.map(post => (
-                    <Card key={post.id} className="border-none bg-card/60 shadow-sm hover:shadow-md transition-all group overflow-hidden">
-                      <CardContent className="p-6">
-                        <div className="flex items-center gap-2 mb-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                          <Clock className="w-3 h-3" />
-                          {new Date(post.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </div>
-                        <p className="text-foreground text-lg leading-relaxed whitespace-pre-wrap group-hover:text-primary/90 transition-colors">{post.content}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
+          {/* Stats Section */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+            {[
+              { label: 'Followers', value: profile.followers, icon: Users },
+              { label: 'Engagement', value: `${profile.engagement_rate}%`, icon: Star },
+              { label: 'Platform', value: profile.platform, icon: Share2 },
+              { label: 'Niche', value: profile.niche, icon: Briefcase }
+            ].map((stat, i) => (
+              <div key={i} className="bg-card p-6 rounded-lg border border-border text-center space-y-1 shadow-sm hover:border-muted-foreground/20 transition-colors">
+                <div className="w-8 h-8 mx-auto rounded-lg bg-muted flex items-center justify-center mb-1">
+                  <stat.icon className="w-4 h-4 text-muted-foreground" />
                 </div>
-              )}
-            </section>
-
+                <div className="text-xl font-bold text-foreground tracking-tight">{stat.value}</div>
+                <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">{stat.label}</div>
+              </div>
+            ))}
           </div>
 
-          {/* Sidebar Column */}
-          <div className="space-y-8">
-             <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
-                <div className="bg-primary/10 px-6 py-4 border-b border-primary/10">
-                  <h3 className="font-black text-lg flex items-center gap-2">
-                    <Briefcase className="w-5 h-5 text-primary" /> Offered Services
+          <div className="grid lg:grid-cols-3 gap-12 mt-12">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-12">
+              <section className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <h3 className="font-bold text-lg tracking-tight text-foreground text-left">Biography</h3>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+                <div className="p-6 bg-muted border border-border rounded-lg">
+                  <p className="text-foreground leading-relaxed whitespace-pre-wrap text-sm font-medium">
+                    {profile.bio || "No bio information provided yet."}
+                  </p>
+                </div>
+              </section>
+
+              <section className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-lg tracking-tight text-foreground flex items-center gap-2">
+                    Recent Activity <Badge variant="outline" className="rounded-full text-[10px] px-2 font-bold text-muted-foreground">{userPosts.length}</Badge>
                   </h3>
                 </div>
-                <CardContent className="p-6 space-y-4">
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 border border-border/50">
-                    <span className="font-bold text-sm">Brand Collaborations</span>
-                    <Badge className="bg-green-500/10 text-green-600 border-green-500/20 px-2.5 hover:bg-green-500/10">Available</Badge>
+                {userPosts.length === 0 ? (
+                  <div className="p-12 text-center bg-muted border border-dashed border-border rounded-lg">
+                    <p className="text-muted-foreground font-bold text-sm">No posts yet.</p>
                   </div>
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 border border-border/50">
-                    <span className="font-bold text-sm">UGC Content</span>
-                    <Badge className="bg-green-500/10 text-green-600 border-green-500/20 px-2.5 hover:bg-green-500/10">Available</Badge>
+                ) : (
+                  <div className="space-y-4">
+                    {userPosts.map(post => (
+                      <div key={post.id} className="p-6 bg-card rounded-lg border border-border hover:border-muted-foreground/20 transition-all shadow-sm group">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Clock className="w-3.5 h-3.5 text-muted-foreground/50" />
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                            {new Date(post.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </span>
+                        </div>
+                        <p className="text-foreground text-sm leading-relaxed font-medium">{post.content}</p>
+                      </div>
+                    ))}
                   </div>
-                  <Button variant="ghost" className="w-full text-xs font-black uppercase tracking-widest text-primary hover:bg-primary/5 h-11 rounded-xl">
-                    Inquire Now <Share2 className="w-3 h-3 ml-2" />
-                  </Button>
-                </CardContent>
-             </Card>
+                )}
+              </section>
+            </div>
 
-             <Card className="border-none shadow-sm bg-card/30 overflow-hidden">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <Users className="w-4 h-4" /> Discover More
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 pt-2">
-                   <div className="text-sm font-medium text-muted-foreground/80 leading-relaxed italic">
-                      "Find similar creators based on niche and influence..."
-                   </div>
-                   <Button variant="outline" className="w-full mt-4 text-xs font-bold border-primary/20 hover:bg-primary/5 h-10 rounded-xl">
-                     Browse Explore Page
-                   </Button>
-                </CardContent>
-             </Card>
+            {/* Sidebar info */}
+            <div className="space-y-8">
+              <div className="sticky top-24 space-y-8">
+                <Card className="border border-border shadow-sm bg-card rounded-xl overflow-hidden">
+                  <CardContent className="p-8 space-y-6">
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-bold tracking-tight text-foreground">
+                        Work with {profile.full_name?.split(' ')[0]}
+                      </h3>
+                      <p className="text-xs text-muted-foreground font-medium tracking-tight">Available for collaboration</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {[
+                        { label: 'Brand Partnerships', active: true },
+                        { label: 'UGC Content Creation', active: true },
+                        { label: 'Public Appearances', active: false }
+                      ].map((service, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-muted border border-border">
+                          <span className="font-semibold text-xs text-foreground/80">{service.label}</span>
+                          {service.active ? (
+                            <Check className="w-3.5 h-3.5 text-primary" />
+                          ) : (
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">N/A</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-lg font-bold text-sm shadow-sm transition-all">
+                      Send Inquiry
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <div className="p-8 bg-secondary/20 rounded-[2.5rem] border border-border/50 space-y-4">
+                  <h4 className="font-black text-sm uppercase tracking-widest text-muted-foreground">Networking</h4>
+                  <p className="text-sm font-bold text-foreground leading-relaxed italic opacity-60">
+                    "Expanding horizons through creative partnerships and authentic storytelling..."
+                  </p>
+                  <Button variant="link" className="p-0 h-auto font-black text-primary text-xs uppercase tracking-widest">
+                    Browse More Creators →
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -533,12 +564,12 @@ export default function PublicProfilePage() {
         <div className="flex flex-col min-h-screen">
           <PublicNavbar />
           <ProfileContent />
-          <footer className="mt-auto border-t border-border py-12 bg-secondary/10">
+          <footer className="mt-auto border-t border-border py-10 bg-muted">
             <div className="container mx-auto px-6 text-center">
-              <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest">Join @{profile.username} on Grifi</p>
-              <p className="text-xs text-muted-foreground mt-1">The Ultimate Creator & Brand Marketplace</p>
-              <Button variant="link" className="mt-4 text-primary font-black uppercase tracking-tighter" asChild>
-                <Link href="/auth">Create your own profile now →</Link>
+              <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mb-1">Discover more on Grifi</p>
+              <p className="text-[10px] text-muted-foreground font-medium">The Professional Identity Layer for Creators</p>
+              <Button variant="link" className="mt-4 text-primary font-bold text-xs uppercase tracking-tight" asChild>
+                <Link href="/auth">Join the network &rarr;</Link>
               </Button>
             </div>
           </footer>

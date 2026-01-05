@@ -10,7 +10,6 @@ import {
   Search,
   ExternalLink,
   Inbox,
-  Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
@@ -111,18 +110,6 @@ export const Navbar = ({ user, username }: NavbarProps) => {
                 </Button>
               )}
 
-              {/* Communities Link */}
-              <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => router.push("/dashboard/communities")} 
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  <span className="hidden sm:inline">
-                     Communities
-                  </span>
-                </Button>
 
               {/* Requests Link */}
               <Button 

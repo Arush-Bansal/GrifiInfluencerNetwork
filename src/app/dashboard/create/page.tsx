@@ -4,12 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
   Globe, 
-  Users, 
   Megaphone, 
+  MessageSquare,
   ChevronRight, 
   ArrowLeft,
   X,
@@ -154,21 +153,6 @@ export default function CreatePage() {
               </CardContent>
             </Card>
 
-            <Card 
-              className="cursor-pointer hover:bg-accent/50 transition-colors border-none bg-card/50 shadow-sm"
-              onClick={() => setStep("community")}
-            >
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className="w-12 h-12 bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-500">
-                  <Users className="w-6 h-6" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg">Community Post</h3>
-                  <p className="text-muted-foreground text-sm">Post to a specific community you're in</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
-              </CardContent>
-            </Card>
 
             {role === "brand" && (
               <Card 
@@ -210,7 +194,7 @@ export default function CreatePage() {
           <div className="space-y-3 animate-in fade-in slide-in-from-right-4 duration-500">
             {communities.length === 0 ? (
               <div className="text-center py-12">
-                <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
+                  <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
                 <p className="text-muted-foreground">You haven't joined any communities yet.</p>
                 <Button 
                   variant="outline" 
@@ -229,7 +213,7 @@ export default function CreatePage() {
                 >
                   <CardContent className="flex items-center gap-4 p-4">
                     <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
-                      <Users className="w-5 h-5" />
+                      <MessageSquare className="w-5 h-5" />
                     </div>
                     <div className="flex-1">
                       <h4 className="font-medium">{community.name}</h4>
