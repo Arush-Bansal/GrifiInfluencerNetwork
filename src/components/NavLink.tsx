@@ -13,7 +13,7 @@ interface NavLinkProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement
 }
 
 const NavLink = forwardRef<HTMLAnchorElement, NavLinkProps>(
-  ({ className, activeClassName, pendingClassName, to, href, ...props }, ref) => {
+  ({ className, activeClassName, pendingClassName: _pendingClassName, to, href, ...props }, ref) => {
     const pathname = usePathname();
     const target = to || href || "";
     const isActive = pathname === target;

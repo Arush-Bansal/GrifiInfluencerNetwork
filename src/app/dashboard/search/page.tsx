@@ -1,18 +1,15 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { Search as SearchIcon, ArrowLeft, User, Loader2, Filter, Bot } from "lucide-react";
+import { useSearchProfiles, useSearchSuggestions } from "@/hooks/use-search";
+import { Search as SearchIcon, User, Loader2, Filter, Bot } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MultiSelect, Option } from "@/components/ui/multi-select";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const NICHE_OPTIONS: Option[] = [
   { value: "tech", label: "Technology" },
@@ -45,9 +42,7 @@ function SearchContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
   const [query, setQuery] = useState(initialQuery);
-  const [results, setResults] = useState<Profile[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
+  const [hasSearched, setHasSearched] = useState(!!initialQuery);
   const [filters, setFilters] = useState({
     niches: [] as string[],
     platforms: [] as string[],
@@ -55,138 +50,27 @@ function SearchContent() {
     minEngagement: "",
   });
   const [showFilters, setShowFilters] = useState(false);
-  const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
-  const [profileUsername, setProfileUsername] = useState<string | null>(null);
-  const [suggestions, setSuggestions] = useState<Profile[]>([]);
-  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const router = useRouter();
-  const { toast } = useToast();
 
-  useEffect(() => {
-    const loadUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setCurrentUser(session.user);
-        
-        // Fetch username from profiles
-        const { data } = await supabase
-          .from("profiles")
-          .select("username")
-          .eq("id", session.user.id)
-          .single();
-        
-        if (data?.username) {
-          setProfileUsername(data.username);
-        }
-      }
-    };
-    loadUser();
-  }, []);
+  const searchRepo = useSearchProfiles(query, filters, true); // Enabled by default now for initial search
+  const suggestionsRepo = useSearchSuggestions(query, isFocused);
 
-  // Function to perform the search
-  const performSearch = async (searchQuery: string) => {
-    setLoading(true);
+  const performSearch = () => {
     setHasSearched(true);
-    setResults([]);
-
-    try {
-      let queryBuilder = supabase
-        .from("profiles")
-        .select("id, full_name, username, avatar_url, bio, niche, platform, followers, engagement_rate");
-
-      if (searchQuery.trim()) {
-        queryBuilder = queryBuilder.or(`full_name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%`);
-      }
-
-      if (filters.niches.length > 0) {
-        queryBuilder = queryBuilder.in('niche', filters.niches);
-      }
-      
-      if (filters.platforms.length > 0) {
-        queryBuilder = queryBuilder.in('platform', filters.platforms);
-      }
-      
-      if (filters.minFollowers) {
-        const followers = parseInt(filters.minFollowers.replace(/,/g, ''));
-        if (!isNaN(followers)) {
-          queryBuilder = queryBuilder.gte('followers', followers);
-        }
-      }
-      
-      if (filters.minEngagement) {
-        const engagement = parseFloat(filters.minEngagement);
-        if (!isNaN(engagement)) {
-          queryBuilder = queryBuilder.gte('engagement_rate', engagement);
-        }
-      }
-
-      const { data, error } = await queryBuilder.limit(20);
-
-      if (error) {
-        throw error;
-      }
-
-      setResults(data || []);
-    } catch (error: any) {
-      console.error("Search error:", error);
-      toast({
-        title: "Search failed",
-        description: error.message === 'relation "profiles" does not exist' 
-          ? "The profiles table does not exist. Please contact support." 
-          : "Could not fetch users. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    searchRepo.refetch();
   };
 
-  useEffect(() => {
-    if (initialQuery) {
-      performSearch(initialQuery);
-    }
-  }, [initialQuery]);
-
-  // Fetch suggestions as user types
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (!isFocused) return;
-      
-      if (!query.trim()) {
-        // Fetch "featured" or recent users when query is empty
-        setIsLoadingSuggestions(true);
-        const { data } = await supabase
-          .from("profiles")
-          .select("id, full_name, username, avatar_url, bio")
-          .limit(5);
-        setSuggestions(data || []);
-        setIsLoadingSuggestions(false);
-        return;
-      }
-
-      setIsLoadingSuggestions(true);
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, full_name, username, avatar_url, bio")
-        .or(`full_name.ilike.%${query}%,username.ilike.%${query}%`)
-        .limit(5);
-      
-      setSuggestions(data || []);
-      setIsLoadingSuggestions(false);
-    };
-
-    const debounceTimer = setTimeout(() => {
-      fetchSuggestions();
-    }, 300);
-
-    return () => clearTimeout(debounceTimer);
-  }, [query, isFocused]);
+  const performanceResults: Profile[] = searchRepo.data || [];
+  const results = performanceResults;
+  const loading = searchRepo.isFetching;
+  const isLoadingSuggestions = suggestionsRepo.isFetching;
+  const suggestions = suggestionsRepo.data || [];
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    performSearch(query);
+    performSearch();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -315,7 +199,7 @@ function SearchContent() {
                     <MultiSelect
                       options={NICHE_OPTIONS}
                       selected={filters.niches}
-                      onChange={(v) => setFilters({ ...filters, niches: v })}
+                      onChange={(v: string[]) => setFilters({ ...filters, niches: v })}
                       placeholder="Niches"
                       className="bg-secondary/50 border-transparent rounded-lg text-xs h-9"
                     />
@@ -325,7 +209,7 @@ function SearchContent() {
                     <MultiSelect
                       options={PLATFORM_OPTIONS}
                       selected={filters.platforms}
-                      onChange={(v) => setFilters({ ...filters, platforms: v })}
+                      onChange={(v: string[]) => setFilters({ ...filters, platforms: v })}
                       placeholder="Platforms"
                       className="bg-secondary/50 border-transparent rounded-lg text-xs h-9"
                     />

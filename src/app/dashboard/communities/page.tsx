@@ -1,15 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { useAllCommunities } from "@/hooks/use-community";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Users, Shield, ArrowRight } from "lucide-react";
+import { Search, Users, ArrowRight } from "lucide-react";
 import { CreateCommunityModal } from "@/components/communities/CreateCommunityModal";
 import Link from "next/link";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface Community {
   id: string;
@@ -19,39 +18,8 @@ interface Community {
 }
 
 export default function CommunitiesPage() {
-  const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [profile, setProfile] = useState<any>(null);
-  const [communities, setCommunities] = useState<Community[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: communities = [], isLoading: loading } = useAllCommunities();
   const [searchQuery, setSearchQuery] = useState("");
-
-  useEffect(() => {
-    const fetchUserAndCommunities = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-        setProfile(profile);
-      }
-
-      const { data, error } = await supabase
-        .from("communities" as any)
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (!error && data) {
-        setCommunities(data as any);
-      }
-      setLoading(false);
-    };
-
-    fetchUserAndCommunities();
-  }, []);
 
   const filteredCommunities = communities.filter(c => 
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

@@ -1,77 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, MessageSquare, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
-import { Database } from "@/integrations/supabase/types";
+import { useFeed } from "@/hooks/use-feed";
 
-interface FeedPost {
-  id: string;
-  content: string;
-  created_at: string;
-  type: 'community' | 'personal';
-  community_id?: string;
-  community_name?: string;
-  author_id: string;
-  author_username: string;
-  author_avatar?: string;
-  image_url?: string;
-}
 
 export function UnifiedFeed({ userId }: { userId: string }) {
-  const [posts, setPosts] = useState<FeedPost[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (userId) {
-      fetchFeed();
-    }
-  }, [userId]);
-
-  const fetchFeed = async () => {
-    try {
-      setLoading(true);
-      
-      // Fetch Personal Posts (from followed users or connections)
-      // RLS handles the filtering, so we just select * from posts
-      const { data: personalPostsRaw, error: personalPostsError } = await supabase
-        .from("posts")
-        .select(`
-          id,
-          content,
-          image_url,
-          created_at,
-          author_id,
-          profiles:author_id(username, avatar_url)
-        `)
-        .order("created_at", { ascending: false });
-
-      let personalPosts: FeedPost[] = [];
-      if (!personalPostsError && personalPostsRaw) {
-        personalPosts = (personalPostsRaw as unknown as any[]).map((p) => ({
-          id: p.id,
-          content: p.content,
-          created_at: p.created_at,
-          type: 'personal',
-          author_id: p.author_id,
-          author_username: p.profiles?.username || 'user',
-          author_avatar: p.profiles?.avatar_url,
-          image_url: p.image_url
-        }));
-      }
-
-      setPosts(personalPosts);
-    } catch (err) {
-      console.error("Error fetching feed:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: posts = [], isLoading: loading, refetch } = useFeed(userId);
 
   if (loading) {
     return (
@@ -106,7 +45,7 @@ export function UnifiedFeed({ userId }: { userId: string }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between px-1 mb-2">
          <h2 className="text-xl font-bold">Recent Updates</h2>
-         <button onClick={fetchFeed} className="text-xs text-primary hover:underline">Refresh</button>
+         <button onClick={() => refetch()} className="text-xs text-primary hover:underline">Refresh</button>
       </div>
       {posts.map(post => (
         <Card key={post.id} className="border-none bg-card/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all">

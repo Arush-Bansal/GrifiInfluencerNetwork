@@ -1,75 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useMyApplications } from "@/hooks/use-campaigns";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, MessageSquare, Megaphone, Calendar, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import { ChatSheet } from "@/components/collabs/ChatSheet";
 
-interface Application {
-  id: string;
-  status: string;
-  message: string;
-  created_at: string;
-  campaign: {
-    title: string;
-    brand_id: string;
-    brand: {
-      username: string;
-      full_name: string;
-      avatar_url: string;
-    };
-  };
-}
-
 interface MyApplicationsProps {
   influencerId: string;
 }
 
 export function MyApplications({ influencerId }: MyApplicationsProps) {
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchApplications = async () => {
-    try {
-      const { data, error } = await (supabase as any)
-        .from("campaign_applications")
-        .select(`
-          id,
-          status,
-          message,
-          created_at,
-          campaign:campaigns(
-            title,
-            brand_id,
-            brand:profiles(username, full_name, avatar_url)
-          )
-        `)
-        .eq("influencer_id", influencerId)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setApplications(data || []);
-    } catch (error: any) {
-      console.error("Error fetching applications:", error.message || error);
-      if (error.details) console.error("Error details:", error.details);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchApplications();
-  }, [influencerId]);
+  const { data: applications = [], isLoading: loading } = useMyApplications(influencerId);
 
   if (loading) {
     return (
@@ -93,7 +40,7 @@ export function MyApplications({ influencerId }: MyApplicationsProps) {
 
   return (
     <div className="space-y-4">
-      {applications.map((app) => (
+      {applications.map((app: any) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
         <Card key={app.id} className="border-border/50 overflow-hidden hover:shadow-md transition-shadow">
           <CardContent className="p-0">
              <div className="p-4 sm:p-6">

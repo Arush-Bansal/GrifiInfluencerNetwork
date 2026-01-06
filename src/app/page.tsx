@@ -100,7 +100,7 @@ const Index = () => {
             Connect, Collaborate, & <br className="hidden sm:block" /> <span className="text-primary underline decoration-primary/20 underline-offset-8">Grow Together</span>
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed px-4">
-            The identity layer for the creator economy. Whether you're a creator, brand, agency, or operator — build your professional network here.
+            The identity layer for the creator economy. Whether you&apos;re a creator, brand, agency, or operator — build your professional network here.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {!loading && (

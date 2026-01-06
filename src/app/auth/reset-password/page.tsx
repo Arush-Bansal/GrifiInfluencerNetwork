@@ -31,10 +31,11 @@ export default function ResetPassword() {
         title: "Reset link sent",
         description: "Check your email for the password reset link.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to send reset link. Please try again.";
       toast({
         title: "Error",
-        description: error.message || "Failed to send reset link. Please try again.",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -58,8 +59,8 @@ export default function ResetPassword() {
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base">
             {submitted 
-              ? "We've sent a password reset link to your email."
-              : "Enter your email address and we'll send you a link to reset your password."
+              ? "We&apos;ve sent a password reset link to your email."
+              : "Enter your email address and we&apos;ll send you a link to reset your password."
             }
           </p>
         </div>
@@ -73,7 +74,7 @@ export default function ResetPassword() {
               <div className="space-y-2">
                 <h3 className="text-xl font-bold">Check your inbox</h3>
                 <p className="text-sm text-muted-foreground">
-                  We've sent a reset link to <span className="font-semibold text-foreground">{email}</span>. 
+                  We&apos;ve sent a reset link to <span className="font-semibold text-foreground">{email}</span>. 
                   Please click the link to reset your password.
                 </p>
               </div>

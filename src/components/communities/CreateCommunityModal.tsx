@@ -6,17 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
+import { useCreateCommunity } from "@/hooks/use-community";
 
 export function CreateCommunityModal() {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const { toast } = useToast();
   const router = useRouter();
+  const { user } = useAuth();
+  const createMutation = useCreateCommunity();
 
   const handleSubmit = async () => {
     if (!name.trim()) {
@@ -28,65 +30,42 @@ export function CreateCommunityModal() {
       return;
     }
 
-    setLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        toast({
-            title: "Authentication required",
-            description: "You must be logged in to create a community.",
-            variant: "destructive",
-        });
-        return;
-      }
-
-      // 1. Create the community
-      const result = await supabase
-        .from("communities" as any)
-        .insert({
-          name: name.trim(),
-          description: description.trim(),
-          created_by: user.id,
-        })
-        .select()
-        .single();
-      
-      const community = result.data as any;
-      const communityError = result.error;
-
-      if (communityError) throw communityError;
-
-      // 2. Add creator as admin
-      const { error: memberError } = await supabase
-        .from("community_members" as any)
-        .insert({
-          community_id: community.id,
-          user_id: user.id,
-          role: 'admin'
-        });
-
-      if (memberError) throw memberError;
-
+    if (!user) {
       toast({
-        title: "Community Created!",
-        description: `${name} is now live.`,
-      });
-      setOpen(false);
-      setName("");
-      setDescription("");
-      router.push(`/dashboard/communities/${community.id}`);
-    } catch (error: any) {
-      console.error("Error creating community:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create community. Name might already be taken.",
+        title: "Authentication required",
+        description: "You must be logged in to create a community.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
+      return;
     }
+
+    createMutation.mutate({
+      name: name.trim(),
+      description: description.trim(),
+      userId: user.id
+    }, {
+      onSuccess: (community: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+        toast({
+          title: "Community Created!",
+          description: `${name} is now live.`,
+        });
+        setOpen(false);
+        setName("");
+        setDescription("");
+        router.push(`/dashboard/communities/${community.id}`);
+      },
+      onError: (error: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+        console.error("Error creating community:", error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to create community. Name might already be taken.",
+          variant: "destructive",
+        });
+      }
+    });
   };
+
+  const loading = createMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

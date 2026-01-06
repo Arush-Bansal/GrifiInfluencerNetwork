@@ -1,99 +1,43 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useCampaignApplications, useUpdateApplicationStatus } from "@/hooks/use-campaigns";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Check, X, MessageSquare, Loader2, User } from "lucide-react";
+import { Check, X, MessageSquare, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChatSheet } from "@/components/collabs/ChatSheet";
 
-interface Application {
-  id: string;
-  campaign_id: string;
-  influencer_id: string;
-  status: string;
-  message: string;
-  created_at: string;
-  influencer: {
-    username: string;
-    full_name: string;
-    avatar_url: string;
-  };
-}
 
 interface CampaignApplicationsListProps {
   campaignId: string;
 }
 
 export function CampaignApplicationsList({ campaignId }: CampaignApplicationsListProps) {
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const { data: applications = [], isLoading: loading } = useCampaignApplications(campaignId);
+  const updateStatus = useUpdateApplicationStatus();
   const { toast } = useToast();
 
-  const fetchApplications = async () => {
-    try {
-      const { data, error } = await (supabase as any)
-        .from("campaign_applications")
-        .select(`
-          *,
-          influencer:profiles(username, full_name, avatar_url)
-        `)
-        .eq("campaign_id", campaignId)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setApplications(data || []);
-    } catch (error: any) {
-      console.error("Error fetching applications:", error.message || error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchApplications();
-  }, [campaignId]);
-
-  const handleStatusUpdate = async (applicationId: string, newStatus: string) => {
-    setUpdatingId(applicationId);
-    try {
-      const { error } = await (supabase as any)
-        .from("campaign_applications")
-        .update({ status: newStatus })
-        .eq("id", applicationId);
-
-      if (error) throw error;
-
-      toast({
-        title: `Application ${newStatus}`,
-        description: `The application has been ${newStatus} successfully.`,
-      });
-
-      setApplications((prev) =>
-        prev.map((app) =>
-          app.id === applicationId ? { ...app, status: newStatus } : app
-        )
-      );
-    } catch (error: any) {
-      console.error("Error updating status:", error.message || error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update status.",
-        variant: "destructive",
-      });
-    } finally {
-      setUpdatingId(null);
-    }
+  const handleStatusUpdate = async (applicationId: string, newStatus: "approved" | "rejected") => {
+    updateStatus.mutate({ applicationId, campaignId, status: newStatus }, {
+      onSuccess: () => {
+        toast({
+          title: `Application ${newStatus}`,
+          description: `The application has been ${newStatus} successfully.`,
+        });
+      },
+      onError: (error: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+        toast({
+          title: "Error",
+          description: error.message || "Failed to update status.",
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   if (loading) {
@@ -144,7 +88,7 @@ export function CampaignApplicationsList({ campaignId }: CampaignApplicationsLis
                     variant="outline"
                     className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
                     onClick={() => handleStatusUpdate(app.id, 'rejected')}
-                    disabled={updatingId === app.id}
+                    disabled={updateStatus.isPending}
                   >
                     <X className="w-4 h-4" />
                   </Button>
@@ -153,7 +97,7 @@ export function CampaignApplicationsList({ campaignId }: CampaignApplicationsLis
                     variant="default"
                     className="h-8 w-8 p-0"
                     onClick={() => handleStatusUpdate(app.id, 'approved')}
-                    disabled={updatingId === app.id}
+                    disabled={updateStatus.isPending}
                   >
                     <Check className="w-4 h-4" />
                   </Button>

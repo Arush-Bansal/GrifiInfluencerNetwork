@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Lock } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 export default function UpdatePassword() {
   const [password, setPassword] = useState("");
@@ -71,10 +70,11 @@ export default function UpdatePassword() {
       // Sign out to ensure they log in with the new password
       await supabase.auth.signOut();
       router.push("/auth");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to update password. Please try again.";
       toast({
         title: "Error",
-        description: error.message || "Failed to update password. Please try again.",
+        description: message,
         variant: "destructive",
       });
     } finally {

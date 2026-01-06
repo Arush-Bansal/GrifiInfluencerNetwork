@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,16 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { useCheckUsername, useUpdateProfile } from "@/hooks/use-profile";
 import { Loader2, Check, XCircle, Rocket, User, Heart, Globe } from "lucide-react";
 
 export default function OnboardingPage() {
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'unavailable'>('idle');
-  const [user, setUser] = useState<any>(null);
   const router = useRouter();
   const { toast } = useToast();
+  const { user, profile, isLoading: authLoading } = useAuth();
+  const updateProfile = useUpdateProfile();
 
   const [form, setForm] = useState({
     username: "",
@@ -25,75 +24,50 @@ export default function OnboardingPage() {
     niche: "",
     platform: "",
   });
+  const hasInitializedForm = useRef(false);
+
+  const { data: checkData, isLoading: isCheckingUsername } = useCheckUsername(form.username, profile?.username || undefined);
+  const isUsernameAvailable = checkData?.available;
+  const usernameStatus = isCheckingUsername ? 'checking' : (form.username.length >= 3 ? (isUsernameAvailable ? 'available' : 'unavailable') : 'idle');
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/auth");
-        return;
-      }
-      setUser(session.user);
-      
-      // Check if they already have these details
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
+    if (!authLoading && !user) {
+      router.push("/auth");
+      return;
+    }
 
-      if (profile && profile.username && profile.full_name && profile.niche && profile.platform) {
-        router.push("/dashboard");
-        return;
-      }
+    if (profile && profile.username && profile.full_name && profile.niche && profile.platform) {
+      router.push("/dashboard");
+      return;
+    }
 
-      // Pre-fill from metadata if available
-      const metadata = session.user.user_metadata || {};
-      setForm({
+    if ((profile || user?.user_metadata) && !hasInitializedForm.current) {
+      const metadata = user?.user_metadata || {};
+      const newForm = {
         username: profile?.username || metadata.username || "",
         full_name: profile?.full_name || metadata.full_name || "",
         niche: profile?.niche || metadata.niche || "",
         platform: profile?.platform || metadata.platform || "",
-      });
-
-      setLoading(false);
-    };
-
-    checkUser();
-  }, [router]);
-
-  // Username validation
-  useEffect(() => {
-    const checkUsername = async () => {
-      if (!form.username || form.username.length < 3) {
-        setUsernameStatus('idle');
-        return;
-      }
-
-      setUsernameStatus('checking');
+      };
       
-      try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("username")
-          .eq("username", form.username)
-          .maybeSingle();
-
-        if (error) throw error;
-        
-        if (data) {
-          setUsernameStatus('unavailable');
-        } else {
-          setUsernameStatus('available');
-        }
-      } catch (error) {
-        console.error("Error checking username:", error);
+      if (newForm.username || newForm.full_name || newForm.niche || newForm.platform) {
+        // Move to the next tick to satisfy the linter and prevent synchronous cascading renders.
+        // Although we have a ref guard, the linter dislikes synchronous setState in useEffect.
+        const timer = setTimeout(() => {
+          setForm(prev => {
+            const hasChanged = 
+              prev.username !== newForm.username || 
+              prev.full_name !== newForm.full_name || 
+              prev.niche !== newForm.niche || 
+              prev.platform !== newForm.platform;
+            return hasChanged ? newForm : prev;
+          });
+          hasInitializedForm.current = true;
+        }, 0);
+        return () => clearTimeout(timer);
       }
-    };
-
-    const timeoutId = setTimeout(checkUsername, 500);
-    return () => clearTimeout(timeoutId);
-  }, [form.username]);
+    }
+  }, [authLoading, user, profile, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,11 +91,16 @@ export default function OnboardingPage() {
       return;
     }
 
-    setSaving(true);
     try {
-      // 1. Update Auth Metadata
-      const { error: authError } = await supabase.auth.updateUser({
-        data: {
+      await updateProfile.mutateAsync({
+        userId: user.id,
+        updates: {
+          username: form.username,
+          full_name: form.full_name,
+          niche: form.niche,
+          platform: form.platform,
+        },
+        authUpdates: {
           username: form.username,
           full_name: form.full_name,
           niche: form.niche,
@@ -129,39 +108,25 @@ export default function OnboardingPage() {
         }
       });
 
-      if (authError) throw authError;
-
-      // 2. Upsert to profiles table
-      const { error: dbError } = await supabase
-        .from("profiles")
-        .upsert({
-          id: user.id,
-          username: form.username,
-          full_name: form.full_name,
-          niche: form.niche,
-          platform: form.platform,
-          updated_at: new Date().toISOString(),
-        });
-
-      if (dbError) throw dbError;
-
       toast({
         title: "Welcome aboard!",
         description: "Your profile has been set up successfully.",
       });
 
       router.push("/dashboard");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Something went wrong. Please try again.";
       console.error("Error saving profile:", error);
       toast({
         title: "Setup failed",
-        description: error.message || "Something went wrong. Please try again.",
+        description: message,
         variant: "destructive"
       });
-    } finally {
-      setSaving(false);
     }
   };
+
+  const loading = authLoading || updateProfile.isPending;
+  const saving = updateProfile.isPending;
 
   if (loading) {
     return (
@@ -187,7 +152,7 @@ export default function OnboardingPage() {
               One Last Step
             </CardTitle>
             <CardDescription className="text-lg">
-              Let's personalize your Grifi experience.
+              Let&apos;s personalize your Grifi experience.
             </CardDescription>
           </CardHeader>
           <CardContent>

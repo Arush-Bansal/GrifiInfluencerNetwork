@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -21,7 +20,6 @@ import {
   Check
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { SuggestCollabModal } from "@/components/collabs/SuggestCollabModal";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { BottomNav } from "@/components/dashboard/BottomNav";
@@ -35,22 +33,24 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useProfile, useUserPosts, useFollowStatus } from "@/hooks/use-profile";
 import { useQueryClient, useMutation, UseMutationResult } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
 import Image from "next/image";
+
 
 interface Profile {
   id: string;
   username: string;
   full_name: string;
-  avatar_url: string;
-  bio: string;
-  niche: string;
-  platform: string;
-  followers: string;
-  engagement_rate: string;
-  location: string;
-  website: string;
+  avatar_url: string | null;
+  bio: string | null;
+  niche: string | null;
+  platform: string | null;
+  followers: string | null;
+  engagement_rate: string | null;
+  location: string | null;
+  website: string | null;
   join_date: string;
-  banner_url?: string;
+  banner_url?: string | null;
 }
 
 interface Post {
@@ -87,9 +87,7 @@ export default function PublicProfilePage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
-  const [viewerProfile, setViewerProfile] = useState<Profile | null>(null);
-  const [viewerRole, setViewerRole] = useState<string | null>(null);
+  const { user: currentUser, profile: viewerProfile, role: viewerRole } = useAuth();
 
   // Queries
   const { data: profileData, isLoading: loadingProfile } = useProfile(username);
@@ -102,7 +100,7 @@ export default function PublicProfilePage() {
     niche: profileData.niche || "General",
     followers: profileData.followers || "0",
     platform: profileData.platform || "None",
-    engagement_rate: profileData.engagement_rate || profileData.engagementRate || "0",
+    engagement_rate: profileData.engagement_rate || "0",
     location: profileData.location || "Earth",
     website: profileData.website,
     join_date: profileData.created_at || new Date().toISOString(),
@@ -110,39 +108,6 @@ export default function PublicProfilePage() {
   } : null;
 
   const { data: userPosts = [] } = useUserPosts(profile?.id);
-  
-  useEffect(() => {
-    const fetchViewerData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setCurrentUser(session.user);
-        setViewerRole(session.user.user_metadata?.role || "influencer");
-        const { data: vProfile } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .single();
-        if (vProfile) {
-          setViewerProfile({
-            id: vProfile.id,
-            username: vProfile.username || "",
-            full_name: vProfile.full_name || "",
-            avatar_url: vProfile.avatar_url || "",
-            bio: vProfile.bio || "",
-            niche: vProfile.niche || "",
-            platform: vProfile.platform || "",
-            followers: vProfile.followers || "",
-            engagement_rate: vProfile.engagement_rate || "",
-            location: vProfile.location || "",
-            website: vProfile.website || "",
-            join_date: vProfile.created_at || "",
-            banner_url: vProfile.banner_url || "",
-          });
-        }
-      }
-    };
-    fetchViewerData();
-  }, []);
 
   const isOwnProfile = currentUser?.id === profile?.id;
   const { data: isFollowing } = useFollowStatus(currentUser?.id, profile?.id);
@@ -239,7 +204,7 @@ export default function PublicProfilePage() {
               />
             </main>
 
-            <BottomNav role={viewerRole} className="lg:hidden" />
+            <BottomNav className="lg:hidden" />
           </div>
         </div>
       ) : (
@@ -320,7 +285,7 @@ const ProfileContent = ({
             {/* Centered Avatar */}
             <div className="relative -mt-16 mb-6 inline-block">
               <Avatar className="w-32 h-32 border-4 border-background shadow-md ring-1 ring-border relative z-10">
-                <AvatarImage src={profile.avatar_url} alt={profile.full_name} className="object-cover" />
+                <AvatarImage src={profile.avatar_url || undefined} alt={profile.full_name} className="object-cover" />
                 <AvatarFallback className="text-3xl font-semibold bg-muted text-muted-foreground">
                   {profile.full_name?.charAt(0) || "U"}
                 </AvatarFallback>

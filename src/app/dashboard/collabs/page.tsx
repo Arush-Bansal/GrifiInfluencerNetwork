@@ -1,143 +1,54 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { useCollabRequests, useUpdateCollabStatus } from "@/hooks/use-collabs";
+import { ChatSheet } from "@/components/collabs/ChatSheet";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Check, X, Clock, Send, Inbox, MessageSquare, Users, UserIcon } from "lucide-react";
+import { Loader2, Check, X, Clock, Send, Inbox, MessageSquare, Users, User as UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
-import { ChatSheet } from "@/components/collabs/ChatSheet";
 
-interface Request {
-  id: string;
-  sender_id: string;
-  receiver_id: string;
-  status: "pending" | "accepted" | "rejected" | "completed";
-  type: "collab" | "sponsorship";
-  message: string;
-  created_at: string;
-  sender?: {
-    id: string;
-    username: string;
-    full_name: string;
-    avatar_url: string;
-  };
-  receiver?: {
-    id: string;
-    username: string;
-    full_name: string;
-    avatar_url: string;
-  };
-}
 
 export default function CollabRequestsPage() {
-  const [incomingRequests, setIncomingRequests] = useState<Request[]>([]);
-  const [outgoingRequests, setOutgoingRequests] = useState<Request[]>([]);
-  const [activeConnections, setActiveConnections] = useState<Request[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const [currentUserId, setCurrentUserId] = useState<string>("");
+  const { user, isLoading: authLoading } = useAuth();
+  const { data, isLoading: requestsLoading } = useCollabRequests(user?.id);
+  
+  const incomingRequests = data?.incoming || [];
+  const outgoingRequests = data?.outgoing || [];
+  const activeConnections = data?.active || [];
+  const loading = authLoading || requestsLoading;
+  const currentUserId = user?.id || "";
 
-  const fetchRequests = async () => {
-    try {
-      setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) return;
-      setCurrentUserId(user.id);
-
-      // 1. Fetch raw requests (no joins) to avoid FK errors
-      const { data: inc, error: incError } = await supabase
-          .from("collab_requests" as any)
-          .select("*")
-          .eq("receiver_id", user.id)
-          .order("created_at", { ascending: false });
-
-      if (incError) console.error("Error fetching incoming:", incError);
-          
-      const { data: out, error: outError } = await supabase
-          .from("collab_requests" as any)
-          .select("*")
-          .eq("sender_id", user.id)
-          .order("created_at", { ascending: false });
-
-      if (outError) console.error("Error fetching outgoing:", outError);
-
-      // 2. Identify all unique user IDs to fetch profiles for
-      const userIds = new Set<string>();
-      inc?.forEach((r: any) => userIds.add(r.sender_id));
-      out?.forEach((r: any) => userIds.add(r.receiver_id));
-      
-      let profilesMap: Record<string, any> = {};
-      if (userIds.size > 0) {
-          const { data: profiles, error: profilesError } = await supabase
-            .from("profiles")
-            .select("id, username, full_name, avatar_url")
-            .in("id", Array.from(userIds));
-            
-          if (profilesError) console.error("Error fetching profiles:", profilesError);
-            
-          profiles?.forEach(p => {
-              profilesMap[p.id] = p;
-          });
-      }
-
-      // 3. Process requests
-      const incoming = inc?.map((r: any) => ({ ...r, sender: profilesMap[r.sender_id] })) || [];
-      const outgoing = out?.map((r: any) => ({ ...r, receiver: profilesMap[r.receiver_id] })) || [];
-
-      setIncomingRequests(incoming.filter((r: Request) => r.status === 'pending'));
-      setOutgoingRequests(outgoing.filter((r: Request) => r.status === 'pending'));
-
-      // Filter for accepted/active connections
-      // A connection is any request where status is 'accepted'
-      const activeInc = incoming.filter((r: Request) => r.status === 'accepted');
-      const activeOut = outgoing.filter((r: Request) => r.status === 'accepted');
-      setActiveConnections([...activeInc, ...activeOut]);
-
-    } catch (error) {
-      console.error("Error fetching requests:", error);
-      toast({
-        title: "Error loading requests",
-        description: "Please check your network connection.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const updateStatus = useUpdateCollabStatus();
 
   const handleStatusUpdate = async (requestId: string, newStatus: "accepted" | "rejected") => {
-    try {
-        const { error } = await supabase
-            .from("collab_requests" as any)
-            .update({ status: newStatus })
-            .eq("id", requestId);
-            
-        if (error) throw error;
-        
+    if (!user) return;
+    updateStatus.mutate({
+      requestId,
+      status: newStatus,
+      userId: user.id
+    }, {
+      onSuccess: () => {
         toast({
-            title: `Request ${newStatus}`,
-            description: `You have ${newStatus} the request.`,
+          title: `Request ${newStatus}`,
+          description: `You have ${newStatus} the request.`,
         });
-        
-        fetchRequests(); // Refresh
-    } catch (error) {
+      },
+      onError: () => {
         toast({
-            title: "Error",
-            description: "Failed to update request status.",
-            variant: "destructive"
+          title: "Error",
+          description: "Failed to update request status.",
+          variant: "destructive"
         });
-    }
+      }
+    });
   };
-
-  useEffect(() => {
-    fetchRequests();
-  }, []);
 
   const StatusBadge = ({ status }: { status: string }) => {
     const styles = {
@@ -252,7 +163,7 @@ export default function CollabRequestsPage() {
              <div className="text-center py-12 border rounded-lg bg-muted/10">
                 <Inbox className="w-12 h-12 mx-auto text-muted-foreground mb-4 opacity-20" />
                 <h3 className="text-lg font-medium">No incoming requests</h3>
-                <p className="text-muted-foreground">You haven't received any new collaboration proposals.</p>
+                <p className="text-muted-foreground">You haven&apos;t received any new collaboration proposals.</p>
              </div>
           ) : (
             incomingRequests.map((req) => (

@@ -47,7 +47,7 @@ export function SuggestCollabModal({ receiverId, receiverName, trigger }: Sugges
       }
 
       const { error } = await supabase
-        .from("collab_requests" as any)
+        .from("collab_requests")
         .insert({
           sender_id: senderId,
           receiver_id: receiverId,
@@ -64,11 +64,12 @@ export function SuggestCollabModal({ receiverId, receiverName, trigger }: Sugges
       });
       setOpen(false);
       setMessage("");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error sending request:", error);
+      const message = error instanceof Error ? error.message : "Failed to send request. Please try again.";
       toast({
         title: "Error",
-        description: "Failed to send request. Please try again.",
+        description: message,
         variant: "destructive",
       });
     } finally {

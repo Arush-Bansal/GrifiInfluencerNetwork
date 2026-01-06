@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, use } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,15 +15,22 @@ import {
   MoreVertical,
   Plus
 } from "lucide-react";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { useAuth } from "@/hooks/use-auth";
 import { 
   useCommunity, 
   useCommunityPosts, 
   useCommunityMembers, 
   useUserMembership, 
-  useUserFollowStatus 
+  useUserFollowStatus,
+  useJoinCommunity,
+  useLeaveCommunity,
+  useFollowCommunity,
+  useSubmitCommunityPost,
+  useModerateCommunityPost,
+  useUpdateMemberRole,
+  CommunityPost,
+  CommunityMember
 } from "@/hooks/use-community";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,35 +42,11 @@ interface Community {
   created_by: string;
 }
 
-interface Post {
-  id: string;
-  author_id: string;
-  content: string;
-  status: 'pending' | 'approved' | 'rejected';
-  created_at: string;
-  profiles?: {
-    username: string;
-  };
-}
-
-interface Member {
-  user_id: string;
-  role: 'admin' | 'moderator' | 'member';
-  profiles?: {
-    username: string;
-  };
-}
-
 export default function CommunityDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const { user } = useAuth();
   const [postContent, setPostContent] = useState("");
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
-  }, []);
 
   // Queries
   const { data: community, isLoading: loadingCommunity } = useCommunity(id);
@@ -75,113 +57,65 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
   const { data: isFollowing } = useUserFollowStatus(id, user?.id);
 
   // Mutations
-  const joinMutation = useMutation({
-    mutationFn: async () => {
-      if (!user) return;
-      const { error } = await supabase
-        .from("community_members")
-        .insert({ community_id: id, user_id: user.id, role: 'member' });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["community-membership", id, user?.id] });
-      queryClient.invalidateQueries({ queryKey: ["community-members", id] });
-      toast({ title: "Joined!", description: "You are now a member." });
-    },
-    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
-  });
+  const joinMutation = useJoinCommunity();
+  const leaveMutation = useLeaveCommunity();
+  const followMutation = useFollowCommunity();
+  const submitPostMutation = useSubmitCommunityPost();
+  const moderateMutation = useModerateCommunityPost();
+  const promoteMutation = useUpdateMemberRole();
 
-  const leaveMutation = useMutation({
-    mutationFn: async () => {
-      if (!user) return;
-      const { error } = await supabase
-        .from("community_members")
-        .delete()
-        .eq("community_id", id)
-        .eq("user_id", user.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["community-membership", id, user?.id] });
-      queryClient.invalidateQueries({ queryKey: ["community-members", id] });
-      toast({ title: "Left community" });
-    },
-    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
-  });
+  const handleJoin = () => {
+    if (!user) return;
+    joinMutation.mutate({ communityId: id, userId: user.id }, {
+      onSuccess: () => toast({ title: "Joined!", description: "You are now a member." }),
+      onError: (e) => toast({ title: "Error", description: e.message, variant: "destructive" })
+    });
+  };
 
-  const followMutation = useMutation({
-    mutationFn: async (follow: boolean) => {
-      if (!user) return;
-      if (follow) {
-        const { error } = await supabase
-          .from("community_followers")
-          .insert({ community_id: id, user_id: user.id });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("community_followers")
-          .delete()
-          .eq("community_id", id)
-          .eq("user_id", user.id);
-        if (error) throw error;
-      }
-    },
-    onSuccess: (_, follow) => {
-      queryClient.invalidateQueries({ queryKey: ["community-follow", id, user?.id] });
-      toast({ title: follow ? "Following" : "Unfollowed" });
-    },
-    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
-  });
+  const handleLeave = () => {
+    if (!user) return;
+    leaveMutation.mutate({ communityId: id, userId: user.id }, {
+      onSuccess: () => toast({ title: "Left community" }),
+      onError: (e) => toast({ title: "Error", description: e.message, variant: "destructive" })
+    });
+  };
 
-  const submitPostMutation = useMutation({
-    mutationFn: async (content: string) => {
-      if (!user) return;
-      const { error } = await supabase
-        .from("community_posts")
-        .insert({ community_id: id, author_id: user.id, content, status: 'pending' });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["community-posts", id, "pending"] });
-      toast({ title: "Post Submitted", description: "Your post is pending approval." });
-      setPostContent("");
-    },
-    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
-  });
+  const handleFollow = (follow: boolean) => {
+    if (!user) return;
+    followMutation.mutate({ communityId: id, userId: user.id, follow }, {
+      onSuccess: () => toast({ title: follow ? "Following" : "Unfollowed" }),
+      onError: (e) => toast({ title: "Error", description: e.message, variant: "destructive" })
+    });
+  };
 
-  const moderateMutation = useMutation({
-    mutationFn: async ({ postId, status }: { postId: string, status: 'approved' | 'rejected' }) => {
-      const { error } = await supabase
-        .from("community_posts")
-        .update({ status, moderated_by: user?.id, moderated_at: new Date().toISOString() })
-        .eq("id", postId);
-      if (error) throw error;
-    },
-    onSuccess: (_, { status }) => {
-      queryClient.invalidateQueries({ queryKey: ["community-posts", id] });
-      toast({ title: `Post ${status}` });
-    },
-    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
-  });
+  const handleSubmitPost = () => {
+    if (!user || !postContent.trim()) return;
+    submitPostMutation.mutate({ communityId: id, authorId: user.id, content: postContent }, {
+      onSuccess: () => {
+        toast({ title: "Post Submitted", description: "Your post is pending approval." });
+        setPostContent("");
+      },
+      onError: (e) => toast({ title: "Error", description: e.message, variant: "destructive" })
+    });
+  };
 
-  const promoteMutation = useMutation({
-    mutationFn: async ({ memberUserId, newRole }: { memberUserId: string, newRole: string }) => {
-      const { error } = await supabase
-        .from("community_members")
-        .update({ role: newRole as any })
-        .eq("community_id", id)
-        .eq("user_id", memberUserId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["community-members", id] });
-      toast({ title: "Role updated" });
-    },
-    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
-  });
+  const handleModerate = (postId: string, status: 'approved' | 'rejected') => {
+    if (!user) return;
+    moderateMutation.mutate({ postId, communityId: id, status, moderatorId: user.id }, {
+      onSuccess: () => toast({ title: `Post ${status}` }),
+      onError: (e) => toast({ title: "Error", description: e.message, variant: "destructive" })
+    });
+  };
 
-  const isModerator = (membership as any)?.role === 'admin' || (membership as any)?.role === 'moderator' || (community as any)?.created_by === user?.id;
-  const isAdmin = (membership as any)?.role === 'admin' || (community as any)?.created_by === user?.id;
+  const handleUpdateRole = (memberUserId: string, newRole: 'admin' | 'moderator' | 'member') => {
+    promoteMutation.mutate({ communityId: id, memberUserId, newRole }, {
+      onSuccess: () => toast({ title: "Role updated" }),
+      onError: (e) => toast({ title: "Error", description: e.message, variant: "destructive" })
+    });
+  };
+
+  const isModerator = membership?.role === 'admin' || membership?.role === 'moderator' || community?.created_by === user?.id;
+  const isAdmin = membership?.role === 'admin' || community?.created_by === user?.id;
 
   if (loadingCommunity || !community) {
     return (
@@ -212,7 +146,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
               <div className="flex gap-2">
                 <Button 
                   variant={isFollowing ? "outline" : "secondary"}
-                  onClick={() => followMutation.mutate(!isFollowing)}
+                  onClick={() => handleFollow(!isFollowing)}
                   disabled={followMutation.isPending}
                   className="rounded-full"
                 >
@@ -222,7 +156,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                 {membership ? (
                   <Button 
                     variant="destructive" 
-                    onClick={() => leaveMutation.mutate()} 
+                    onClick={handleLeave} 
                     disabled={leaveMutation.isPending}
                     className="rounded-full"
                   >
@@ -230,7 +164,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                   </Button>
                 ) : (
                   <Button 
-                    onClick={() => joinMutation.mutate()} 
+                    onClick={handleJoin} 
                     disabled={joinMutation.isPending}
                     className="rounded-full"
                   >
@@ -280,7 +214,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                   </div>
                   <div className="flex justify-end">
                     <Button 
-                      onClick={() => submitPostMutation.mutate(postContent)} 
+                      onClick={handleSubmitPost} 
                       disabled={submitPostMutation.isPending || !postContent.trim()}
                     >
                       {submitPostMutation.isPending ? <Clock className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
@@ -298,7 +232,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                   <p className="text-muted-foreground">No approved posts yet. Be the first to share something!</p>
                 </div>
               ) : (
-                posts.map((post: Post) => (
+                posts.map((post: CommunityPost) => (
                   <Card key={post.id} className="border-none bg-card/80 backdrop-blur-sm">
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
@@ -331,7 +265,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
             <Card className="border-none bg-card/80">
               <CardContent className="pt-6">
                 <div className="space-y-4">
-                  {members.map((member: Member) => (
+                  {members.map((member: CommunityMember) => (
                     <div key={member.user_id} className="flex items-center justify-between py-2 border-b last:border-0">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-primary/5 rounded-full flex items-center justify-center text-primary font-bold">
@@ -350,7 +284,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                             <Button 
                               size="sm" 
                               variant="outline" 
-                              onClick={() => promoteMutation.mutate({ memberUserId: member.user_id, newRole: 'moderator' })}
+                              onClick={() => handleUpdateRole(member.user_id, 'moderator')}
                               disabled={promoteMutation.isPending}
                             >
                               Make Moderator
@@ -360,7 +294,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                              <Button 
                               size="sm" 
                               variant="outline" 
-                              onClick={() => promoteMutation.mutate({ memberUserId: member.user_id, newRole: 'member' })}
+                              onClick={() => handleUpdateRole(member.user_id, 'member')}
                               disabled={promoteMutation.isPending}
                             >
                               Revoke Moderator
@@ -383,7 +317,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                   <p className="text-muted-foreground">All caught up! No pending posts.</p>
                 </div>
               ) : (
-                pendingPosts.map((post: Post) => (
+                pendingPosts.map((post: CommunityPost) => (
                   <Card key={post.id} className="border-none bg-card/80 shadow-md">
                     <CardHeader className="pb-2">
                       <div className="flex items-center gap-2">
@@ -404,13 +338,13 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ id: 
                         <Button 
                           variant="outline" 
                           className="text-destructive hover:bg-destructive/10"
-                          onClick={() => moderateMutation.mutate({ postId: post.id, status: 'rejected' })}
+                          onClick={() => handleModerate(post.id, 'rejected')}
                           disabled={moderateMutation.isPending}
                         >
                           <XCircle className="w-4 h-4 mr-2" /> Reject
                         </Button>
                         <Button 
-                          onClick={() => moderateMutation.mutate({ postId: post.id, status: 'approved' })}
+                          onClick={() => handleModerate(post.id, 'approved')}
                           disabled={moderateMutation.isPending}
                           className="bg-green-600 hover:bg-green-700"
                         >

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useApplyToCampaign } from "@/hooks/use-campaigns";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -33,8 +33,8 @@ export function ApplyToCampaignModal({
   applied = false 
 }: ApplyToCampaignModalProps) {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const applyMutation = useApplyToCampaign();
   const { toast } = useToast();
 
   const handleApply = async () => {
@@ -47,41 +47,28 @@ export function ApplyToCampaignModal({
       return;
     }
 
-    setLoading(true);
-    try {
-      const { error } = await supabase.from("campaign_applications" as any).insert({
-        campaign_id: campaignId,
-        influencer_id: influencerId,
-        message: message.trim(),
-        status: "pending",
-      });
-
-      if (error) {
-        if (error.code === '23505') { // Unique constraint violation
-           throw new Error("You have already applied to this campaign.");
-        }
-        throw error;
+    applyMutation.mutate({ campaignId, influencerId, message }, {
+      onSuccess: () => {
+        toast({
+          title: "Application sent!",
+          description: `Your application for "${campaignTitle}" has been sent.`,
+        });
+        setMessage("");
+        setOpen(false);
+        if (onApplied) onApplied();
+      },
+      onError: (error: unknown) => {
+        const message = error instanceof Error ? error.message : "Failed to send application.";
+        toast({
+          title: "Error",
+          description: message,
+          variant: "destructive",
+        });
       }
-
-      toast({
-        title: "Application sent!",
-        description: `Your application for "${campaignTitle}" has been sent.`,
-      });
-
-      setMessage("");
-      setOpen(false);
-      if (onApplied) onApplied();
-    } catch (error: any) {
-      console.error("Error applying to campaign:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to send application.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    });
   };
+
+  const loading = applyMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

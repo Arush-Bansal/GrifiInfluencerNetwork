@@ -1,14 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import { useBrandCampaigns } from "@/hooks/use-campaigns";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CreateCampaignModal } from "./CreateCampaignModal";
@@ -22,44 +17,13 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-interface Campaign {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  created_at: string;
-  brand_id: string;
-}
 
 interface BrandCampaignsProps {
   brandId: string;
 }
 
 export function BrandCampaigns({ brandId }: BrandCampaignsProps) {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchCampaigns = async () => {
-    try {
-      const { data, error } = await (supabase as any)
-        .from("campaigns")
-        .select("*")
-        .eq("brand_id", brandId)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setCampaigns(data || []);
-    } catch (error: any) {
-      console.error("Error fetching campaigns:", error.message || error);
-      if (error.details) console.error("Error details:", error.details);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCampaigns();
-  }, [brandId]);
+  const { data: campaigns = [], isLoading: loading, refetch } = useBrandCampaigns(brandId);
 
   if (loading) {
     return (
@@ -79,7 +43,7 @@ export function BrandCampaigns({ brandId }: BrandCampaignsProps) {
           </h2>
           <p className="text-muted-foreground">Manage your active campaigns and applications.</p>
         </div>
-        <CreateCampaignModal brandId={brandId} onCampaignCreated={fetchCampaigns} />
+        <CreateCampaignModal brandId={brandId} onCampaignCreated={() => refetch()} />
       </div>
 
       {campaigns.length === 0 ? (
@@ -92,12 +56,12 @@ export function BrandCampaigns({ brandId }: BrandCampaignsProps) {
             <p className="text-muted-foreground max-w-sm mb-6">
               Launch your first campaign to start receiving applications from top influencers.
             </p>
-            <CreateCampaignModal brandId={brandId} onCampaignCreated={fetchCampaigns} />
+            <CreateCampaignModal brandId={brandId} onCampaignCreated={() => refetch()} />
           </CardContent>
         </Card>
       ) : (
         <Accordion type="single" collapsible className="space-y-4">
-          {campaigns.map((campaign) => (
+          {campaigns.map((campaign: any) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
             <AccordionItem key={campaign.id} value={campaign.id} className="border bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
               <AccordionTrigger className="px-6 py-4 hover:no-underline [&[data-state=open]>div>div>h3]:text-primary animate-in fade-in duration-300">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full pr-4 text-left">

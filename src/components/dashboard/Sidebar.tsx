@@ -14,6 +14,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { User } from "@supabase/supabase-js";
+import { Tables } from "@/integrations/supabase/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -27,9 +29,9 @@ import { Settings } from "lucide-react";
 
 interface SidebarProps {
   className?: string;
-  user: any;
+  user: User | null;
   role: string | null;
-  profile: any;
+  profile: Tables<"profiles"> | null | undefined;
 }
 
 export function Sidebar({ className, user, role, profile }: SidebarProps) {

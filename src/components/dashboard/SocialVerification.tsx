@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase, getURL } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Instagram, Youtube, Twitter, Facebook, CheckCircle2, Link2, Loader2, AlertCircle } from "lucide-react";
+import { Instagram, Youtube, Twitter, CheckCircle2, Link2, Loader2, AlertCircle } from "lucide-react";
 import { User } from "@supabase/supabase-js";
 import { Provider } from "@supabase/supabase-js";
 
@@ -49,17 +49,18 @@ export const SocialVerification = ({ user }: SocialVerificationProps) => {
       
       if (error) throw error;
       
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Could not initiate verification process.";
       console.error(`Error connecting ${provider}:`, error);
       
       let title = "Connection Failed";
-      let description = error.message || "Could not initiate verification process.";
+      let description = message;
 
       // Handle specific Supabase configuration errors
-      if (error.code === 'manual_linking_disabled' || error.message?.includes("Manual linking is disabled")) {
+      if (error instanceof Error && (error as { code?: string }).code === 'manual_linking_disabled' || message.includes("Manual linking is disabled")) {
           title = "Configuration Required";
           description = "Please enable 'Manual Linking' in your Supabase Dashboard under Authentication > URL Configuration.";
-      } else if (error.message?.includes("Unsupported provider") || error.message?.includes("provider is not enabled")) {
+      } else if (message.includes("Unsupported provider") || message.includes("provider is not enabled")) {
           title = "Provider Not Enabled";
           description = `The ${provider} login provider is not enabled in Supabase. Please enable it in Authentication > Providers.`;
       }
@@ -183,7 +184,7 @@ export const SocialVerification = ({ user }: SocialVerificationProps) => {
             </div>
             
             <div className="text-xs text-muted-foreground px-1">
-                <p>Note: If you encounter a "Manual linking is disabled" error, please contact the administrator to enable this feature in the platform settings.</p>
+                <p>Note: If you encounter a &quot;Manual linking is disabled&quot; error, please contact the administrator to enable this feature in the platform settings.</p>
             </div>
         </div>
 

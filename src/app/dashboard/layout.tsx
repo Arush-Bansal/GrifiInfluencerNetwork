@@ -1,83 +1,48 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { supabase } from "@/integrations/supabase/client";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { BottomNav } from "@/components/dashboard/BottomNav";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
-  const [role, setRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, profile, role, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   const isOnboardingPage = pathname === "/dashboard/onboarding";
 
   useEffect(() => {
-    const loadUserData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    if (isLoading) return;
+
+    if (!user) {
+      router.push("/auth");
+      return;
+    }
+
+    if (profile) {
+      // Check for onboarding completion
+      const isIncomplete = !profile.username || !profile.full_name || !profile.niche || !profile.platform;
       
-      if (!session) {
-        router.push("/auth");
-        return;
+      if (isIncomplete && !isOnboardingPage) {
+        router.push("/dashboard/onboarding");
+      } else if (!isIncomplete && isOnboardingPage) {
+        router.push("/dashboard");
       }
+    } else if (!isOnboardingPage) {
+      // No profile yet, definitely needs onboarding
+      router.push("/dashboard/onboarding");
+    }
+  }, [user, profile, isLoading, isOnboardingPage, router]);
 
-      setUser(session.user);
-      setRole(session.user.user_metadata?.role || "influencer");
-
-      try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .single();
-
-        if (data && !error) {
-          setProfile(data);
-          
-          // Check for onboarding completion
-          const isIncomplete = !data.username || !data.full_name || !data.niche || !data.platform;
-          
-          if (isIncomplete && !isOnboardingPage) {
-            router.push("/dashboard/onboarding");
-          } else if (!isIncomplete && isOnboardingPage) {
-            router.push("/dashboard");
-          }
-        } else if (!isOnboardingPage) {
-          // No profile yet, definitely needs onboarding
-          router.push("/dashboard/onboarding");
-        }
-      } catch (err) {
-        console.error("Error fetching profile", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadUserData();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        setUser(session.user);
-        setRole(session.user.user_metadata?.role || "influencer");
-      } else {
-        router.push("/auth");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [router, isOnboardingPage]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center animate-bounce shadow-xl shadow-primary/20">
@@ -122,7 +87,7 @@ export default function DashboardLayout({
         </main>
 
         {/* Mobile Bottom Nav */}
-        <BottomNav role={role} className="lg:hidden" />
+        <BottomNav className="lg:hidden" />
       </div>
     </div>
   );

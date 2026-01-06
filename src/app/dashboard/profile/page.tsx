@@ -1,5 +1,9 @@
 "use client";
 
+import { useAuth } from "@/hooks/use-auth";
+import { useUpdateProfile, useCheckUsername, useUploadImage } from "@/hooks/use-profile";
+import { SocialVerification } from "@/components/dashboard/SocialVerification";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -9,19 +13,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { User, Loader2, Save, Camera, Link as LinkIcon, MapPin, Check, XCircle } from "lucide-react";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
-import { SocialVerification } from "@/components/dashboard/SocialVerification";
 
 const ProfilePage = () => {
-  const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
-
-  // Profile State
+  const { user, profile: serverProfile, isLoading: initialLoading } = useAuth();
+  
   const [profile, setProfile] = useState({
     username: "",
     full_name: "",
@@ -35,120 +33,37 @@ const ProfilePage = () => {
     banner_url: "",
   });
 
-  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'unavailable'>('idle');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const fetchUserAndProfile = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.user) {
-        router.push("/auth");
-        return;
-      }
+    if (serverProfile) {
+      setProfile({
+        username: serverProfile.username || "",
+        full_name: serverProfile.full_name || "",
+        bio: serverProfile.bio || "",
+        location: serverProfile.location || "",
+        website: serverProfile.website || "",
+        niche: serverProfile.niche || "",
+        followers: serverProfile.followers || "",
+        platform: serverProfile.platform || "",
+        engagementRate: serverProfile.engagement_rate || "",
+        banner_url: serverProfile.banner_url || "",
+      });
+    }
+  }, [serverProfile]);
 
-      setUser(session.user);
-      
-      try {
-        // Try to fetch from 'profiles' table first for most up-to-date data
-        // Explicitly selecting fields to avoid type errors if table schema varies
-        const { data: profileData, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .single();
+  const { data: usernameResult, isFetching: isCheckingUsername } = useCheckUsername(profile.username, serverProfile?.username || undefined);
+  const usernameStatus = isCheckingUsername ? 'checking' : 
+                   (profile.username === (serverProfile?.username || user?.user_metadata?.username) ? 'available' : 
+                   (usernameResult?.available ? 'available' : (profile.username.length >= 3 ? 'unavailable' : 'idle')));
 
-        const metadata = session.user.user_metadata || {};
-        
-        if (profileData && !error) {
-          setProfile({
-            username: profileData.username || metadata.username || "",
-            full_name: profileData.full_name || metadata.full_name || "",
-            bio: profileData.bio || metadata.bio || "",
-            location: profileData.location || metadata.location || "",
-            website: profileData.website || metadata.website || "",
-            niche: profileData.niche || metadata.niche || "",
-            followers: profileData.followers || metadata.followers || "",
-            platform: profileData.platform || metadata.platform || "",
-            engagementRate: profileData.engagement_rate || metadata.engagementRate || "", // Map db snake_case to state camelCase
-            banner_url: profileData.banner_url || metadata.banner_url || "",
-          });
-        } else {
-          // Fallback to metadata
-          setProfile({
-            username: metadata.username || "",
-            full_name: metadata.full_name || "",
-            bio: metadata.bio || "",
-            location: metadata.location || "",
-            website: metadata.website || "",
-            niche: metadata.niche || "",
-            followers: metadata.followers || "",
-            platform: metadata.platform || "",
-            engagementRate: metadata.engagementRate || "",
-            banner_url: metadata.banner_url || "",
-          });
-        }
-      } catch (err) {
-        console.error("Error fetching profile:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const updateProfileMutation = useUpdateProfile();
+  const uploadImageMutation = useUploadImage();
 
-    fetchUserAndProfile();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session?.user && !loading) {
-        router.push("/auth");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [router, loading]);
-
-  // Username validation effect
-  useEffect(() => {
-    const checkUsername = async () => {
-      if (!profile.username || profile.username.length < 3) {
-        setUsernameStatus('idle');
-        return;
-      }
-
-      // Don't check if it's the current user's own username (already saved)
-      // We check against metadata OR the initially loaded profile data if possible. 
-      // Simplified: if it matches user metadata username, it's theirs.
-      if (user?.user_metadata?.username === profile.username) {
-         setUsernameStatus('available'); 
-         return;
-      }
-      
-      setUsernameStatus('checking');
-      
-      try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("username")
-          .eq("username", profile.username)
-          .maybeSingle();
-
-        if (error) throw error;
-        
-        if (data) {
-          setUsernameStatus('unavailable');
-        } else {
-          setUsernameStatus('available');
-        }
-      } catch (error) {
-        // Error is expected if user doesn't exist
-      }
-    };
-
-    const timeoutId = setTimeout(() => {
-        checkUsername();
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [profile.username, user]);
+  if (!initialLoading && !user) {
+    router.push("/auth");
+    return null;
+  }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'banner') => {
     const file = e.target.files?.[0];
@@ -164,57 +79,34 @@ const ProfilePage = () => {
       return;
     }
 
-    try {
-      setSaving(true);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${type}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('profiles')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('profiles')
-        .getPublicUrl(filePath);
-
-      if (type === 'avatar') {
-        // Update both Auth metadata and Database
-        const { error: authError } = await supabase.auth.updateUser({
-          data: { avatar_url: publicUrl }
+    uploadImageMutation.mutate({
+      file,
+      userId: user.id,
+      bucket: 'profiles',
+      type
+    }, {
+      onSuccess: async ({ publicUrl }) => {
+        if (type === 'avatar') {
+          // Update avatar_url in profiles table
+          await updateProfileMutation.mutateAsync({
+            userId: user.id,
+            updates: { avatar_url: publicUrl }
+          });
+          toast({ title: "Photo Updated", description: "Your profile photo has been updated." });
+        } else {
+          setProfile(prev => ({ ...prev, banner_url: publicUrl }));
+          toast({ title: "Banner Uploaded", description: "Click Save Changes to persist your new background image." });
+        }
+      },
+      onError: (error: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+        console.error(`Error uploading ${type}:`, error);
+        toast({
+          title: "Upload Failed",
+          description: error.message || `Failed to upload your ${type}.`,
+          variant: "destructive",
         });
-        if (authError) throw authError;
-
-        const { error: dbError } = await supabase
-          .from('profiles')
-          .update({ avatar_url: publicUrl })
-          .eq('id', user.id);
-        if (dbError) throw dbError;
-
-        toast({ title: "Photo Updated", description: "Your profile photo has been updated." });
-      } else {
-        setProfile(prev => ({ ...prev, banner_url: publicUrl }));
-        // Just update state for now, handleSave will persist to DB
-        toast({ title: "Banner Uploaded", description: "Click Save Changes to persist your new background image." });
       }
-
-      // Refresh local user state
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) setUser(session.user);
-
-    } catch (error: unknown) {
-      const err = error as Error;
-      console.error(`Error uploading ${type}:`, err);
-      toast({
-        title: "Upload Failed",
-        description: err.message || `Failed to upload your ${type}.`,
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
+    });
   };
 
 
@@ -233,67 +125,30 @@ const ProfilePage = () => {
     setSaving(true);
 
     try {
-      // 1. Update Auth Metadata (User Identity)
-      const { error: authError } = await supabase.auth.updateUser({
-        data: {
+      await updateProfileMutation.mutateAsync({
+        userId: user.id,
+        updates: {
           username: profile.username,
           full_name: profile.full_name,
-          niche: profile.niche,
-          followers: profile.followers,
-          platform: profile.platform,
-          engagementRate: profile.engagementRate,
-          // Storing extra fields in metadata as backup
           bio: profile.bio,
           location: profile.location,
           website: profile.website,
+          niche: profile.niche,
+          followers: profile.followers,
+          platform: profile.platform,
+          engagement_rate: profile.engagementRate,
           banner_url: profile.banner_url,
-          avatar_url: user.user_metadata?.avatar_url,
+        },
+        authUpdates: {
+          username: profile.username,
+          full_name: profile.full_name,
         }
       });
 
-      if (authError) throw authError;
-
-      // 2. Upsert to 'profiles' table (Public Data)
-      // Sanitization: Convert empty strings to null for fields that might be numeric or optional
-      const dbPayload = {
-          id: user.id,
-          username: profile.username,
-          full_name: profile.full_name || null,
-          bio: profile.bio || null,
-          location: profile.location || null,
-          website: profile.website || null,
-          niche: profile.niche || null,
-          followers: profile.followers || null,
-          platform: profile.platform || null,
-          engagement_rate: profile.engagementRate || null,
-          banner_url: profile.banner_url || null,
-          updated_at: new Date().toISOString(),
-          avatar_url: user.user_metadata?.avatar_url
-      };
-
-      const { error: dbError } = await supabase
-        .from("profiles")
-        .upsert(dbPayload);
-
-      if (dbError) {
-        console.error("Error updating profiles table:", JSON.stringify(dbError, null, 2));
-        // If it's a specific type error or constraint violation, we want to know.
-        toast({
-          title: "Warning: Profile Sync Issue",
-          description: `Saved to account, but public profile sync failed. ${dbError.message || dbError.details || ''}`,
-          variant: "destructive", // Changed to destructive to draw attention, though data is partially saved
-        });
-      } else {
-         toast({
-            title: "Profile Updated",
-            description: "Your profile information has been saved successfully.",
-         });
-      }
-      
-      // Refresh user to update local state from new metadata
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) setUser(session.user);
-
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been saved successfully.",
+      });
     } catch (error: unknown) {
       const err = error as Error;
       console.error("Critical error saving profile:", err);
@@ -307,7 +162,7 @@ const ProfilePage = () => {
     }
   };
 
-  if (loading) {
+  if (initialLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

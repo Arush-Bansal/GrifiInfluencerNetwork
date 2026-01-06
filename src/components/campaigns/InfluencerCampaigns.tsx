@@ -1,12 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -14,74 +11,28 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ApplyToCampaignModal } from "./ApplyToCampaignModal";
 import { MyApplications } from "./MyApplications";
-import { Loader2, Megaphone, Search, Building2, Calendar, MessageSquare, ListFilter, LayoutGrid } from "lucide-react";
+import { Loader2, Megaphone, Search, Building2, Calendar, LayoutGrid, ListFilter } from "lucide-react";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-interface Campaign {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  created_at: string;
-  brand_id: string;
-  brand: {
-    username: string;
-    full_name: string;
-    avatar_url: string;
-  };
-}
+import { useInfluencerCampaigns, useAppliedCampaigns } from "@/hooks/use-campaigns";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface InfluencerCampaignsProps {
   influencerId: string;
 }
 
 export function InfluencerCampaigns({ influencerId }: InfluencerCampaignsProps) {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [applications, setApplications] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: campaigns = [], isLoading: campaignsLoading } = useInfluencerCampaigns();
+  const { data: applications = [], isLoading: appsLoading } = useAppliedCampaigns(influencerId);
   const [search, setSearch] = useState("");
+  const queryClient = useQueryClient();
 
-  const fetchData = async () => {
-    try {
-      // Fetch open campaigns
-      const { data: campaignData, error: campaignError } = await (supabase as any)
-        .from("campaigns")
-        .select(`
-          *,
-          brand:profiles(username, full_name, avatar_url)
-        `)
-        .eq("status", "open")
-        .order("created_at", { ascending: false });
+  const loading = campaignsLoading || appsLoading;
 
-      if (campaignError) throw campaignError;
-      setCampaigns(campaignData || []);
-
-      // Fetch user's existing applications
-      const { data: appData, error: appError } = await (supabase as any)
-        .from("campaign_applications")
-        .select("campaign_id")
-        .eq("influencer_id", influencerId);
-
-      if (appError) throw appError;
-      setApplications(appData?.map((a: any) => a.campaign_id) || []);
-    } catch (error: any) {
-      console.error("Error fetching data:", error.message || error);
-      if (error.details) console.error("Error details:", error.details);
-      if (error.hint) console.error("Error hint:", error.hint);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [influencerId]);
-
-  const filteredCampaigns = campaigns.filter(c => 
-    c.title.toLowerCase().includes(search.toLowerCase()) || 
-    c.description.toLowerCase().includes(search.toLowerCase()) ||
+  const filteredCampaigns = (campaigns as any[]).filter(c => // eslint-disable-line @typescript-eslint/no-explicit-any
+    c.title?.toLowerCase().includes(search.toLowerCase()) || 
+    c.description?.toLowerCase().includes(search.toLowerCase()) ||
     c.brand?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
     c.brand?.username?.toLowerCase().includes(search.toLowerCase())
   );
@@ -182,7 +133,9 @@ export function InfluencerCampaigns({ influencerId }: InfluencerCampaignsProps) 
                       influencerId={influencerId} 
                       campaignTitle={campaign.title}
                       applied={applications.includes(campaign.id)}
-                      onApplied={() => setApplications([...applications, campaign.id])}
+                      onApplied={() => {
+                        queryClient.invalidateQueries({ queryKey: ["applied-campaigns", influencerId] });
+                      }}
                     />
                   </CardFooter>
                 </Card>

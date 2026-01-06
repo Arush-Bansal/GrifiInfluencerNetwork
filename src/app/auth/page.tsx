@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, ElementType } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase, getURL } from "@/integrations/supabase/client";
 import { z } from "zod";
-import { User, Briefcase, Building2, Globe, ArrowLeft, Loader2, Sparkles, Users, Mail, CheckCircle2 } from "lucide-react";
+import { Briefcase, Building2, ArrowLeft, Loader2, Sparkles, Users, Mail, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { User } from "@supabase/supabase-js";
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -20,7 +21,7 @@ const authSchema = z.object({
 
 type UserRole = "influencer" | "creator_ops" | "brand" | "agency";
 
-const ROLES: { id: UserRole; title: string; description: string; icon: any }[] = [
+const ROLES: { id: UserRole; title: string; description: string; icon: ElementType }[] = [
   {
     id: "influencer",
     title: "Influencer",
@@ -83,7 +84,7 @@ const AuthContent = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const checkUserAccess = async (user: any) => {
+    const checkUserAccess = async (user: User | null) => {
       if (user) {
         const userRole = user.user_metadata?.role;
         if (userRole === "brand" && isPublicEmail(user.email || "")) {
@@ -119,7 +120,7 @@ const AuthContent = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [router]);
+  }, [router, toast]);
 
   // Reset role when switching between login and signup
   useEffect(() => {
@@ -166,7 +167,7 @@ const AuthContent = () => {
           return;
         }
 
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -223,10 +224,11 @@ const AuthContent = () => {
           }
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Something went wrong. Please try again.";
       toast({
         title: "Error",
-        description: error.message || "Something went wrong. Please try again.",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -250,10 +252,11 @@ const AuthContent = () => {
         title: "Email Resent",
         description: "A new verification link has been sent to your email.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to resend email. Please try again later.";
       toast({
         title: "Error",
-        description: error.message || "Failed to resend email. Please try again later.",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -305,7 +308,7 @@ const AuthContent = () => {
                 <div className="space-y-2">
                   <h3 className="text-xl font-bold">Check your inbox</h3>
                   <p className="text-sm text-muted-foreground">
-                    We've sent a verification link to <span className="font-semibold text-foreground">{email}</span>. 
+                    We&apos;ve sent a verification link to <span className="font-semibold text-foreground">{email}</span>. 
                     Please click the link to verify your account and continue.
                   </p>
                 </div>
@@ -336,7 +339,7 @@ const AuthContent = () => {
               <div className="flex items-center gap-2 p-4 bg-muted/40 rounded-xl">
                 <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
                 <p className="text-[11px] text-muted-foreground leading-snug">
-                  Didn't receive it? Check your spam folder or click above to resend.
+                  Didn&apos;t receive it? Check your spam folder or click above to resend.
                 </p>
               </div>
             </div>
@@ -489,7 +492,7 @@ const AuthContent = () => {
               The Identity Layer for the Creator Economy
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed max-w-md mx-auto">
-              Connect, collaborate, and grow. Whether you're a creator, brand, or agency, Grifi is your professional home.
+              Connect, collaborate, and grow. Whether you&apos;re a creator, brand, or agency, Grifi is your professional home.
             </p>
           </div>
 

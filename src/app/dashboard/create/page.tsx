@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { useUserCommunities, useSubmitCommunityPost } from "@/hooks/use-community";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
@@ -19,77 +20,46 @@ import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function CreatePage() {
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
-  const [role, setRole] = useState<string | null>(null);
-  const [communities, setCommunities] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedCommunity, setSelectedCommunity] = useState<any>(null);
-  const [communityPostContent, setCommunityPostContent] = useState("");
-  const [submittingCommunityPost, setSubmittingCommunityPost] = useState(false);
-  const [step, setStep] = useState<"select" | "global" | "community" | "campaign">("select");
-  
   const router = useRouter();
   const { toast } = useToast();
-
-  useEffect(() => {
-    async function loadData() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/auth");
-        return;
-      }
-      setUser(user);
-      setRole(user.user_metadata?.role || "influencer");
-
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      setProfile(profileData);
-
-      // Fetch user's communities
-      const { data: memberData } = await supabase
-        .from("community_members" as any)
-        .select("community_id, communities:community_id(*)")
-        .eq("user_id", user.id);
-      
-      if (memberData) {
-        setCommunities(memberData.map((m: any) => m.communities));
-      }
-
-      setLoading(false);
-    }
-    loadData();
-  }, [router]);
+  const { user, profile, role, isLoading: authLoading } = useAuth();
+  const { data: communities = [], isLoading: communitiesLoading } = useUserCommunities(user?.id);
+  
+  const [selectedCommunity, setSelectedCommunity] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [communityPostContent, setCommunityPostContent] = useState("");
+  const [step, setStep] = useState<"select" | "global" | "community" | "campaign">("select");
+  
+  const submitCommunityPost = useSubmitCommunityPost();
 
   const handleSubmitCommunityPost = async () => {
     if (!communityPostContent.trim() || !user || !selectedCommunity) return;
-    setSubmittingCommunityPost(true);
-    try {
-      const { error } = await supabase
-        .from("community_posts" as any)
-        .insert({
-          community_id: selectedCommunity.id,
-          author_id: user.id,
-          content: communityPostContent,
-          status: 'pending'
+    
+    submitCommunityPost.mutate({
+      communityId: selectedCommunity.id,
+      authorId: user.id,
+      content: communityPostContent,
+    }, {
+      onSuccess: () => {
+        toast({
+          title: "Post Submitted",
+          description: `Your post is pending approval by ${selectedCommunity.name} moderators.`,
         });
-      if (error) throw error;
-      toast({
-        title: "Post Submitted",
-        description: `Your post is pending approval by ${selectedCommunity.name} moderators.`,
-      });
-      setCommunityPostContent("");
-      setStep("select");
-      setSelectedCommunity(null);
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    } finally {
-      setSubmittingCommunityPost(false);
-    }
+        setCommunityPostContent("");
+        setStep("select");
+        setSelectedCommunity(null);
+      },
+      onError: (e: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+        toast({ title: "Error", description: e.message, variant: "destructive" });
+      }
+    });
   };
+
+  const loading = authLoading || communitiesLoading;
+
+  if (!authLoading && !user) {
+    router.push("/auth");
+    return null;
+  }
 
   if (loading) {
     return (
@@ -174,13 +144,13 @@ export default function CreatePage() {
           </div>
         )}
 
-        {step === "global" && (
+        {step === "global" && user && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500">
             <CreatePost 
               userId={user.id} 
               userProfile={{ 
-                username: profile?.username,
-                avatar_url: profile?.avatar_url
+                username: profile?.username || undefined,
+                avatar_url: profile?.avatar_url || undefined
               }} 
               onPostCreated={() => {
                 toast({ title: "Posted!", description: "Your global post is now live." });
@@ -195,7 +165,7 @@ export default function CreatePage() {
             {communities.length === 0 ? (
               <div className="text-center py-12">
                   <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-                <p className="text-muted-foreground">You haven't joined any communities yet.</p>
+                <p className="text-muted-foreground">You haven&apos;t joined any communities yet.</p>
                 <Button 
                   variant="outline" 
                   className="mt-4"
@@ -243,8 +213,8 @@ export default function CreatePage() {
                 </div>
                 <div className="flex justify-end gap-3">
                   <Button variant="ghost" onClick={() => setSelectedCommunity(null)}>Change Community</Button>
-                  <Button onClick={handleSubmitCommunityPost} disabled={submittingCommunityPost || !communityPostContent.trim()}>
-                    {submittingCommunityPost ? <Plus className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+                  <Button onClick={handleSubmitCommunityPost} disabled={submitCommunityPost.isPending || !communityPostContent.trim()}>
+                    {submitCommunityPost.isPending ? <Plus className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
                     Submit for Approval
                   </Button>
                 </div>

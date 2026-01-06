@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useCreateCampaign } from "@/hooks/use-campaigns";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,9 +25,9 @@ interface CreateCampaignModalProps {
 
 export function CreateCampaignModal({ brandId, onCampaignCreated }: CreateCampaignModalProps) {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const createMutation = useCreateCampaign();
   const { toast } = useToast();
 
   const handleCreate = async () => {
@@ -40,37 +40,28 @@ export function CreateCampaignModal({ brandId, onCampaignCreated }: CreateCampai
       return;
     }
 
-    setLoading(true);
-    try {
-      const { error } = await supabase.from("campaigns" as any).insert({
-        brand_id: brandId,
-        title: title.trim(),
-        description: description.trim(),
-        status: "open",
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Campaign created!",
-        description: "Your campaign is now live and influencers can apply.",
-      });
-
-      setTitle("");
-      setDescription("");
-      setOpen(false);
-      if (onCampaignCreated) onCampaignCreated();
-    } catch (error: any) {
-      console.error("Error creating campaign:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create campaign.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    createMutation.mutate({ brand_id: brandId, title, description }, {
+      onSuccess: () => {
+        toast({
+          title: "Campaign created!",
+          description: "Your campaign is now live and influencers can apply.",
+        });
+        setTitle("");
+        setDescription("");
+        setOpen(false);
+        if (onCampaignCreated) onCampaignCreated();
+      },
+      onError: (error: Error) => {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to create campaign.",
+          variant: "destructive",
+        });
+      }
+    });
   };
+
+  const loading = createMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

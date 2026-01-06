@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { ImagePlus, Send, Loader2, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Image from "next/image";
 
 interface CreatePostProps {
   userId: string;
@@ -76,7 +77,7 @@ export function CreatePost({ userId, onPostCreated, userProfile }: CreatePostPro
       }
 
       const { error } = await supabase
-        .from("posts" as any)
+        .from("posts")
         .insert({
           author_id: userId,
           content: content.trim(),
@@ -94,11 +95,12 @@ export function CreatePost({ userId, onPostCreated, userProfile }: CreatePostPro
       setImageFile(null);
       setImagePreview(null);
       if (onPostCreated) onPostCreated();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating post:", error);
+      const message = error instanceof Error ? error.message : "Failed to create post.";
       toast({
         title: "Error",
-        description: error.message || "Failed to create post.",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -145,8 +147,13 @@ export function CreatePost({ userId, onPostCreated, userProfile }: CreatePostPro
             />
 
             {imagePreview && (
-              <div className="relative w-full max-h-[300px] rounded-xl overflow-hidden border border-border/50 group">
-                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+              <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-border/50 group">
+                <Image 
+                  src={imagePreview} 
+                  alt="Preview" 
+                  fill
+                  className="object-cover" 
+                />
                 <Button
                   variant="destructive"
                   size="icon"

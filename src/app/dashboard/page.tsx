@@ -1,90 +1,33 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { useQueryClient } from "@tanstack/react-query";
 import { UnifiedFeed } from "@/components/dashboard/UnifiedFeed";
 import { CreatePost } from "@/components/dashboard/CreatePost";
 import { BrandCampaigns } from "@/components/campaigns/BrandCampaigns";
 import { InfluencerCampaigns } from "@/components/campaigns/InfluencerCampaigns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 import { ContextSidebar } from "@/components/dashboard/ContextSidebar";
 
 const Dashboard = () => {
-  const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState({
-    niche: "",
-    followers: "",
-    platform: "",
-    engagementRate: "",
-    username: "",
-  });
-  const [role, setRole] = useState<string | null>(null);
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { user, profile: serverProfile, role, isLoading: loading } = useAuth();
+  
+  if (!loading && !user) {
+    router.push("/auth");
+    return null;
+  }
 
-  useEffect(() => {
-    const loadUserData = async (session: any) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      
-      if (!currentUser) {
-        setLoading(false);
-        router.push("/auth");
-        return;
-      }
-
-      // Initial state from metadata
-      const metadata = currentUser.user_metadata || {};
-      let profileData = {
-        niche: metadata.niche || "",
-        followers: metadata.followers || "",
-        platform: metadata.platform || "",
-        engagementRate: metadata.engagementRate || "",
-        username: metadata.username || "",
-      };
-
-      try {
-        // Fetch latest from DB to be sure
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("niche, followers, platform, engagement_rate, username")
-          .eq("id", currentUser.id)
-          .single();
-
-        if (data && !error) {
-          profileData = {
-            niche: data.niche || profileData.niche,
-            followers: data.followers || profileData.followers,
-            platform: data.platform || profileData.platform,
-            engagementRate: data.engagement_rate || profileData.engagementRate, // snake_case from DB
-            username: data.username || profileData.username,
-          };
-        }
-      } catch (err) {
-        console.error("Error fetching profile", err);
-      }
-
-      setProfile(profileData);
-      setRole(currentUser.user_metadata?.role || "influencer");
-
-
-      setLoading(false);
-    };
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      loadUserData(session);
-    });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      loadUserData(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [router]);
+  const profile = {
+    username: serverProfile?.username || "",
+    niche: serverProfile?.niche || "",
+    followers: serverProfile?.followers || "",
+    platform: serverProfile?.platform || "",
+    engagementRate: serverProfile?.engagement_rate || "",
+  };
 
   if (loading) {
     return (
@@ -143,7 +86,9 @@ const Dashboard = () => {
                      <CreatePost 
                        userId={user?.id || ""} 
                        userProfile={{ username: profile.username }}
-                       onPostCreated={() => window.location.reload()}
+                       onPostCreated={() => {
+                         queryClient.invalidateQueries({ queryKey: ["feed"] });
+                       }}
                      />
                    </div>
                    <UnifiedFeed userId={user?.id || ""} />

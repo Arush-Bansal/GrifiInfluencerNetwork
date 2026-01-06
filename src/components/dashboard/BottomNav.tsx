@@ -7,17 +7,15 @@ import {
   LayoutDashboard,
   Search,
   MessageSquare,
-  Users,
   User,
   Plus,
 } from "lucide-react";
 
 interface BottomNavProps {
   className?: string;
-  role: string | null;
 }
 
-export function BottomNav({ className, role }: BottomNavProps) {
+export function BottomNav({ className }: BottomNavProps) {
   const pathname = usePathname();
 
   const navItems = [

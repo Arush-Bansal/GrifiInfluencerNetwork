@@ -25,37 +25,37 @@ interface ChatSheetProps {
   trigger?: React.ReactNode;
 }
 
+import { useAuth } from "@/hooks/use-auth";
+import { useCallback } from "react";
+
 export function ChatSheet({ partnerId, partnerName, partnerAvatar, trigger }: ChatSheetProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [loading, setLoading] = useState(false); // Initial load
+  const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const { user } = useAuth();
+  const currentUserId = user?.id;
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
+    if (!currentUserId) return;
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      setCurrentUserId(user.id);
-
       const { data, error } = await supabase
-        .from("messages" as any)
+        .from("messages")
         .select("*")
-        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${user.id})`)
+        .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${currentUserId})`)
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      setMessages((data || []) as any);
-      
+      setMessages((data || []) as Message[]);
     } catch (error) {
       console.error("Error fetching messages:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUserId, partnerId]);
 
   const handleSend = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -64,7 +64,7 @@ export function ChatSheet({ partnerId, partnerName, partnerAvatar, trigger }: Ch
     setSending(true);
     try {
       const { error } = await supabase
-        .from("messages" as any)
+        .from("messages")
         .insert({
           sender_id: currentUserId,
           receiver_id: partnerId,
@@ -73,10 +73,7 @@ export function ChatSheet({ partnerId, partnerName, partnerAvatar, trigger }: Ch
 
       if (error) throw error;
 
-      // Optimistic updatel or standard re-fetch? 
-      // Realtime subscription handles incoming, but for own message we can just clear input 
-      // and let the subscription or re-fetch handle it, or optimistic append.
-      // Let's optimistic append for immediate feedback.
+      // Optimistic append
       const tempMsg: Message = {
         id: "temp-" + Date.now(),
         sender_id: currentUserId,
@@ -86,7 +83,6 @@ export function ChatSheet({ partnerId, partnerName, partnerAvatar, trigger }: Ch
       };
       setMessages((prev) => [...prev, tempMsg]);
       setNewMessage("");
-      
     } catch (error) {
       console.error("Error sending message:", error);
       toast({
@@ -100,39 +96,32 @@ export function ChatSheet({ partnerId, partnerName, partnerAvatar, trigger }: Ch
 
   useEffect(() => {
     if (scrollRef.current) {
-        scrollRef.current.scrollIntoView({ behavior: "smooth" });
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
 
-  // Realtime subscription setup
   useEffect(() => {
+    if (!currentUserId) return;
+    
     fetchMessages();
 
     const channel = supabase
-      .channel('public:messages')
+      .channel(`chat:${partnerId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `receiver_id=eq.${currentUserId}` // Only listen for incoming to me? Or all?
-          // Actually, we want to hear messages where (sender=partner AND receiver=me) OR (sender=me AND receiver=partner)
-          // Client-side filtering is easier if row level security allows receiving events.
-          // Note: Realtime filters are limited. 
-          // Best to subscribe to the room logic or just table and filter in callback.
         },
-        (payload: any) => {
+        (payload) => {
            const newMsg = payload.new as Message;
            if (
                (newMsg.sender_id === partnerId && newMsg.receiver_id === currentUserId) ||
                (newMsg.sender_id === currentUserId && newMsg.receiver_id === partnerId)
            ) {
-              // Check if we already have it (dedupe optimistic)
               setMessages(prev => {
                   if (prev.some(m => m.id === newMsg.id)) return prev;
-                  // Remove optimistic if exists (by content/timestamp match? hard).
-                  // For now, simple append.
                   return [...prev.filter(m => !m.id.startsWith("temp-")), newMsg];
               });
            }
@@ -143,7 +132,7 @@ export function ChatSheet({ partnerId, partnerName, partnerAvatar, trigger }: Ch
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [partnerId, currentUserId]);
+  }, [partnerId, currentUserId, fetchMessages]);
 
 
   return (

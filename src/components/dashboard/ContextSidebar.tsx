@@ -1,19 +1,18 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Users, Zap, TrendingUp, Sparkles, AlertCircle } from "lucide-react";
+import { Sparkles, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Tables } from "@/integrations/supabase/types";
 
 interface ContextSidebarProps {
   role: string | null;
-  profile: any;
+  profile: Tables<"profiles"> | null | undefined;
   className?: string;
 }
 
 export function ContextSidebar({ role, profile, className }: ContextSidebarProps) {
   const isInfluencer = role === "influencer";
-  const isBrand = role === "brand";
 
   return (
     <aside className={className}>
