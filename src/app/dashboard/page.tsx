@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { UnifiedFeed } from "@/components/dashboard/UnifiedFeed";
@@ -8,14 +9,18 @@ import { CreatePost } from "@/components/dashboard/CreatePost";
 import { BrandCampaigns } from "@/components/campaigns/BrandCampaigns";
 import { InfluencerCampaigns } from "@/components/campaigns/InfluencerCampaigns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2 } from "lucide-react";
 
 import { ContextSidebar } from "@/components/dashboard/ContextSidebar";
 
-const Dashboard = () => {
+const DashboardContent = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const { user, profile: serverProfile, role, isLoading: loading } = useAuth();
   
+  const currentTab = searchParams.get("tab") || "feed";
+
   if (!loading && !user) {
     router.push("/auth");
     return null;
@@ -36,6 +41,12 @@ const Dashboard = () => {
       </div>
     );
   }
+
+  const handleTabChange = (value: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("tab", value);
+    router.push(`/dashboard?${params.toString()}`);
+  };
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-full overflow-hidden">
@@ -60,7 +71,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <Tabs defaultValue="feed" className="space-y-6 max-w-full">
+          <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6 max-w-full">
             <div className="border-b border-border -mx-4 px-4 sm:mx-0 sm:px-0">
               <div className="overflow-x-auto no-scrollbar scroll-smooth">
                 <TabsList className="bg-transparent rounded-none p-0 h-auto flex justify-start gap-4 sm:gap-8 border-none min-w-max pb-[2px]">
@@ -116,6 +127,14 @@ const Dashboard = () => {
     </div>
   );
 };
+
+const Dashboard = () => {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+            <DashboardContent />
+        </Suspense>
+    )
+}
 
 export default Dashboard;
 
