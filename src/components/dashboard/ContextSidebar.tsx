@@ -3,11 +3,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Tables } from "@/integrations/supabase/types";
+import { DashboardProfile } from "@/types/dashboard";
 
 interface ContextSidebarProps {
   role: string | null;
-  profile: Tables<"profiles"> | null | undefined;
+  profile: DashboardProfile | null;
   className?: string;
 }
 

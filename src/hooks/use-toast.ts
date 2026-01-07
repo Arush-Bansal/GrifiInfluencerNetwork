@@ -6,7 +6,7 @@ type ToastProps = {
   title?: React.ReactNode
   description?: React.ReactNode
   variant?: "default" | "destructive"
-  action?: any
+  action?: React.ReactNode
 }
 
 function toast({ title, description, variant, ...props }: ToastProps) {

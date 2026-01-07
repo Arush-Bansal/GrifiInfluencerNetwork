@@ -35,22 +35,13 @@ import { useProfile, useUserPosts, useFollowStatus } from "@/hooks/use-profile";
 import { useQueryClient, useMutation, UseMutationResult } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import Image from "next/image";
+import { mapToDashboardProfile } from "@/lib/view-models";
 
 
-interface Profile {
-  id: string;
-  username: string;
-  full_name: string;
-  avatar_url: string | null;
-  bio: string | null;
-  niche: string | null;
-  platform: string | null;
-  followers: string | null;
-  engagement_rate: string | null;
-  location: string | null;
-  website: string | null;
+import { DashboardProfile } from "@/types/dashboard";
+
+interface Profile extends DashboardProfile {
   join_date: string;
-  banner_url?: string | null;
 }
 
 interface Post {
@@ -87,24 +78,26 @@ export default function PublicProfilePage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const { user: currentUser, profile: viewerProfile, role: viewerRole } = useAuth();
+  const { user: currentUser, profile: rawViewerProfile, role: viewerRole } = useAuth();
+  const viewerProfile = mapToDashboardProfile(rawViewerProfile);
 
   // Queries
   const { data: profileData, isLoading: loadingProfile } = useProfile(username);
+  
   const profile: Profile | null = profileData ? {
     id: profileData.id,
     username: profileData.username || username,
     full_name: profileData.full_name || username,
-    avatar_url: profileData.avatar_url,
+    avatar_url: profileData.avatar_url || "",
     bio: profileData.bio || "No bio yet.",
     niche: profileData.niche || "General",
     followers: profileData.followers || "0",
     platform: profileData.platform || "None",
     engagement_rate: profileData.engagement_rate || "0",
     location: profileData.location || "Earth",
-    website: profileData.website,
+    website: profileData.website || "",
+    banner_url: profileData.banner_url || "",
     join_date: profileData.created_at || new Date().toISOString(),
-    banner_url: profileData.banner_url,
   } : null;
 
   const { data: userPosts = [] } = useUserPosts(profile?.id);

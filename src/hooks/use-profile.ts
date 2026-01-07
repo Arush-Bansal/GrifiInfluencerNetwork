@@ -1,10 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Tables, TablesUpdate } from "@/integrations/supabase/types";
+import { UserAttributes } from "@supabase/supabase-js";
+
+type ProfileUpdate = TablesUpdate<"profiles">;
 
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ userId, updates, authUpdates }: { userId: string, updates: any, authUpdates?: any }) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+    mutationFn: async ({ 
+      userId, 
+      updates, 
+      authUpdates 
+    }: { 
+      userId: string, 
+      updates: ProfileUpdate, 
+      authUpdates?: UserAttributes 
+    }) => {
       // Update auth metadata if provided
       if (authUpdates) {
         const { error: authError } = await supabase.auth.updateUser({
@@ -82,7 +94,7 @@ export function useUserPosts(userId: string | undefined) {
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data as unknown as any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+      return data;
     },
     enabled: !!userId,
   });

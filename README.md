@@ -34,3 +34,18 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Database Types
+
+The project uses Supabase for the backend. Use the following workflow to keep your TypeScript types in sync with your database schema.
+
+**Do NOT manually edit** `src/integrations/supabase/database.types.ts`. This file is auto-generated.
+
+### How to Update Types
+When you make changes to your Supabase database schema, run the following command to regenerate the types:
+
+```bash
+npx supabase gen types typescript --project-id rnjljoopcriqcfrhzpuy --schema public > src/integrations/supabase/database.types.ts
+```
+
+This will fetch the latest schema from your Supabase project and update the type definitions.

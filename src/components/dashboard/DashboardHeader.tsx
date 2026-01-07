@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, ExternalLink, Settings } from "lucide-react";
 import { User } from "@supabase/supabase-js";
-import { Tables } from "@/integrations/supabase/types";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,10 +14,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
+import { DashboardProfile } from "@/types/dashboard";
 
 interface DashboardHeaderProps {
   user: User | null;
-  profile: Tables<"profiles"> | null | undefined;
+  profile: DashboardProfile | null;
 }
 
 export function DashboardHeader({ user, profile }: DashboardHeaderProps) {

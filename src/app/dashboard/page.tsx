@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 
 import { ContextSidebar } from "@/components/dashboard/ContextSidebar";
+import { mapToDashboardProfile } from "@/lib/view-models";
 
 const DashboardContent = () => {
   const router = useRouter();
@@ -26,13 +27,7 @@ const DashboardContent = () => {
     return null;
   }
 
-  const profile = {
-    username: serverProfile?.username || "",
-    niche: serverProfile?.niche || "",
-    followers: serverProfile?.followers || "",
-    platform: serverProfile?.platform || "",
-    engagementRate: serverProfile?.engagement_rate || "",
-  };
+  const profile = mapToDashboardProfile(serverProfile);
 
   if (loading) {
     return (
