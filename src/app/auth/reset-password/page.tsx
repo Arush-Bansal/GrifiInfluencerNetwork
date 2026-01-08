@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase, getURL } from "@/integrations/supabase/client";
 import { ArrowLeft, Mail, Loader2 } from "lucide-react";
+import { Logo } from "@/components/brand/Logo";
 
 export default function ResetPassword() {
   const [email, setEmail] = useState("");
@@ -48,9 +49,7 @@ export default function ResetPassword() {
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col space-y-2 text-left">
           <Link href="/auth" className="flex items-center gap-2 mb-6 w-fit hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-sm">
-              <span className="text-primary-foreground font-bold text-lg">G</span>
-            </div>
+            <Logo size={32} />
             <span className="text-xl font-bold tracking-tight">GRIFI</span>
           </Link>
 

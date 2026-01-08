@@ -6,10 +6,14 @@ export const metadata: Metadata = {
   title: "Grifi - Influencer Sponsorship Platform",
   description: "Connect with brands and find sponsorships that match your niche.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/logo.png",
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#4F46E5", // Updated to match the brand color
 };
 
 export default function RootLayout({

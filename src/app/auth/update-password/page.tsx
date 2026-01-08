@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { Logo } from "@/components/brand/Logo";
 
 export default function UpdatePassword() {
   const [password, setPassword] = useState("");
@@ -106,8 +107,8 @@ export default function UpdatePassword() {
   if (checkingSession) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center animate-bounce shadow-xl shadow-primary/20">
-          <span className="text-primary-foreground font-bold text-2xl">G</span>
+        <div className="animate-bounce">
+          <Logo size={48} />
         </div>
         <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
           <Loader2 className="w-4 h-4 animate-spin" />
@@ -122,9 +123,7 @@ export default function UpdatePassword() {
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col space-y-2 text-left">
           <div className="flex items-center gap-2 mb-6 w-fit">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-sm">
-              <span className="text-primary-foreground font-bold text-lg">G</span>
-            </div>
+            <Logo size={32} />
             <span className="text-xl font-bold tracking-tight">GRIFI</span>
           </div>
 

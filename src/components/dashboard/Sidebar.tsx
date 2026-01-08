@@ -15,6 +15,7 @@ import { User } from "@supabase/supabase-js";
 import { DashboardProfile } from "@/types/dashboard";
 import { SidebarUserMenu } from "./SidebarUserMenu";
 import { UserRole } from "@/types/enums";
+import { Logo } from "@/components/brand/Logo";
 
 interface SidebarProps {
   className?: string;
@@ -51,9 +52,7 @@ export function Sidebar({ className, user, role, profile }: SidebarProps) {
   return (
     <aside className={cn("flex flex-col w-72 h-screen border-r border-border bg-background sticky top-0", className)}>
       <div className="p-6 flex items-center gap-2">
-        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
-          <span className="text-primary-foreground font-bold text-lg">G</span>
-        </div>
+        <Logo size={32} />
         <span className="text-xl font-bold tracking-tight text-foreground">GRIFI</span>
       </div>
 

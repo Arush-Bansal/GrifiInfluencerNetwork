@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Users, TrendingUp, Bot, LogOut, LayoutDashboard, Heart, Shield, Globe, Sparkles } from "lucide-react";
+import { Logo } from "@/components/brand/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { useRouter } from "next/navigation";
 import { Session } from "@supabase/supabase-js";
@@ -47,9 +48,7 @@ const AboutPage = () => {
       <nav className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-              <span className="text-primary-foreground font-semibold text-lg">G</span>
-            </div>
+            <Logo size={32} />
             <span className="text-xl font-semibold tracking-tight uppercase">GRIFI</span>
           </Link>
           <div className="flex items-center gap-6">
@@ -217,9 +216,7 @@ const AboutPage = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">G</span>
-              </div>
+              <Logo size={32} />
               <span className="font-bold text-xl tracking-tight uppercase">GRIFI</span>
             </div>
             

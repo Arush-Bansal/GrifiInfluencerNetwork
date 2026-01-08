@@ -13,6 +13,7 @@ import { z } from "zod";
 import { Briefcase, Building2, ArrowLeft, Loader2, Sparkles, Users, Mail, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User, AuthChangeEvent } from "@supabase/supabase-js";
+import { Logo } from "@/components/brand/Logo";
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -289,9 +290,7 @@ const AuthContent = () => {
           {/* Header */}
           <div className="flex flex-col space-y-2 text-left">
             <Link href="/" className="flex items-center gap-2 mb-6 w-fit hover:opacity-80 transition-opacity">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-sm">
-                <span className="text-primary-foreground font-bold text-lg">G</span>
-              </div>
+              <Logo size={32} />
               <span className="text-xl font-bold tracking-tight">GRIFI</span>
             </Link>
 
@@ -495,8 +494,8 @@ const AuthContent = () => {
       <div className="hidden lg:flex flex-1 bg-muted/30 border-l border-border/50 items-center justify-center p-8 relative overflow-hidden">
         
         <div className="max-w-lg text-center space-y-8 relative z-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-primary mb-2 shadow-xl shadow-primary/20 ring-4 ring-background">
-            <span className="text-primary-foreground font-bold text-4xl">G</span>
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-primary mb-2 shadow-xl shadow-primary/20 ring-4 ring-background overflow-hidden p-4">
+            <Logo size={80} className="w-full h-full" />
           </div>
           
           <div className="space-y-4">

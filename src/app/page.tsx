@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Zap, Users, TrendingUp, Bot, LogOut, LayoutDashboard } from "lucide-react";
+import { Logo } from "@/components/brand/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { useRouter } from "next/navigation";
 import { Session } from "@supabase/supabase-js";
@@ -47,9 +48,7 @@ const Index = () => {
       <nav className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-              <span className="text-primary-foreground font-semibold text-lg">G</span>
-            </div>
+            <Logo size={32} />
             <span className="text-xl font-bold tracking-tight text-foreground sm:block">GRIFI</span>
           </div>
           <div className="flex items-center gap-2 sm:gap-6">
@@ -207,9 +206,7 @@ const Index = () => {
       <footer className="border-t border-border py-12 bg-background">
         <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
-              <span className="text-primary-foreground font-bold text-sm">G</span>
-            </div>
+            <Logo size={32} />
             <span className="font-black text-lg tracking-tighter text-foreground">GRIFI</span>
           </div>
           <div className="flex flex-wrap justify-center gap-6 sm:gap-8">

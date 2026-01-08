@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { Logo } from "@/components/brand/Logo";
 import Link from "next/link";
 
 interface NavbarProps {
@@ -54,9 +55,7 @@ export const Navbar = ({ user, username }: NavbarProps) => {
           className="flex items-center gap-2 cursor-pointer" 
           onClick={() => router.push(user ? '/dashboard' : '/')}
         >
-          <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-            <span className="text-primary-foreground font-semibold text-lg">G</span>
-          </div>
+          <Logo size={32} />
           <span className="text-xl font-semibold tracking-tight">GRIFI</span>
         </div>
         
