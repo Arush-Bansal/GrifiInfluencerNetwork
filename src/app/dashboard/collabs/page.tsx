@@ -17,7 +17,7 @@ import Link from "next/link";
 export default function CollabRequestsPage() {
   const { toast } = useToast();
   const { user, isLoading: authLoading } = useAuth();
-  const { data, isLoading: requestsLoading } = useCollabRequests(user?.id);
+  const { data, isLoading: requestsLoading, error: requestsError } = useCollabRequests(user?.id);
   
   const incomingRequests = data?.incoming || [];
   const outgoingRequests = data?.outgoing || [];
@@ -63,6 +63,20 @@ export default function CollabRequestsPage() {
       </Badge>
     );
   };
+
+  if (requestsError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-4">
+        <div className="text-destructive font-semibold">Failed to load collaboration requests.</div>
+        <p className="text-muted-foreground text-sm max-w-md text-center">
+            {(requestsError as Error).message || "An unknown error occurred."}
+        </p>
+        <Button onClick={() => window.location.reload()} variant="outline">
+            Retry
+        </Button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

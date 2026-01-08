@@ -31,33 +31,52 @@ export function useCollabRequests(userId: string | undefined) {
     queryFn: async () => {
       if (!userId) return { incoming: [], outgoing: [], active: [] };
 
-      // 1. Incoming requests
-      const { data: incoming, error: incError } = await supabase
+      // 1. Fetch raw requests (no joins yet to avoid FK issues)
+      const { data: incomingRaw, error: incError } = await supabase
         .from("collab_requests")
-        .select("*, sender:profiles!collab_requests_sender_id_fkey(id, username, full_name, avatar_url)")
+        .select("*")
         .eq("receiver_id", userId)
         .order("created_at", { ascending: false });
 
       if (incError) throw incError;
 
-      // 2. Outgoing requests
-      const { data: outgoing, error: outError } = await supabase
+      const { data: outgoingRaw, error: outError } = await supabase
         .from("collab_requests")
-        .select("*, receiver:profiles!collab_requests_receiver_id_fkey(id, username, full_name, avatar_url)")
+        .select("*")
         .eq("sender_id", userId)
         .order("created_at", { ascending: false });
 
       if (outError) throw outError;
 
-      // Map to consistent format
-      const incMapped = ((incoming as unknown as CollabRequest[]) || []).map((r) => ({
+      // 2. Extract all unique User IDs needed
+      const incoming = (incomingRaw || []) as CollabRequest[];
+      const outgoing = (outgoingRaw || []) as CollabRequest[];
+
+      const userIds = new Set<string>();
+      incoming.forEach(r => userIds.add(r.sender_id));
+      outgoing.forEach(r => userIds.add(r.receiver_id));
+
+      // 3. Fetch profiles for these IDs
+      const { data: profiles, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, username, full_name, avatar_url")
+        .in("id", Array.from(userIds));
+
+      if (profileError) throw profileError;
+
+      // 4. Create a lookup map
+      const profileMap = new Map<string, Profile>();
+      profiles?.forEach(p => profileMap.set(p.id, p));
+
+      // 5. Attach profiles to requests
+      const incMapped = incoming.map(r => ({
         ...r,
-        sender: extractProfile(r.sender)
+        sender: profileMap.get(r.sender_id) || { id: r.sender_id, username: "Unknown", full_name: "Unknown User", avatar_url: null }
       }));
 
-      const outMapped = ((outgoing as unknown as CollabRequest[]) || []).map((r) => ({
+      const outMapped = outgoing.map(r => ({
         ...r,
-        receiver: extractProfile(r.receiver)
+        receiver: profileMap.get(r.receiver_id) || { id: r.receiver_id, username: "Unknown", full_name: "Unknown User", avatar_url: null }
       }));
 
       const pendingInc = incMapped.filter((r) => r.status === 'pending');
