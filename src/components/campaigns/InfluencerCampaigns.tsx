@@ -11,7 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ApplyToCampaignModal } from "./ApplyToCampaignModal";
 import { MyApplications } from "./MyApplications";
-import { Loader2, Megaphone, Search, Building2, Calendar, LayoutGrid, ListFilter } from "lucide-react";
+import { Megaphone, Search, Building2, Calendar, LayoutGrid, ListFilter } from "lucide-react";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,6 +21,8 @@ import { useQueryClient } from "@tanstack/react-query";
 interface InfluencerCampaignsProps {
   influencerId: string;
 }
+
+import { CampaignsSkeleton } from "@/components/skeletons";
 
 export function InfluencerCampaigns({ influencerId }: InfluencerCampaignsProps) {
   const { data: campaigns = [], isLoading: campaignsLoading } = useInfluencerCampaigns();
@@ -38,11 +40,7 @@ export function InfluencerCampaigns({ influencerId }: InfluencerCampaignsProps) 
   );
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <CampaignsSkeleton />;
   }
 
   return (

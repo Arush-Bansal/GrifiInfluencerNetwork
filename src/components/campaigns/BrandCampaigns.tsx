@@ -8,7 +8,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { CreateCampaignModal } from "./CreateCampaignModal";
 import { CampaignApplicationsList } from "./CampaignApplicationsList";
-import { Loader2, Megaphone, Users, Calendar } from "lucide-react";
+import { Megaphone, Users, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import {
   Accordion,
@@ -22,15 +22,13 @@ interface BrandCampaignsProps {
   brandId: string;
 }
 
+import { CampaignsSkeleton } from "@/components/skeletons";
+
 export function BrandCampaigns({ brandId }: BrandCampaignsProps) {
   const { data: campaigns = [], isLoading: loading, refetch } = useBrandCampaigns(brandId);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <CampaignsSkeleton />;
   }
 
   return (

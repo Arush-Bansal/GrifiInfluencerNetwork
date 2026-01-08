@@ -7,7 +7,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MessageSquare, Megaphone, Calendar, Building2 } from "lucide-react";
+import { MessageSquare, Megaphone, Calendar, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import { ChatSheet } from "@/components/collabs/ChatSheet";
 
@@ -15,15 +15,13 @@ interface MyApplicationsProps {
   influencerId: string;
 }
 
+import { CampaignListSkeleton } from "@/components/skeletons";
+
 export function MyApplications({ influencerId }: MyApplicationsProps) {
   const { data: applications = [], isLoading: loading } = useMyApplications(influencerId);
 
   if (loading) {
-    return (
-      <div className="flex justify-center p-8">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
-      </div>
-    );
+    return <CampaignListSkeleton />;
   }
 
   if (applications.length === 0) {
