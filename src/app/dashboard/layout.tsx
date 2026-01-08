@@ -6,7 +6,9 @@ import { Sidebar } from "@/components/dashboard/Sidebar";
 import { BottomNav } from "@/components/dashboard/BottomNav";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { AuthChangeEvent } from "@supabase/supabase-js";
 
 export default function DashboardLayout({
   children,
@@ -27,6 +29,19 @@ export default function DashboardLayout({
       return;
     }
 
+    // Immediate check for recovery hash
+    if (typeof window !== 'undefined' && window.location.hash.includes('type=recovery')) {
+      router.push("/auth/update-password");
+      return;
+    }
+
+    // Listen for password recovery event even on the dashboard
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent) => {
+      if (event === "PASSWORD_RECOVERY") {
+        router.push("/auth/update-password");
+      }
+    });
+
     if (profile) {
       // Check for onboarding completion
       const isIncomplete = !profile.username || !profile.full_name || !profile.niche || !profile.platform;
@@ -40,6 +55,8 @@ export default function DashboardLayout({
       // No profile yet, definitely needs onboarding
       router.push("/dashboard/onboarding");
     }
+
+    return () => subscription.unsubscribe();
   }, [user, profile, isLoading, isOnboardingPage, router]);
 
   if (isLoading) {

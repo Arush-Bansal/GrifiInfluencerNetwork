@@ -12,7 +12,7 @@ import { supabase, getURL } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { Briefcase, Building2, ArrowLeft, Loader2, Sparkles, Users, Mail, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { User } from "@supabase/supabase-js";
+import { User, AuthChangeEvent } from "@supabase/supabase-js";
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -101,7 +101,13 @@ const AuthContent = () => {
       return false;
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        console.log("Password recovery event detected, redirecting to update-password");
+        router.push("/auth/update-password");
+        return;
+      }
+      
       if (session?.user) {
         const canAccess = await checkUserAccess(session.user);
         if (canAccess) {
@@ -112,6 +118,12 @@ const AuthContent = () => {
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
+        // If we have a hash with type=recovery, don't redirect to dashboard
+        if (typeof window !== 'undefined' && window.location.hash.includes('type=recovery')) {
+          console.log("Recovery hash detected in getSession, skipping dashboard redirect");
+          return;
+        }
+
         const canAccess = await checkUserAccess(session.user);
         if (canAccess) {
           router.push("/dashboard");

@@ -13,12 +13,29 @@ export default function UpdatePassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if we have a session (should be set by Supabase from the reset link)
-    const checkSession = async () => {
+    // Check initial session
+    const checkInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setCheckingSession(false);
+      }
+    };
+    checkInitialSession();
+
+    // Listen for auth state changes, specifically for password recovery
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
+        setCheckingSession(false);
+      }
+    });
+
+    // Timeout to prevent infinite loading if link is truly invalid
+    const timer = setTimeout(async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast({
@@ -28,8 +45,12 @@ export default function UpdatePassword() {
         });
         router.push("/auth/reset-password");
       }
+    }, 5000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timer);
     };
-    checkSession();
   }, [router, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,6 +102,20 @@ export default function UpdatePassword() {
       setLoading(false);
     }
   };
+
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+        <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center animate-bounce shadow-xl shadow-primary/20">
+          <span className="text-primary-foreground font-bold text-2xl">G</span>
+        </div>
+        <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="text-sm font-medium">Verifying reset link...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6 sm:p-8">
