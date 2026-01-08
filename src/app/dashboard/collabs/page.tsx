@@ -140,7 +140,7 @@ export default function CollabRequestsPage() {
                                  <div className="flex-1 p-4 flex flex-row items-center justify-between gap-4">
                                       <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
                                           <Avatar className="w-10 h-10 sm:w-12 sm:h-12 border shadow-sm shrink-0">
-                                              <AvatarImage src={partner.avatar_url} />
+                                              <AvatarImage src={partner.avatar_url || undefined} />
                                               <AvatarFallback><UserIcon className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" /></AvatarFallback>
                                           </Avatar>
                                           <div className="min-w-0 transition-all">
@@ -155,7 +155,7 @@ export default function CollabRequestsPage() {
                                           <ChatSheet 
                                              partnerId={partner.id} 
                                              partnerName={partner.full_name || partner.username || "User"} 
-                                             partnerAvatar={partner.avatar_url}
+                                             partnerAvatar={partner.avatar_url || undefined}
                                              trigger={
                                                <Button size="sm" variant="ghost" className="h-9 w-9 p-0 sm:w-auto sm:px-3 sm:gap-2 text-primary hover:text-primary hover:bg-primary/10">
                                                   <MessageSquare className="w-5 h-5" />
@@ -186,7 +186,7 @@ export default function CollabRequestsPage() {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3 sm:gap-4">
                       <Avatar className="w-10 h-10 border shadow-sm">
-                        <AvatarImage src={req.sender?.avatar_url} />
+                        <AvatarImage src={req.sender?.avatar_url || undefined} />
                         <AvatarFallback>{req.sender?.full_name?.charAt(0) || "?"}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
@@ -256,7 +256,7 @@ export default function CollabRequestsPage() {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3 sm:gap-4">
                       <Avatar className="w-10 h-10 border shadow-sm">
-                        <AvatarImage src={req.receiver?.avatar_url} />
+                        <AvatarImage src={req.receiver?.avatar_url || undefined} />
                         <AvatarFallback>{req.receiver?.full_name?.charAt(0) || "?"}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">

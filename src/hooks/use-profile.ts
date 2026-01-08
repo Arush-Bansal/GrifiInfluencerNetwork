@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Tables, TablesUpdate } from "@/integrations/supabase/types";
-import { UserAttributes } from "@supabase/supabase-js";
+import { TablesUpdate } from "@/integrations/supabase/types";
 
 type ProfileUpdate = TablesUpdate<"profiles">;
 
@@ -15,7 +14,7 @@ export function useUpdateProfile() {
     }: { 
       userId: string, 
       updates: ProfileUpdate, 
-      authUpdates?: UserAttributes 
+      authUpdates?: Record<string, unknown> 
     }) => {
       // Update auth metadata if provided
       if (authUpdates) {

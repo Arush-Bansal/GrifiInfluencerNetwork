@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { DashboardProfile } from "@/types/dashboard";
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 
@@ -34,7 +35,22 @@ export function useAuth() {
         .single();
       
       if (error) throw error;
-      return data;
+      
+      // Map to DashboardProfile ensuring no nulls
+      return {
+        id: data.id,
+        username: data.username || "",
+        full_name: data.full_name || "",
+        avatar_url: data.avatar_url || "",
+        bio: data.bio || "",
+        niche: data.niche || "",
+        platform: data.platform || "",
+        followers: data.followers || "",
+        engagement_rate: data.engagement_rate || "",
+        location: data.location || "",
+        website: data.website || "",
+        banner_url: data.banner_url || ""
+      } as DashboardProfile;
     },
     enabled: !!sessionUser,
   });

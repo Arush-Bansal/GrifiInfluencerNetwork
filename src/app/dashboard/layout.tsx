@@ -73,13 +73,13 @@ export default function DashboardLayout({
       <Sidebar 
         user={user} 
         role={role} 
-        profile={profile} 
+        profile={profile ?? null} 
         className="hidden lg:flex" 
       />
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile Header */}
-        <DashboardHeader user={user} profile={profile} />
+        <DashboardHeader user={user} profile={profile ?? null} />
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-x-hidden pt-16 lg:pt-0 pb-20 lg:pb-0">

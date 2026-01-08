@@ -97,7 +97,7 @@ export default function PublicProfilePage() {
     location: profileData.location || "Earth",
     website: profileData.website || "",
     banner_url: profileData.banner_url || "",
-    join_date: profileData.created_at || new Date().toISOString(),
+    join_date: profileData.updated_at || new Date().toISOString(),
   } : null;
 
   const { data: userPosts = [] } = useUserPosts(profile?.id);

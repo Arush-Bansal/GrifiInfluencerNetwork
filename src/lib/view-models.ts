@@ -5,7 +5,7 @@ import { DashboardProfile } from "@/types/dashboard";
 /**
  * Maps a raw Supabase profile row to a safe UI DashboardProfile
  */
-export function mapToDashboardProfile(profile: Tables<"profiles"> | null | undefined): DashboardProfile {
+export function mapToDashboardProfile(profile: Tables<"profiles"> | DashboardProfile | null | undefined): DashboardProfile {
   if (!profile) {
     return {
       id: "",

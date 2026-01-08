@@ -13,17 +13,13 @@ interface CollabRequest {
   sender_id: string;
   receiver_id: string;
   status: string;
+  type: string;
+  message: string | null;
   created_at: string;
-  sender?: Profile | Profile[];
-  receiver?: Profile | Profile[];
+  sender?: Profile;
+  receiver?: Profile;
 }
 
-// mapper to handle joint results that might be object or array
-const extractProfile = (profileResult: Profile | Profile[] | undefined): Profile | undefined => {
-  if (!profileResult) return undefined;
-  if (Array.isArray(profileResult)) return profileResult[0];
-  return profileResult;
-};
 
 export function useCollabRequests(userId: string | undefined) {
   return useQuery({
