@@ -2,7 +2,6 @@
 
 import { useAuth } from "@/hooks/use-auth";
 import { useUpdateProfile, useCheckUsername, useUploadImage } from "@/hooks/use-profile";
-import { SocialVerification } from "@/components/dashboard/SocialVerification";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -452,8 +451,6 @@ const ProfilePage = () => {
             </CardContent>
           </Card>
 
-          {/* Verification Center */}
-          <SocialVerification user={user} />
 
           <div className="flex justify-end">
             <Button onClick={handleSave} disabled={saving || usernameStatus === 'unavailable'} size="lg">

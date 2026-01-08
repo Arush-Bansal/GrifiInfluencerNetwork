@@ -10,7 +10,6 @@ import {
   MessageSquare,
   PlusCircle,
   ExternalLink,
-  ShieldCheck,
 } from "lucide-react";
 import { User } from "@supabase/supabase-js";
 import { DashboardProfile } from "@/types/dashboard";
@@ -101,13 +100,6 @@ export function Sidebar({ className, user, role, profile }: SidebarProps) {
                 <ExternalLink className="w-4 h-4" />
                 View Public Page
               </Button>
-              <Link
-                href="/dashboard/profile"
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                Verify Socials
-              </Link>
             </>
           )}
         </div>
