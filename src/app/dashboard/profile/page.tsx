@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { User, Loader2, Save, Camera, Link as LinkIcon, MapPin, Check, XCircle } from "lucide-react";
 
+import { ProfileSkeleton } from "@/components/skeletons";
+
 const ProfilePage = () => {
   const router = useRouter();
   const { toast } = useToast();
@@ -162,11 +164,7 @@ const ProfilePage = () => {
   };
 
   if (initialLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   return (

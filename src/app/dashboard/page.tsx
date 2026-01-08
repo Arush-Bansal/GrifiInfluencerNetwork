@@ -9,10 +9,11 @@ import { CreatePost } from "@/components/dashboard/CreatePost";
 import { BrandCampaigns } from "@/components/campaigns/BrandCampaigns";
 import { InfluencerCampaigns } from "@/components/campaigns/InfluencerCampaigns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2 } from "lucide-react";
 
 import { ContextSidebar } from "@/components/dashboard/ContextSidebar";
 import { mapToDashboardProfile } from "@/lib/view-models";
+
+import { DashboardSkeleton } from "@/components/skeletons";
 
 const DashboardContent = () => {
   const router = useRouter();
@@ -30,11 +31,7 @@ const DashboardContent = () => {
   const profile = mapToDashboardProfile(serverProfile);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   const handleTabChange = (value: string) => {
@@ -125,7 +122,7 @@ const DashboardContent = () => {
 
 const Dashboard = () => {
     return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+        <Suspense fallback={<DashboardSkeleton />}>
             <DashboardContent />
         </Suspense>
     )

@@ -71,6 +71,8 @@ const PublicNavbar = () => (
   </nav>
 );
 
+import { PublicProfileSkeleton } from "@/components/skeletons";
+
 export default function PublicProfilePage() {
   const params = useParams();
   const username = params.username as string;
@@ -143,17 +145,7 @@ export default function PublicProfilePage() {
   });
 
   if (loadingProfile) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center animate-bounce shadow-xl shadow-primary/20">
-          <span className="text-primary-foreground font-bold text-2xl">G</span>
-        </div>
-        <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
-          <Loader2 className="w-4 h-4 animate-spin" />
-          <span className="text-sm font-medium">Loading profile...</span>
-        </div>
-      </div>
-    );
+    return <PublicProfileSkeleton />;
   }
 
   if (!profile) {

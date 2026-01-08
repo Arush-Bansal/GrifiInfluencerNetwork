@@ -70,6 +70,8 @@ type FormValues = z.infer<typeof formSchema>;
 
 // --- Components ---
 
+import { OnboardingSkeleton } from "@/components/skeletons";
+
 export default function OnboardingPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -179,14 +181,7 @@ export default function OnboardingPage() {
   };
 
   if (authLoading || updateProfile.isPending) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-muted-foreground animate-pulse">
-          {authLoading ? "Loading..." : "Setting up your profile..."}
-        </p>
-      </div>
-    );
+    return <OnboardingSkeleton />;
   }
 
   return (

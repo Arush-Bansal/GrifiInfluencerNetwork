@@ -9,10 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Check, X, Clock, Send, Inbox, MessageSquare, Users, User as UserIcon } from "lucide-react";
+import { Check, X, Clock, Send, Inbox, MessageSquare, Users, User as UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 
+
+import { CollabsSkeleton } from "@/components/skeletons";
 
 export default function CollabRequestsPage() {
   const { toast } = useToast();
@@ -79,11 +81,7 @@ export default function CollabRequestsPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <CollabsSkeleton />;
   }
 
   return (

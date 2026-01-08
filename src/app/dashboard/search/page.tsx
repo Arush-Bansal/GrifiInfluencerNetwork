@@ -38,6 +38,8 @@ interface Profile {
   bio: string | null;
 }
 
+import { SearchSkeleton } from "@/components/skeletons";
+
 function SearchContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
@@ -240,10 +242,7 @@ function SearchContent() {
 
         <div className="space-y-4">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-12 gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Searching</p>
-            </div>
+            <SearchSkeleton />
           ) : results.length > 0 ? (
             <div className="bg-card/40 border border-border/50 rounded-2xl md:rounded-3xl overflow-hidden divide-y divide-border/20">
               {results.map((profile) => (
@@ -319,7 +318,7 @@ function SearchContent() {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>}>
+    <Suspense fallback={<SearchSkeleton />}>
       <SearchContent />
     </Suspense>
   );
