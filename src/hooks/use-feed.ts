@@ -41,47 +41,44 @@ export function useFeed(userId: string) {
 
         if (allowedAuthorIds.length === 0) return [];
 
-        // 3. Fetch posts from these specific users
-        const { data, error } = await supabase
+        // 3. Fetch posts from these specific users (without joining)
+        const { data: postsData, error: postsError } = await supabase
           .from("posts")
-          .select(`
-            id,
-            content,
-            image_url,
-            created_at,
-            author_id,
-            author:author_id(username, avatar_url)
-          `)
+          .select("id, content, image_url, created_at, author_id")
           .in("author_id", allowedAuthorIds)
           .order("created_at", { ascending: false })
           .limit(25);
 
-        if (error) {
-          console.error("Feed query error:", error.message || error);
-          // Fallback: Fetch without profile join
-          const { data: fallbackData } = await supabase
-            .from("posts")
-            .select("id, content, image_url, created_at, author_id")
-            .in("author_id", allowedAuthorIds)
-            .order("created_at", { ascending: false })
-            .limit(25);
-          
-          return (fallbackData || []).map(p => ({
-            ...p,
-            author_username: 'user',
-            author_avatar: undefined
-          })) as FeedPost[];
+        if (postsError) {
+          console.error("Feed posts error:", postsError.message);
+          throw postsError;
         }
 
-        return (data || []).map((p: any) => ({
-          id: p.id,
-          content: p.content,
-          created_at: p.created_at,
-          author_id: p.author_id,
-          author_username: p.author?.username || 'user',
-          author_avatar: p.author?.avatar_url || undefined,
-          image_url: p.image_url || undefined
-        })) as FeedPost[];
+        if (!postsData || postsData.length === 0) return [];
+
+        // 4. Fetch profiles for these authors in a separate query to bypass join issues
+        const authorIds = [...new Set(postsData.map(p => p.author_id))];
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("id, username, avatar_url")
+          .in("id", authorIds);
+
+        // Create a lookup map for profiles
+        const profileMap = new Map((profilesData || []).map(p => [p.id, p]));
+
+        // 5. Merge data
+        return postsData.map(p => {
+          const profile = profileMap.get(p.author_id);
+          return {
+            id: p.id,
+            content: p.content,
+            created_at: p.created_at,
+            author_id: p.author_id,
+            author_username: profile?.username || 'user',
+            author_avatar: profile?.avatar_url || undefined,
+            image_url: p.image_url || undefined
+          } as FeedPost;
+        });
       } catch (err) {
         console.error("Feed error:", err);
         return []; // Return empty array on error to break loop
