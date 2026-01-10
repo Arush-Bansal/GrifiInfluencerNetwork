@@ -61,9 +61,14 @@ const ProfilePage = () => {
   const updateProfileMutation = useUpdateProfile();
   const uploadImageMutation = useUploadImage();
 
-  if (!initialLoading && !user) {
-    router.push("/auth");
-    return null;
+  useEffect(() => {
+    if (!initialLoading && !user) {
+      router.push("/auth");
+    }
+  }, [initialLoading, user, router]);
+
+  if (initialLoading || !user) {
+    return <ProfileSkeleton />;
   }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'banner') => {

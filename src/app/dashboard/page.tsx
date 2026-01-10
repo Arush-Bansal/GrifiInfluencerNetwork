@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
@@ -23,9 +23,14 @@ const DashboardContent = () => {
   
   const currentTab = searchParams.get("tab") || "feed";
 
-  if (!loading && !user) {
-    router.push("/auth");
-    return null;
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/auth");
+    }
+  }, [loading, user, router]);
+
+  if (loading || !user) {
+    return <DashboardSkeleton />;
   }
 
   const profile = mapToDashboardProfile(serverProfile);
