@@ -25,7 +25,7 @@ export interface FeaturedReel {
   video_url: string;
   thumbnail_url: string | null;
   title: string | null;
-  created_at: string;
+  created_at: string | null;
 }
 
 export interface PastCollaboration {
@@ -33,5 +33,5 @@ export interface PastCollaboration {
   profile_id: string;
   brand_name: string;
   brand_logo_url: string | null;
-  created_at: string;
+  created_at: string | null;
 }

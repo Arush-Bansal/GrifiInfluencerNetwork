@@ -207,6 +207,38 @@ export type Database = {
         }
         Relationships: []
       }
+      past_collaborations: {
+        Row: {
+          brand_logo_url: string | null
+          brand_name: string
+          created_at: string | null
+          id: string
+          profile_id: string
+        }
+        Insert: {
+          brand_logo_url?: string | null
+          brand_name: string
+          created_at?: string | null
+          id?: string
+          profile_id: string
+        }
+        Update: {
+          brand_logo_url?: string | null
+          brand_name?: string
+          created_at?: string | null
+          id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "past_collaborations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           author_id: string

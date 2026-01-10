@@ -20,18 +20,6 @@ export type Follow = Tables<'follows'>;
 export type FollowInsert = TablesInsert<'follows'>;
 export type FollowUpdate = TablesUpdate<'follows'>;
 
-export type Community = Tables<'communities'>;
-export type CommunityInsert = TablesInsert<'communities'>;
-export type CommunityUpdate = TablesUpdate<'communities'>;
-
-export type CommunityMember = Tables<'community_members'>;
-export type CommunityMemberInsert = TablesInsert<'community_members'>;
-export type CommunityMemberUpdate = TablesUpdate<'community_members'>;
-
-export type CommunityFollower = Tables<'community_followers'>;
-export type CommunityPost = Tables<'community_posts'>;
-export type CommunityPostInsert = TablesInsert<'community_posts'>;
-export type CommunityPostUpdate = TablesUpdate<'community_posts'>;
 
 export type CollabRequest = Tables<'collab_requests'>;
 export type CollabRequestInsert = TablesInsert<'collab_requests'>;
@@ -52,3 +40,7 @@ export type CampaignApplicationUpdate = TablesUpdate<'campaign_applications'>;
 export type FeaturedReel = Tables<'featured_reels'>;
 export type FeaturedReelInsert = TablesInsert<'featured_reels'>;
 export type FeaturedReelUpdate = TablesUpdate<'featured_reels'>;
+
+export type PastCollaboration = Tables<'past_collaborations'>;
+export type PastCollaborationInsert = TablesInsert<'past_collaborations'>;
+export type PastCollaborationUpdate = TablesUpdate<'past_collaborations'>;
