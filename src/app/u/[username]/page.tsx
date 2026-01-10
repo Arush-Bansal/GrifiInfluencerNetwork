@@ -39,16 +39,17 @@ import { cn } from "@/lib/utils";
 import { 
   Card, 
   CardContent 
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { useProfile, useUserPosts, useFollowStatus, useUpdateProfile, useUploadImage, useFeaturedReels, useManageFeaturedReels } from "@/hooks/use-profile";
-import { useQueryClient, useMutation, UseMutationResult } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/use-auth";
-import Image from "next/image";
-import { mapToDashboardProfile } from "@/lib/view-models";
-import { DashboardProfile, FeaturedReel } from "@/types/dashboard";
+ } from "@/components/ui/card";
+ import { Badge } from "@/components/ui/badge";
+ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+ import { Switch } from "@/components/ui/switch";
+ import { useProfile, useUserPosts, useFollowStatus, useUpdateProfile, useUploadImage, useFeaturedReels, useManageFeaturedReels, usePastCollaborations, useManagePastCollaborations } from "@/hooks/use-profile";
+ import { useQueryClient, useMutation, UseMutationResult } from "@tanstack/react-query";
+ import { useAuth } from "@/hooks/use-auth";
+ import Image from "next/image";
+ import { mapToDashboardProfile } from "@/lib/view-models";
+ import { DashboardProfile, FeaturedReel, PastCollaboration } from "@/types/dashboard";
+ import { Logo } from "@/components/brand/Logo";
 
 
 interface Profile extends DashboardProfile {
@@ -65,10 +66,8 @@ interface Post {
 
 const PublicNavbar = () => (
   <nav className="h-16 border-b border-border bg-background flex items-center justify-between px-6 sticky top-0 z-50">
-    <div className="flex items-center gap-2">
-      <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-        <span className="text-primary-foreground font-bold">G</span>
-      </div>
+    <div className="flex items-center gap-2 cursor-pointer">
+      <Logo size={32} />
       <span className="font-bold text-lg tracking-tight">GRIFI</span>
     </div>
     <div className="flex items-center gap-2">
@@ -120,6 +119,8 @@ export default function PublicProfilePage() {
   const { data: userPosts = [] } = useUserPosts(profile?.id);
   const { data: featuredReels = [] } = useFeaturedReels(profile?.id);
   const { addReel, deleteReel } = useManageFeaturedReels();
+  const { data: pastCollaborations = [] } = usePastCollaborations(profile?.id);
+  const { addCollaboration, deleteCollaboration } = useManagePastCollaborations();
 
   const isOwnProfile = currentUser?.id === profile?.id;
   const { data: isFollowing } = useFollowStatus(currentUser?.id, profile?.id);
@@ -244,18 +245,24 @@ export default function PublicProfilePage() {
     }
   };
 
-  const handleImageUpload = async (file: File, type: 'avatar' | 'banner') => {
+  const handleImageUpload = async (file: File, type: string) => {
     if (!currentUser) return;
-    uploadImageMutation.mutate({
+    
+    // Choose bucket based on image type
+    let bucket = "avatars";
+    if (type === 'brand-logo') bucket = "brands";
+    if (type === 'reel-thumbnail') bucket = "reels";
+
+    return uploadImageMutation.mutateAsync({
       file,
       userId: currentUser.id,
-      bucket: 'profiles',
+      bucket,
       type
-    }, {
-      onSuccess: ({ publicUrl }) => {
-        setEditForm(prev => ({ ...prev, [type === 'avatar' ? 'avatar_url' : 'banner_url']: publicUrl }));
-        toast({ title: `${type === 'avatar' ? 'Avatar' : 'Banner'} uploaded` });
-      }
+    }).then(({ publicUrl }) => {
+      if (type === 'avatar') setEditForm(prev => ({ ...prev, avatar_url: publicUrl }));
+      if (type === 'banner') setEditForm(prev => ({ ...prev, banner_url: publicUrl }));
+      toast({ title: "Image uploaded successfully" });
+      return publicUrl;
     });
   };
 
@@ -303,6 +310,9 @@ export default function PublicProfilePage() {
                 featuredReels={featuredReels}
                 addReel={addReel}
                 deleteReel={deleteReel}
+                pastCollaborations={pastCollaborations as PastCollaboration[]}
+                addCollaboration={addCollaboration}
+                deleteCollaboration={deleteCollaboration}
                 isEditing={isEditing}
                 setIsEditing={setIsEditing}
                 editForm={editForm}
@@ -330,6 +340,9 @@ export default function PublicProfilePage() {
             featuredReels={featuredReels}
             addReel={addReel}
             deleteReel={deleteReel}
+            pastCollaborations={pastCollaborations as PastCollaboration[]}
+            addCollaboration={addCollaboration}
+            deleteCollaboration={deleteCollaboration}
             isEditing={isEditing}
             setIsEditing={setIsEditing}
             editForm={editForm}
@@ -385,11 +398,14 @@ interface ProfileContentProps {
   setEditForm: (val: EditForm) => void;
   handleSave: () => Promise<void>;
   saving: boolean;
-  handleImageUpload: (file: File, type: 'avatar' | 'banner') => Promise<void>;
+  handleImageUpload: (file: File, type: string) => Promise<string | void>;
   uploadingImage: boolean;
   featuredReels: FeaturedReel[];
-  addReel: UseMutationResult<FeaturedReel, Error, { profileId: string; videoUrl: string; title?: string }>;
+  addReel: UseMutationResult<FeaturedReel, Error, { profileId: string; videoUrl: string; title?: string; thumbnailUrl?: string }>;
   deleteReel: UseMutationResult<void, Error, { reelId: string; profileId: string }>;
+  pastCollaborations: PastCollaboration[];
+  addCollaboration: UseMutationResult<PastCollaboration, Error, { profileId: string; brandName: string; brandLogoUrl?: string }>;
+  deleteCollaboration: UseMutationResult<void, Error, { collabId: string; profileId: string }>;
   toast: (options: { title?: string; description?: string; variant?: "default" | "destructive" }) => void;
 }
 
@@ -407,14 +423,22 @@ const ProfileContent = ({
   saving,
   handleImageUpload,
   uploadingImage,
-  featuredReels,
-  addReel,
-  deleteReel,
-  toast
+  featuredReels, 
+  addReel, 
+  deleteReel, 
+  pastCollaborations,
+  addCollaboration,
+  deleteCollaboration,
+  toast 
 }: ProfileContentProps) => {
   const [newReelUrl, setNewReelUrl] = useState("");
   const [newReelTitle, setNewReelTitle] = useState("");
+  const [newReelThumbnail, setNewReelThumbnail] = useState("");
   const [showAddReel, setShowAddReel] = useState(false);
+
+  const [newBrandName, setNewBrandName] = useState("");
+  const [newBrandLogo, setNewBrandLogo] = useState("");
+  const [showAddBrand, setShowAddBrand] = useState(false);
 
   const handleAddReel = async () => {
     if (!newReelUrl) return;
@@ -422,10 +446,12 @@ const ProfileContent = ({
       await addReel.mutateAsync({
         profileId: profile.id,
         videoUrl: newReelUrl,
-        title: newReelTitle
+        title: newReelTitle,
+        thumbnailUrl: newReelThumbnail
       });
       setNewReelUrl("");
       setNewReelTitle("");
+      setNewReelThumbnail("");
       setShowAddReel(false);
       toast({
         title: "Reel added",
@@ -436,6 +462,27 @@ const ProfileContent = ({
       toast({
         title: "Error",
         description: err.message || "Failed to add reel",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const internalHandleImageUpload = async (file: File, type: string) => {
+    try {
+      const publicUrl = await handleImageUpload(file, type);
+      if (publicUrl && typeof publicUrl === 'string') {
+        if (type === 'brand-logo') {
+          setNewBrandLogo(publicUrl);
+        } else if (type === 'reel-thumbnail') {
+          setNewReelThumbnail(publicUrl);
+        }
+      }
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error("Error uploading image:", error);
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload image. Please check if the storage bucket exists.",
         variant: "destructive"
       });
     }
@@ -455,6 +502,80 @@ const ProfileContent = ({
         description: err.message || "Failed to remove reel",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleAddCollaboration = async () => {
+    if (!newBrandName) return;
+    try {
+      await addCollaboration.mutateAsync({
+        profileId: profile.id,
+        brandName: newBrandName,
+        brandLogoUrl: newBrandLogo
+      });
+      setNewBrandName("");
+      setNewBrandLogo("");
+      setShowAddBrand(false);
+      toast({
+        title: "Brand added",
+        description: "Your past collaboration has been added successfully."
+      });
+    } catch (error: unknown) {
+      const err = error as Error;
+      toast({
+        title: "Error",
+        description: err.message || "Failed to add brand",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteCollaboration = async (collabId: string) => {
+    try {
+      await deleteCollaboration.mutateAsync({ collabId, profileId: profile.id });
+      toast({
+        title: "Brand removed",
+        description: "The brand has been removed from your profile."
+      });
+    } catch (error: unknown) {
+      const err = error as Error;
+      toast({
+        title: "Error",
+        description: err.message || "Failed to remove brand",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: `${profile.full_name} (@${profile.username}) on GRIFI`,
+      text: `Check out ${profile.full_name}'s professional profile on GRIFI.`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        await navigator.share(shareData);
+        toast({
+          title: "Shared successfully",
+        });
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: "Link Copied",
+          description: "Profile link has been copied to your clipboard.",
+        });
+      }
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') {
+        console.error("Error sharing:", err);
+        toast({
+          title: "Sharing failed",
+          description: "Could not share or copy the link.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -677,7 +798,12 @@ const ProfileContent = ({
                 </>
               )}
               {!isEditing && (
-                <Button variant="ghost" size="icon" className="h-10 w-10 border border-border hover:bg-muted rounded-lg text-muted-foreground">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-10 w-10 border border-border hover:bg-muted rounded-lg text-muted-foreground"
+                  onClick={handleShare}
+                >
                   <Share2 className="w-4 h-4" />
                 </Button>
               )}
@@ -730,7 +856,7 @@ const ProfileContent = ({
                     </Select>
                   ) : (
                     <Input 
-                      value={editForm[stat.key]} 
+                      value={(editForm[stat.key] as string) || ""} 
                       onChange={(e) => setEditForm({...editForm, [stat.key]: e.target.value})} 
                       className="h-7 text-sm font-bold text-center px-1"
                     />
@@ -747,9 +873,10 @@ const ProfileContent = ({
         <div className="grid lg:grid-cols-3 gap-12 mt-12">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-12">
+
             <section className="space-y-4">
               <div className="flex items-center gap-4">
-                <h3 className="font-bold text-lg tracking-tight text-foreground text-left">Biography</h3>
+                <h3 className="font-bold text-lg tracking-tight text-foreground text-left">About</h3>
                 <div className="h-px flex-1 bg-border" />
               </div>
               <div className="p-6 bg-muted border border-border rounded-lg">
@@ -766,6 +893,129 @@ const ProfileContent = ({
                   </p>
                 )}
               </div>
+            </section>
+
+            <section className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4 flex-1">
+                  <h3 className="font-bold text-lg tracking-tight text-foreground flex items-center gap-2">
+                    Worked With <Badge variant="outline" className="rounded-full text-[10px] px-2 font-bold text-muted-foreground">{pastCollaborations.length}</Badge>
+                  </h3>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+                {isEditing && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowAddBrand(!showAddBrand)}
+                    className="ml-4"
+                  >
+                    {showAddBrand ? <X className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+                    {showAddBrand ? "Cancel" : "Add Brand"}
+                  </Button>
+                )}
+              </div>
+
+              {isEditing && showAddBrand && (
+                <Card className="border-dashed border-2 border-primary/20 bg-primary/5">
+                  <CardContent className="p-6 space-y-4">
+                    <div className="grid gap-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Brand Name</label>
+                        <Input 
+                          placeholder="e.g. Nike, Red Bull, etc." 
+                          value={newBrandName}
+                          onChange={(e) => setNewBrandName(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Brand Logo (Optional)</label>
+                        <div className="flex items-center gap-4">
+                          {newBrandLogo && (
+                            <div className="relative w-16 h-16 rounded-full overflow-hidden border border-border bg-white">
+                              <Image src={newBrandLogo} alt="Brand logo preview" fill className="object-contain p-2" />
+                              <button 
+                                onClick={() => setNewBrandLogo("")}
+                                className="absolute top-0 right-0 bg-black/50 rounded-full p-1 hover:bg-black/70 transition-colors"
+                              >
+                                <X className="w-2 h-2 text-white" />
+                              </button>
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <input 
+                              type="file" 
+                              accept="image/*"
+                              className="hidden" 
+                              id="brand-logo-upload"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) internalHandleImageUpload(file, 'brand-logo');
+                              }}
+                            />
+                            <label 
+                              htmlFor="brand-logo-upload" 
+                              className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl p-4 cursor-pointer hover:bg-muted/50 transition-colors h-16"
+                            >
+                              {uploadingImage ? <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /> : <Camera className="w-5 h-5 text-muted-foreground" />}
+                              <span className="text-[9px] font-bold uppercase tracking-tighter mt-0.5">Logo</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <Button 
+                      className="w-full" 
+                      onClick={handleAddCollaboration}
+                      disabled={addCollaboration.isPending || !newBrandName || uploadingImage}
+                    >
+                      {addCollaboration.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+                      Add Brand
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {pastCollaborations.length === 0 ? (
+                <div className="p-8 text-center bg-muted/30 border border-dashed border-border rounded-lg">
+                  <Briefcase className="w-6 h-6 mx-auto text-muted-foreground/30 mb-2" />
+                  <p className="text-muted-foreground font-bold text-xs uppercase tracking-widest">No brand collaborations listed yet.</p>
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center justify-center gap-6 p-8 bg-card rounded-xl border border-border shadow-sm">
+                  {pastCollaborations.map((collab) => (
+                    <div key={collab.id} className="group relative">
+                      {collab.brand_logo_url ? (
+                        <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-white border border-border flex items-center justify-center p-4 shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-300 overflow-hidden">
+                          <Image 
+                            src={collab.brand_logo_url} 
+                            alt={collab.brand_name} 
+                            width={80} 
+                            height={80} 
+                            className="object-contain transition-transform duration-300 group-hover:scale-110" 
+                          />
+                        </div>
+                      ) : (
+                        <div className="px-6 py-3 rounded-xl bg-muted border border-border shadow-sm hover:bg-muted/80 transition-all">
+                          <span className="text-sm font-bold text-foreground/80 tracking-tight">{collab.brand_name}</span>
+                        </div>
+                      )}
+                      
+                      {isEditing && (
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="absolute -top-2 -right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-all z-10 rounded-full shadow-md"
+                          onClick={() => handleDeleteCollaboration(collab.id)}
+                          disabled={deleteCollaboration.isPending}
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
 
             <section className="space-y-6">
@@ -809,11 +1059,46 @@ const ProfileContent = ({
                           onChange={(e) => setNewReelTitle(e.target.value)}
                         />
                       </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Thumbnail (Optional)</label>
+                        <div className="flex items-center gap-4">
+                          {newReelThumbnail && (
+                            <div className="relative w-16 h-24 rounded-lg overflow-hidden border border-border">
+                              <Image src={newReelThumbnail} alt="Thumbnail preview" fill className="object-cover" />
+                              <button 
+                                onClick={() => setNewReelThumbnail("")}
+                                className="absolute top-1 right-1 bg-black/50 rounded-full p-1 hover:bg-black/70 transition-colors"
+                              >
+                                <X className="w-3 h-3 text-white" />
+                              </button>
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <input 
+                              type="file" 
+                              accept="image/*"
+                              className="hidden" 
+                              id="reel-thumb-upload"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) internalHandleImageUpload(file, 'reel-thumbnail');
+                              }}
+                            />
+                            <label 
+                              htmlFor="reel-thumb-upload" 
+                              className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl p-4 cursor-pointer hover:bg-muted/50 transition-colors h-24"
+                            >
+                              {uploadingImage ? <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /> : <Camera className="w-6 h-6 text-muted-foreground" />}
+                              <span className="text-[10px] font-bold uppercase tracking-tighter mt-1">{newReelThumbnail ? "Change Image" : "Upload Thumbnail"}</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     <Button 
                       className="w-full" 
                       onClick={handleAddReel}
-                      disabled={addReel.isPending || !newReelUrl}
+                      disabled={addReel.isPending || !newReelUrl || uploadingImage}
                     >
                       {addReel.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
                       Add to Featured Reels
@@ -831,8 +1116,20 @@ const ProfileContent = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                   {featuredReels.map((reel: FeaturedReel) => (
                     <div key={reel.id} className="group relative aspect-[9/16] bg-secondary/30 rounded-2xl overflow-hidden shadow-lg border border-border/50 transition-all hover:scale-[1.02] hover:shadow-xl">
-                      {/* Placeholder background with gradient */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-secondary/10" />
+                      {/* Background: Image or Gradient */}
+                      {reel.thumbnail_url ? (
+                        <Image 
+                          src={reel.thumbnail_url} 
+                          alt={reel.title || "Featured Reel"} 
+                          fill 
+                          className="object-cover transition-transform duration-500 group-hover:scale-110" 
+                        />
+                      ) : (
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-secondary/10" />
+                      )}
+                      
+                      {/* Dark overlay for better text contrast */}
+                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors z-0" />
                       
                       <div className="absolute inset-0 flex flex-col items-center justify-center transition-all">
                         <div className="w-16 h-16 rounded-full bg-background/80 backdrop-blur-md flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">

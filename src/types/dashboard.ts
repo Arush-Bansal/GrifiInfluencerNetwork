@@ -27,3 +27,11 @@ export interface FeaturedReel {
   title: string | null;
   created_at: string;
 }
+
+export interface PastCollaboration {
+  id: string;
+  profile_id: string;
+  brand_name: string;
+  brand_logo_url: string | null;
+  created_at: string;
+}

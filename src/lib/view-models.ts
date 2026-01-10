@@ -20,6 +20,10 @@ export function mapToDashboardProfile(profile: Tables<"profiles"> | DashboardPro
       location: "",
       website: "",
       banner_url: "",
+      service_brand: true,
+      service_ugc: true,
+      service_appearances: false,
+      is_verified: false,
     };
   }
 
@@ -36,5 +40,9 @@ export function mapToDashboardProfile(profile: Tables<"profiles"> | DashboardPro
     location: profile.location || "",
     website: profile.website || "",
     banner_url: profile.banner_url || "",
+    service_brand: (profile as any).service_brand ?? true,
+    service_ugc: (profile as any).service_ugc ?? true,
+    service_appearances: (profile as any).service_appearances ?? false,
+    is_verified: (profile as any).is_verified ?? false,
   };
 }

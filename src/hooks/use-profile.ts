@@ -121,7 +121,7 @@ export function useFollowStatus(followerId: string | undefined, followingId: str
 export function useUploadImage() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ file, userId, bucket, type }: { file: File, userId: string, bucket: string, type: 'avatar' | 'banner' }) => {
+    mutationFn: async ({ file, userId, bucket, type }: { file: File, userId: string, bucket: string, type: string }) => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${userId}-${type}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${userId}/${fileName}`;
@@ -166,13 +166,14 @@ export function useManageFeaturedReels() {
   const queryClient = useQueryClient();
   
   const addReel = useMutation({
-    mutationFn: async ({ profileId, videoUrl, title }: { profileId: string, videoUrl: string, title?: string }) => {
+    mutationFn: async ({ profileId, videoUrl, title, thumbnailUrl }: { profileId: string, videoUrl: string, title?: string, thumbnailUrl?: string }) => {
       const { data, error } = await supabase
         .from("featured_reels")
         .insert({
           profile_id: profileId,
           video_url: videoUrl,
-          title: title
+          title: title,
+          thumbnail_url: thumbnailUrl
         })
         .select()
         .single();
@@ -200,4 +201,62 @@ export function useManageFeaturedReels() {
   });
 
   return { addReel, deleteReel };
+}
+
+export function usePastCollaborations(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["past-collaborations", userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await supabase
+        .from("past_collaborations")
+        .select("*")
+        .eq("profile_id", userId)
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId,
+  });
+}
+
+export function useManagePastCollaborations() {
+  const queryClient = useQueryClient();
+  
+  const addCollaboration = useMutation({
+    mutationFn: async ({ profileId, brandName, brandLogoUrl }: { profileId: string, brandName: string, brandLogoUrl?: string }) => {
+      const { data, error } = await supabase
+        .from("past_collaborations")
+        .insert({
+          profile_id: profileId,
+          brand_name: brandName,
+          brand_logo_url: brandLogoUrl
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["past-collaborations", variables.profileId] });
+    },
+  });
+
+  const deleteCollaboration = useMutation({
+    mutationFn: async ({ collabId }: { collabId: string, profileId: string }) => {
+      const { error } = await supabase
+        .from("past_collaborations")
+        .delete()
+        .eq("id", collabId);
+      
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["past-collaborations", variables.profileId] });
+    },
+  });
+
+  return { addCollaboration, deleteCollaboration };
 }
