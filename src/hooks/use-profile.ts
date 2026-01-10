@@ -143,3 +143,61 @@ export function useUploadImage() {
     },
   });
 }
+
+export function useFeaturedReels(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["featured-reels", userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await supabase
+        .from("featured_reels")
+        .select("*")
+        .eq("profile_id", userId)
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId,
+  });
+}
+
+export function useManageFeaturedReels() {
+  const queryClient = useQueryClient();
+  
+  const addReel = useMutation({
+    mutationFn: async ({ profileId, videoUrl, title }: { profileId: string, videoUrl: string, title?: string }) => {
+      const { data, error } = await supabase
+        .from("featured_reels")
+        .insert({
+          profile_id: profileId,
+          video_url: videoUrl,
+          title: title
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["featured-reels", variables.profileId] });
+    },
+  });
+
+  const deleteReel = useMutation({
+    mutationFn: async ({ reelId }: { reelId: string, profileId: string }) => {
+      const { error } = await supabase
+        .from("featured_reels")
+        .delete()
+        .eq("id", reelId);
+      
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["featured-reels", variables.profileId] });
+    },
+  });
+
+  return { addReel, deleteReel };
+}

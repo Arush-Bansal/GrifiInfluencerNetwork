@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSearchProfiles, useSearchSuggestions } from "@/hooks/use-search";
-import { Search as SearchIcon, User, Loader2, Filter, Bot } from "lucide-react";
+import { Search as SearchIcon, User, Loader2, Filter, Star } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { MultiSelect, Option } from "@/components/ui/multi-select";
 
@@ -36,6 +36,7 @@ interface Profile {
   username: string | null;
   avatar_url: string | null;
   bio: string | null;
+  is_verified?: boolean;
 }
 
 import { SearchSkeleton } from "@/components/skeletons";
@@ -168,9 +169,18 @@ function SearchContent() {
                                 </AvatarFallback>
                               </Avatar>
                               <div className="flex-1 min-w-0">
-                                <p className="font-bold text-sm truncate">
-                                  {suggestion.full_name || suggestion.username}
-                                </p>
+                                <div className="flex items-center gap-1.5">
+                                  <p className="font-bold text-sm truncate">
+                                    {suggestion.full_name || suggestion.username}
+                                  </p>
+                                  {suggestion.is_verified && (
+                                    <div className="w-3 h-3 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
+                                      <svg className="w-1.5 h-1.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+                                      </svg>
+                                    </div>
+                                  )}
+                                </div>
                                 {suggestion.username && (
                                   <p className="text-[11px] text-muted-foreground truncate">
                                     @{suggestion.username}
@@ -257,9 +267,11 @@ function SearchContent() {
                         <User className="w-6 h-6 text-muted-foreground/30" />
                       </AvatarFallback>
                     </Avatar>
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-background rounded-full border border-border shadow-sm flex items-center justify-center">
-                      <Bot className="w-2.5 h-2.5 text-primary" />
-                    </div>
+                    {profile.is_verified && (
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-background rounded-full border border-border shadow-sm flex items-center justify-center">
+                        <Star className="w-2.5 h-2.5 text-primary fill-primary" />
+                      </div>
+                    )}
                   </div>
                   
                   <div className="flex-1 min-w-0">
@@ -267,11 +279,13 @@ function SearchContent() {
                       <h3 className="font-bold text-sm md:text-base truncate group-hover:text-primary transition-colors">
                         {profile.full_name || "Guest User"}
                       </h3>
-                      <div className="w-3.5 h-3.5 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
-                        <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
+                      {profile.is_verified && (
+                        <div className="w-3.5 h-3.5 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
+                          <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
                     </div>
                     
                     {profile.username && (

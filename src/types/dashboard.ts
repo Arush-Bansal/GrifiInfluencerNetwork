@@ -13,5 +13,17 @@ export interface DashboardProfile {
   location: string;
   website: string;
   banner_url: string;
-  // Add derived fields or specific types if needed
+  service_brand: boolean;
+  service_ugc: boolean;
+  service_appearances: boolean;
+  is_verified: boolean;
+}
+
+export interface FeaturedReel {
+  id: string;
+  profile_id: string;
+  video_url: string;
+  thumbnail_url: string | null;
+  title: string | null;
+  created_at: string;
 }

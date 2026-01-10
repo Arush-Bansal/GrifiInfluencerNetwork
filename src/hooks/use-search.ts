@@ -7,7 +7,7 @@ export function useSearchProfiles(query: string, filters: any, enabled = false) 
     queryFn: async () => {
       let queryBuilder = supabase
         .from("profiles")
-        .select("id, full_name, username, avatar_url, bio, niche, platform, followers, engagement_rate");
+        .select("id, full_name, username, avatar_url, bio, niche, platform, followers, engagement_rate, is_verified");
 
       if (query.trim()) {
         queryBuilder = queryBuilder.or(`full_name.ilike.%${query}%,username.ilike.%${query}%`);
@@ -50,14 +50,14 @@ export function useSearchSuggestions(query: string, enabled: boolean) {
       if (!query.trim()) {
         const { data } = await supabase
           .from("profiles")
-          .select("id, full_name, username, avatar_url, bio")
+          .select("id, full_name, username, avatar_url, bio, is_verified")
           .limit(5);
         return data as any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
       }
 
       const { data } = await supabase
         .from("profiles")
-        .select("id, full_name, username, avatar_url, bio")
+        .select("id, full_name, username, avatar_url, bio, is_verified")
         .or(`full_name.ilike.%${query}%,username.ilike.%${query}%`)
         .limit(5);
       

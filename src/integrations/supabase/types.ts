@@ -48,3 +48,7 @@ export type CampaignUpdate = TablesUpdate<'campaigns'>;
 export type CampaignApplication = Tables<'campaign_applications'>;
 export type CampaignApplicationInsert = TablesInsert<'campaign_applications'>;
 export type CampaignApplicationUpdate = TablesUpdate<'campaign_applications'>;
+
+export type FeaturedReel = Tables<'featured_reels'>;
+export type FeaturedReelInsert = TablesInsert<'featured_reels'>;
+export type FeaturedReelUpdate = TablesUpdate<'featured_reels'>;

@@ -121,139 +121,6 @@ export type Database = {
         }
         Relationships: []
       }
-      communities: {
-        Row: {
-          created_at: string
-          created_by: string
-          description: string | null
-          id: string
-          image_url: string | null
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          created_by: string
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          name: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          name?: string
-        }
-        Relationships: []
-      }
-      community_followers: {
-        Row: {
-          community_id: string
-          followed_at: string
-          user_id: string
-        }
-        Insert: {
-          community_id: string
-          followed_at?: string
-          user_id: string
-        }
-        Update: {
-          community_id?: string
-          followed_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "community_followers_community_id_fkey"
-            columns: ["community_id"]
-            isOneToOne: false
-            referencedRelation: "communities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      community_members: {
-        Row: {
-          community_id: string
-          joined_at: string
-          role: Database["public"]["Enums"]["community_role"] | null
-          user_id: string
-        }
-        Insert: {
-          community_id: string
-          joined_at?: string
-          role?: Database["public"]["Enums"]["community_role"] | null
-          user_id: string
-        }
-        Update: {
-          community_id?: string
-          joined_at?: string
-          role?: Database["public"]["Enums"]["community_role"] | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "community_members_community_id_fkey"
-            columns: ["community_id"]
-            isOneToOne: false
-            referencedRelation: "communities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      community_posts: {
-        Row: {
-          author_id: string
-          community_id: string | null
-          content: string
-          created_at: string
-          id: string
-          image_url: string | null
-          moderated_at: string | null
-          moderated_by: string | null
-          status: Database["public"]["Enums"]["post_status"] | null
-        }
-        Insert: {
-          author_id: string
-          community_id?: string | null
-          content: string
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          moderated_at?: string | null
-          moderated_by?: string | null
-          status?: Database["public"]["Enums"]["post_status"] | null
-        }
-        Update: {
-          author_id?: string
-          community_id?: string | null
-          content?: string
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          moderated_at?: string | null
-          moderated_by?: string | null
-          status?: Database["public"]["Enums"]["post_status"] | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "community_posts_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "community_posts_community_id_fkey"
-            columns: ["community_id"]
-            isOneToOne: false
-            referencedRelation: "communities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       follows: {
         Row: {
           created_at: string
@@ -338,9 +205,13 @@ export type Database = {
           followers: string | null
           full_name: string | null
           id: string
+          is_verified: boolean | null
           location: string | null
           niche: string | null
           platform: string | null
+          service_appearances: boolean | null
+          service_brand: boolean
+          service_ugc: boolean
           updated_at: string | null
           username: string | null
           website: string | null
@@ -353,9 +224,13 @@ export type Database = {
           followers?: string | null
           full_name?: string | null
           id: string
+          is_verified?: boolean | null
           location?: string | null
           niche?: string | null
           platform?: string | null
+          service_appearances?: boolean | null
+          service_brand?: boolean
+          service_ugc?: boolean
           updated_at?: string | null
           username?: string | null
           website?: string | null
@@ -368,14 +243,179 @@ export type Database = {
           followers?: string | null
           full_name?: string | null
           id?: string
+          is_verified?: boolean | null
           location?: string | null
           niche?: string | null
           platform?: string | null
+          service_appearances?: boolean | null
+          service_brand?: boolean
+          service_ugc?: boolean
           updated_at?: string | null
           username?: string | null
           website?: string | null
         }
         Relationships: []
+      }
+      featured_reels: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string
+          thumbnail_url: string | null
+          title: string | null
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_id: string
+          thumbnail_url?: string | null
+          title?: string | null
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string
+          thumbnail_url?: string | null
+          title?: string | null
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "featured_reels_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      communities: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
+      community_members: {
+        Row: {
+          community_id: string
+          joined_at: string
+          role: Database["public"]["Enums"]["community_role"] | null
+          user_id: string
+        }
+        Insert: {
+          community_id: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["community_role"] | null
+          user_id: string
+        }
+        Update: {
+          community_id?: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["community_role"] | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_members_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      community_followers: {
+        Row: {
+          community_id: string
+          followed_at: string
+          user_id: string
+        }
+        Insert: {
+          community_id: string
+          followed_at?: string
+          user_id: string
+        }
+        Update: {
+          community_id?: string
+          followed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_followers_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      community_posts: {
+        Row: {
+          author_id: string
+          community_id: string
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          moderated_at: string | null
+          moderated_by: string | null
+          status: Database["public"]["Enums"]["post_status"] | null
+        }
+        Insert: {
+          author_id: string
+          community_id: string
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          moderated_at?: string | null
+          moderated_by?: string | null
+          status?: Database["public"]["Enums"]["post_status"] | null
+        }
+        Update: {
+          author_id?: string
+          community_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          moderated_at?: string | null
+          moderated_by?: string | null
+          status?: Database["public"]["Enums"]["post_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_posts_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {
