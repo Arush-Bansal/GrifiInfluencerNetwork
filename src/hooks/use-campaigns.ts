@@ -9,11 +9,13 @@ export function useInfluencerCampaigns() {
         .from("campaigns")
         .select("*, brand:brand_id(*)")
         .eq("status", "open")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(20);
       
       if (error) throw error;
       return data as unknown as any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
     },
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
 
