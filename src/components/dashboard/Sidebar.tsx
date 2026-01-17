@@ -79,10 +79,10 @@ export function Sidebar({ className, user, role, profile }: SidebarProps) {
           </Link>
         ))}
 
-        <div className="pt-6">
-          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-2">
+        <div className="">
+          {/* <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-2">
             Professional
-          </div>
+          </div> */}
           {isBrand && (
             <Link
               href="/dashboard/campaigns/new"
@@ -100,7 +100,7 @@ export function Sidebar({ className, user, role, profile }: SidebarProps) {
                 onClick={() => router.push(`/u/${profile?.username}`)}
               >
                 <ExternalLink className="w-4 h-4" />
-                View Public Page
+                Visit Your Page
               </Button>
             </>
           )}

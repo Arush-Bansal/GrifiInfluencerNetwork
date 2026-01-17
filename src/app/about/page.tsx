@@ -3,17 +3,15 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Users, TrendingUp, Bot, LogOut, LayoutDashboard, Heart, Shield, Globe, Sparkles } from "lucide-react";
+import { Users, TrendingUp, Bot, LayoutDashboard, Heart, Shield, Globe, Sparkles } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { supabase } from "@/integrations/supabase/client";
-import { useRouter } from "next/navigation";
 import { Session } from "@supabase/supabase-js";
 
 const AboutPage = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
-
+  
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -28,19 +26,6 @@ const AboutPage = () => {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (error) {
-      console.error("Error signing out:", error);
-    } finally {
-      localStorage.clear();
-      sessionStorage.clear();
-      setSession(null);
-      router.refresh();
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -70,10 +55,6 @@ const AboutPage = () => {
                           Dashboard
                         </Button>
                       </Link>
-                      <Button variant="outline" size="sm" onClick={handleLogout}>
-                        <LogOut className="w-4 h-4 mr-2" />
-                        Logout
-                      </Button>
                     </>
                   ) : (
                     <>

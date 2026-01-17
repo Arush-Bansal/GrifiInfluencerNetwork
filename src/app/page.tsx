@@ -59,7 +59,7 @@ const Index = () => {
               <Link href="/" className="text-sm font-medium text-primary">Home</Link>
               <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">About</Link>
             </div>
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-4 border-l pl-6 border-border">
               {!loading && (
                 <>
                   {session ? (
@@ -70,10 +70,6 @@ const Index = () => {
                           <span className="hidden sm:inline">Dashboard</span>
                         </Button>
                       </Link>
-                      <Button variant="outline" size="sm" onClick={handleLogout} className="px-2 sm:px-3 text-xs sm:text-sm">
-                        <LogOut className="w-4 h-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Logout</span>
-                      </Button>
                     </>
                   ) : (
                     <>
