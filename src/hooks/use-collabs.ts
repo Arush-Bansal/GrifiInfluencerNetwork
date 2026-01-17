@@ -10,7 +10,7 @@ interface Profile {
 
 interface CollabRequest {
   id: string;
-  sender_id: string;
+  sender_id: string | null;
   receiver_id: string;
   status: string;
   type: string;
@@ -49,16 +49,22 @@ export function useCollabRequests(userId: string | undefined) {
       const outgoing = (outgoingRaw || []) as CollabRequest[];
 
       const userIds = new Set<string>();
-      incoming.forEach(r => userIds.add(r.sender_id));
-      outgoing.forEach(r => userIds.add(r.receiver_id));
+      incoming.forEach(r => { if (r.sender_id) userIds.add(r.sender_id); });
+      outgoing.forEach(r => { if (r.receiver_id) userIds.add(r.receiver_id); });
 
-      // 3. Fetch profiles for these IDs
-      const { data: profiles, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, username, full_name, avatar_url")
-        .in("id", Array.from(userIds));
+      const filteredUserIds = Array.from(userIds);
 
-      if (profileError) throw profileError;
+      // 3. Fetch profiles for these IDs (only if there are IDs to fetch)
+      let profiles: Profile[] = [];
+      if (filteredUserIds.length > 0) {
+        const { data, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, username, full_name, avatar_url")
+          .in("id", filteredUserIds);
+
+        if (profileError) throw profileError;
+        profiles = data || [];
+      }
 
       // 4. Create a lookup map
       const profileMap = new Map<string, Profile>();
@@ -67,7 +73,7 @@ export function useCollabRequests(userId: string | undefined) {
       // 5. Attach profiles to requests
       const incMapped = incoming.map(r => ({
         ...r,
-        sender: profileMap.get(r.sender_id) || { id: r.sender_id, username: "Unknown", full_name: "Unknown User", avatar_url: null }
+        sender: r.sender_id ? (profileMap.get(r.sender_id) || { id: r.sender_id, username: "Unknown", full_name: "Unknown User", avatar_url: null }) : { id: "guest", username: "Guest", full_name: "Guest User", avatar_url: null }
       }));
 
       const outMapped = outgoing.map(r => ({

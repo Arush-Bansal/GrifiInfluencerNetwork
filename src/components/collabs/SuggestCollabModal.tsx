@@ -9,6 +9,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Send } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
+import { Input } from "@/components/ui/input";
+import { CollabRequestInsert } from "@/integrations/supabase/types";
 
 interface SuggestCollabModalProps {
   receiverId: string;
@@ -30,9 +33,11 @@ export function SuggestCollabModal({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [contactInfo, setContactInfo] = useState("");
   const [type, setType] = useState<"collab" | "sponsorship">(defaultType);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const handleSubmit = async () => {
     if (!message.trim()) {
@@ -44,29 +49,36 @@ export function SuggestCollabModal({
       return;
     }
 
+    if (!user && !contactInfo.trim()) {
+      toast({
+        title: "Contact info required",
+        description: "Please provide your contact information (email or phone) so the creator can reach you.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const senderId = sessionData.session?.user?.id;
+      const senderId = user?.id;
 
-      if (!senderId) {
-        toast({
-            title: "Authentication required",
-            description: "You must be logged in to send a request.",
-            variant: "destructive",
-        });
-        return;
-      }
+      const insertData: {
+        receiver_id: string;
+        message: string;
+        type: "collab" | "sponsorship";
+        status: "pending";
+        sender_id: string | null;
+      } = {
+        receiver_id: receiverId,
+        message: user ? message : `[GUEST ENQUIRY]\nContact: ${contactInfo}\n\nMessage:\n${message}`,
+        type: type,
+        status: "pending",
+        sender_id: senderId || null
+      };
 
       const { error } = await supabase
         .from("collab_requests")
-        .insert({
-          sender_id: senderId,
-          receiver_id: receiverId,
-          message: message,
-          type: type,
-          status: "pending"
-        });
+        .insert(insertData as unknown as CollabRequestInsert);
 
       if (error) throw error;
 
@@ -76,18 +88,27 @@ export function SuggestCollabModal({
       });
 
       // Invalidate the connection status query to show "Pending"
-      queryClient.invalidateQueries({
-        queryKey: ["connection-status", senderId, receiverId]
-      });
+      if (senderId) {
+        queryClient.invalidateQueries({
+          queryKey: ["connection-status", senderId, receiverId]
+        });
+      }
 
       setOpen(false);
       setMessage("");
-    } catch (error: unknown) {
-      console.error("Error sending request:", error);
-      const message = error instanceof Error ? error.message : "Failed to send request. Please try again.";
+      setContactInfo("");
+    } catch (err: unknown) {
+      const error = err as { message?: string; details?: string; hint?: string; code?: string };
+      console.error("Error sending request detail:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      const errorMessage = error.message || "Failed to send request. Please try again.";
       toast({
-        title: "Error",
-        description: message,
+        title: "Error Sending Request",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -130,6 +151,18 @@ export function SuggestCollabModal({
               className="min-h-[100px]"
             />
           </div>
+          {!user && (
+            <div className="grid gap-2">
+              <label htmlFor="contact" className="text-sm font-medium">Your Contact Info</label>
+              <Input
+                id="contact"
+                placeholder="Email or WhatsApp number"
+                value={contactInfo}
+                onChange={(e) => setContactInfo(e.target.value)}
+              />
+              <p className="text-[10px] text-muted-foreground">Since you&apos;re not logged in, please provide a way for the creator to reach you.</p>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>

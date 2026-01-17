@@ -10,7 +10,7 @@ import { BrandCampaigns } from "@/components/campaigns/BrandCampaigns";
 import { InfluencerCampaigns } from "@/components/campaigns/InfluencerCampaigns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { ContextSidebar } from "@/components/dashboard/ContextSidebar";
+// import { ContextSidebar } from "@/components/dashboard/ContextSidebar";
 import { mapToDashboardProfile } from "@/lib/view-models";
 
 import { DashboardSkeleton } from "@/components/skeletons";
@@ -115,11 +115,11 @@ const DashboardContent = () => {
         </div>
 
         {/* Contextual Sidebar (Right) */}
-        <ContextSidebar 
+        {/* <ContextSidebar 
           role={role} 
           profile={profile} 
           className="lg:col-span-4 hidden lg:block" 
-        />
+        /> */}
       </div>
     </div>
   );

@@ -74,7 +74,7 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
             <Settings className="mr-2 h-4 w-4" />
-            <span>View Profile</span>
+            <span>Settings</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">

@@ -73,7 +73,7 @@ export function SidebarUserMenu({ user, profile, role }: SidebarUserMenuProps) {
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
           <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
-          <span>View Profile</span>
+          <span>Settings</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
