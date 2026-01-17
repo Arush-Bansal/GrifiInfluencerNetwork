@@ -689,7 +689,6 @@ const ProfileContent = ({
                   <h1 className="text-2xl font-bold tracking-tight text-foreground">
                     {profile.full_name}
                   </h1>
-                  <p className="text-sm text-muted-foreground font-medium">@{profile.username}</p>
                 </>
               )}
               
