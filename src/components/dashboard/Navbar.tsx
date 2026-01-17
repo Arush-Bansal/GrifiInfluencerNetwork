@@ -51,13 +51,13 @@ export const Navbar = ({ user, username }: NavbarProps) => {
   return (
     <header className="bg-background border-b border-border sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <div 
-          className="flex items-center gap-2 cursor-pointer" 
-          onClick={() => router.push(user ? '/dashboard' : '/')}
+        <Link 
+          href={user ? '/dashboard' : '/'}
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
         >
           <Logo size={32} />
           <span className="text-xl font-semibold tracking-tight">GRIFI</span>
-        </div>
+        </Link>
         
         <div className="flex items-center gap-4">
           {/* Desktop Search */}

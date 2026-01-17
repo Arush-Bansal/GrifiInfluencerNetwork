@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -63,12 +64,15 @@ interface Post {
   image_url?: string | null;
 }
 
-const PublicNavbar = () => (
+const PublicNavbar = ({ user }: { user: User | null }) => (
   <nav className="h-16 border-b border-border bg-background flex items-center justify-between px-6 sticky top-0 z-50">
-    <div className="flex items-center gap-2 cursor-pointer">
+    <Link 
+      href={user ? "/dashboard" : "/"} 
+      className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+    >
       <Logo size={32} />
       <span className="font-bold text-lg tracking-tight">GRIFI</span>
-    </div>
+    </Link>
     <div className="flex items-center gap-2">
       <Button variant="ghost" size="sm" asChild>
         <Link href="/auth">Login</Link>
@@ -273,7 +277,7 @@ export default function PublicProfilePage() {
   if (!profile) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <PublicNavbar />
+        <PublicNavbar user={currentUser} />
         <div className="flex-1 flex flex-col items-center justify-center space-y-4 px-6 text-center">
           <div className="w-20 h-20 bg-secondary rounded-full flex items-center justify-center mb-2">
              <Users className="w-10 h-10 text-muted-foreground/50" />
@@ -332,7 +336,7 @@ export default function PublicProfilePage() {
         </div>
       ) : (
         <div className="flex flex-col min-h-screen">
-          <PublicNavbar />
+          <PublicNavbar user={currentUser} />
           <ProfileContent
             profile={profile}
             isOwnProfile={isOwnProfile}

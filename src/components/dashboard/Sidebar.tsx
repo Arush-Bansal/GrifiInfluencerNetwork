@@ -51,10 +51,13 @@ export function Sidebar({ className, user, role, profile }: SidebarProps) {
 
   return (
     <aside className={cn("flex flex-col w-72 h-screen border-r border-border bg-background sticky top-0", className)}>
-      <div className="p-6 flex items-center gap-2">
+      <Link 
+        href="/dashboard" 
+        className="p-6 flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+      >
         <Logo size={32} />
-        <span className="text-xl font-bold tracking-tight text-foreground">GRIFI</span>
-      </div>
+        <span className="text-xl font-bold tracking-tight text-foreground uppercase">GRIFI</span>
+      </Link>
 
       <nav className="flex-1 px-4 space-y-1">
         <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-2">

@@ -40,10 +40,10 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
 
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-md border-b border-border z-40 lg:hidden px-4 flex items-center justify-between">
-      <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push("/dashboard")}>
+      <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
         <Logo size={32} />
         <span className="text-xl font-bold tracking-tight text-foreground">GRIFI</span>
-      </div>
+      </Link>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

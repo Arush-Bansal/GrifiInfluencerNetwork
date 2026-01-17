@@ -47,10 +47,13 @@ const Index = () => {
       {/* Navigation */}
       <nav className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 shrink-0">
+          <Link 
+            href={session ? "/dashboard" : "/"} 
+            className="flex items-center gap-2 shrink-0 hover:opacity-80 transition-opacity"
+          >
             <Logo size={32} />
             <span className="text-xl font-bold tracking-tight text-foreground sm:block">GRIFI</span>
-          </div>
+          </Link>
           <div className="flex items-center gap-2 sm:gap-6">
             <div className="hidden md:flex items-center gap-6">
               <Link href="/" className="text-sm font-medium text-primary">Home</Link>

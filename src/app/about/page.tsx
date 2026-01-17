@@ -47,7 +47,10 @@ const AboutPage = () => {
       {/* Navigation */}
       <nav className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
+          <Link 
+            href={session ? "/dashboard" : "/"} 
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
             <Logo size={32} />
             <span className="text-xl font-semibold tracking-tight uppercase">GRIFI</span>
           </Link>
