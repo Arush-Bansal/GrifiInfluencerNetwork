@@ -44,5 +44,8 @@ export function mapToDashboardProfile(profile: Tables<"profiles"> | DashboardPro
     service_ugc: (profile as any).service_ugc ?? true,
     service_appearances: (profile as any).service_appearances ?? false,
     is_verified: (profile as any).is_verified ?? false,
+    youtube_url: (profile as any).youtube_url || null,
+    instagram_url: (profile as any).instagram_url || null,
+    twitter_url: (profile as any).twitter_url || null,
   };
 }

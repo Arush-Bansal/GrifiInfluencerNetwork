@@ -282,6 +282,9 @@ export type Database = {
           updated_at: string | null
           username: string | null
           website: string | null
+          youtube_url: string | null
+          instagram_url: string | null
+          twitter_url: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -301,6 +304,9 @@ export type Database = {
           updated_at?: string | null
           username?: string | null
           website?: string | null
+          youtube_url?: string | null
+          instagram_url?: string | null
+          twitter_url?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -320,6 +326,9 @@ export type Database = {
           updated_at?: string | null
           username?: string | null
           website?: string | null
+          youtube_url?: string | null
+          instagram_url?: string | null
+          twitter_url?: string | null
         }
         Relationships: []
       }

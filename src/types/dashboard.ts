@@ -17,6 +17,9 @@ export interface DashboardProfile {
   service_ugc: boolean;
   service_appearances: boolean;
   is_verified: boolean;
+  youtube_url?: string | null;
+  instagram_url?: string | null;
+  twitter_url?: string | null;
 }
 
 export interface FeaturedReel {
