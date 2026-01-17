@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DashboardProfile } from "@/types/dashboard";
+import Link from "next/link";
 
 interface SidebarUserMenuProps {
   user: User | null;
@@ -39,22 +40,22 @@ export function SidebarUserMenu({ user, profile, role }: SidebarUserMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div className="flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer hover:bg-accent transition-colors">
-          <Avatar className="w-9 h-9 border border-border">
-            <AvatarImage src={user?.user_metadata?.avatar_url || ""} />
-            <AvatarFallback className="bg-primary/5 text-primary text-xs">
-              {profile?.full_name.charAt(0) || user?.email?.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold truncate text-foreground">
-              {profile?.full_name || "User"}
-            </p>
-            <p className="text-xs text-muted-foreground truncate">
-              {role?.replace("_", " ") || "Member"}
-            </p>
-          </div>
-        </div>
+          <Link href={`/u/${profile?.username || user?.user_metadata?.username}`} className="flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer hover:bg-accent transition-colors group">
+            <Avatar className="w-9 h-9 border border-border group-hover:opacity-80 transition-opacity">
+              <AvatarImage src={user?.user_metadata?.avatar_url || ""} />
+              <AvatarFallback className="bg-primary/5 text-primary text-xs">
+                {profile?.full_name.charAt(0) || user?.email?.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold truncate text-foreground group-hover:text-primary transition-colors">
+                {profile?.full_name || "User"}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                {role?.replace("_", " ") || "Member"}
+              </p>
+            </div>
+          </Link>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64 mb-2">
         <DropdownMenuLabel>

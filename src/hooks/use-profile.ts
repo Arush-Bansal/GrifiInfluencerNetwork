@@ -118,6 +118,34 @@ export function useFollowStatus(followerId: string | undefined, followingId: str
   });
 }
 
+export function useConnectionStatus(userId1: string | undefined, userId2: string | undefined) {
+  return useQuery({
+    queryKey: ["connection-status", userId1, userId2],
+    queryFn: async () => {
+      if (!userId1 || !userId2) return null;
+      console.log("Checking connection status between:", userId1, userId2);
+      
+      const { data, error } = await supabase
+        .from("collab_requests")
+        .select("status, created_at")
+        .or(`sender_id.eq.${userId1},receiver_id.eq.${userId1}`)
+        .or(`sender_id.eq.${userId2},receiver_id.eq.${userId2}`)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      
+      if (error) {
+        console.error("Error fetching connection status:", error);
+        return null;
+      }
+      
+      const status = data?.[0]?.status || null;
+      console.log("Found connection status:", status);
+      return status;
+    },
+    enabled: !!userId1 && !!userId2,
+  });
+}
+
 export function useUploadImage() {
   const queryClient = useQueryClient();
   return useMutation({

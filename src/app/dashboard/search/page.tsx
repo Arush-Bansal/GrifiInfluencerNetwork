@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSearchProfiles, useSearchSuggestions } from "@/hooks/use-search";
@@ -127,15 +128,20 @@ function SearchContent() {
                               }}
                               onMouseEnter={() => setActiveIndex(index)}
                             >
-                              <Avatar className="w-9 h-9 border border-border/50">
-                                <AvatarImage src={suggestion.avatar_url || ""} />
-                                <AvatarFallback className="bg-primary/5">
-                                  <User className="w-4 h-4 text-primary/30" />
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
+                              <Link href={`/u/${suggestion.username}`} onMouseDown={(e) => e.preventDefault()}>
+                                <Avatar className="w-9 h-9 border border-border/50 hover:opacity-80 transition-opacity">
+                                  <AvatarImage src={suggestion.avatar_url || ""} />
+                                  <AvatarFallback className="bg-primary/5">
+                                    <User className="w-4 h-4 text-primary/30" />
+                                  </AvatarFallback>
+                                </Avatar>
+                              </Link>
+                              <div className="flex-1 min-w-0" onMouseDown={(e) => {
+                                e.preventDefault();
+                                router.push(`/u/${suggestion.username}`);
+                              }}>
                                 <div className="flex items-center gap-1.5">
-                                  <p className="font-bold text-sm truncate">
+                                  <p className="font-bold text-sm truncate hover:text-primary transition-colors cursor-pointer">
                                     {suggestion.full_name || suggestion.username}
                                   </p>
                                   {suggestion.is_verified && (
@@ -147,7 +153,7 @@ function SearchContent() {
                                   )}
                                 </div>
                                 {suggestion.username && (
-                                  <p className="text-[11px] text-muted-foreground truncate">
+                                  <p className="text-[11px] text-muted-foreground truncate hover:text-primary transition-colors cursor-pointer">
                                     @{suggestion.username}
                                   </p>
                                 )}
@@ -182,46 +188,51 @@ function SearchContent() {
                   key={profile.id} 
                   className="group flex items-center gap-3 md:gap-4 p-3 md:p-4 hover:bg-primary/[0.02] transition-all duration-200"
                 >
-                  <div className="relative shrink-0">
-                    <Avatar className="w-12 h-12 md:w-14 h-14 border border-border/50 shadow-sm">
-                      <AvatarImage src={profile.avatar_url || ""} className="object-cover" />
-                      <AvatarFallback className="bg-secondary">
-                        <User className="w-6 h-6 text-muted-foreground/30" />
-                      </AvatarFallback>
-                    </Avatar>
-                    {profile.is_verified && (
-                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-background rounded-full border border-border shadow-sm flex items-center justify-center">
-                        <Star className="w-2.5 h-2.5 text-primary fill-primary" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <h3 className="font-bold text-sm md:text-base truncate group-hover:text-primary transition-colors">
-                        {profile.full_name || "Guest User"}
-                      </h3>
+                  <Link 
+                    href={`/u/${profile.username}`}
+                    className="flex-1 flex items-center gap-3 md:gap-4 min-w-0 group/info"
+                  >
+                    <div className="relative shrink-0">
+                      <Avatar className="w-12 h-12 md:w-14 h-14 border border-border/50 shadow-sm group-hover/info:opacity-80 transition-opacity">
+                        <AvatarImage src={profile.avatar_url || ""} className="object-cover" />
+                        <AvatarFallback className="bg-secondary">
+                          <User className="w-6 h-6 text-muted-foreground/30" />
+                        </AvatarFallback>
+                      </Avatar>
                       {profile.is_verified && (
-                        <div className="w-3.5 h-3.5 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
-                          <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
-                          </svg>
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-background rounded-full border border-border shadow-sm flex items-center justify-center">
+                          <Star className="w-2.5 h-2.5 text-primary fill-primary" />
                         </div>
                       )}
                     </div>
                     
-                    {profile.username && (
-                      <p className="text-[12px] md:text-[13px] font-medium text-primary/60 mb-1">
-                        @{profile.username}
-                      </p>
-                    )}
-                    
-                    {profile.bio && (
-                      <p className="text-[11px] md:text-xs text-muted-foreground line-clamp-1 leading-tight max-w-[90%] font-medium">
-                        {profile.bio}
-                      </p>
-                    )}
-                  </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <h3 className="font-bold text-sm md:text-base truncate group-hover/info:text-primary transition-colors">
+                          {profile.full_name || "Guest User"}
+                        </h3>
+                        {profile.is_verified && (
+                          <div className="w-3.5 h-3.5 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
+                            <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {profile.username && (
+                        <p className="text-[12px] md:text-[13px] font-medium text-primary/60 mb-1 group-hover/info:text-primary transition-colors">
+                          @{profile.username}
+                        </p>
+                      )}
+                      
+                      {profile.bio && (
+                        <p className="text-[11px] md:text-xs text-muted-foreground line-clamp-1 leading-tight max-w-[90%] font-medium">
+                          {profile.bio}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
                   
                   <Button 
                     size="sm"

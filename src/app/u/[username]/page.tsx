@@ -18,7 +18,6 @@ import {
   Users, 
   Star, 
   UserPlus, 
-  UserMinus, 
   Clock,
   Check,
   Camera,
@@ -43,7 +42,7 @@ import {
  import { Badge } from "@/components/ui/badge";
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
  import { Switch } from "@/components/ui/switch";
- import { useProfile, useUserPosts, useFollowStatus, useUpdateProfile, useUploadImage, useFeaturedReels, useManageFeaturedReels, usePastCollaborations, useManagePastCollaborations } from "@/hooks/use-profile";
+ import { useProfile, useUserPosts, useFollowStatus, useUpdateProfile, useUploadImage, useFeaturedReels, useManageFeaturedReels, usePastCollaborations, useManagePastCollaborations, useConnectionStatus } from "@/hooks/use-profile";
  import { useQueryClient, useMutation, UseMutationResult } from "@tanstack/react-query";
  import { useAuth } from "@/hooks/use-auth";
  import Image from "next/image";
@@ -124,6 +123,7 @@ export default function PublicProfilePage() {
 
   const isOwnProfile = currentUser?.id === profile?.id;
   const { data: isFollowing } = useFollowStatus(currentUser?.id, profile?.id);
+  const { data: connectionStatus, isLoading: loadingConnection } = useConnectionStatus(currentUser?.id, profile?.id);
 
   // Mutations
   const followMutation = useMutation({
@@ -305,6 +305,8 @@ export default function PublicProfilePage() {
                 profile={profile} 
                 isOwnProfile={isOwnProfile} 
                 isFollowing={!!isFollowing}
+                connectionStatus={connectionStatus || null}
+                loadingConnection={loadingConnection}
                 followMutation={followMutation}
                 userPosts={userPosts}
                 featuredReels={featuredReels}
@@ -335,6 +337,8 @@ export default function PublicProfilePage() {
             profile={profile}
             isOwnProfile={isOwnProfile}
             isFollowing={!!isFollowing}
+            connectionStatus={connectionStatus || null}
+            loadingConnection={loadingConnection}
             followMutation={followMutation}
             userPosts={userPosts}
             featuredReels={featuredReels}
@@ -390,6 +394,8 @@ interface ProfileContentProps {
   profile: Profile;
   isOwnProfile: boolean;
   isFollowing: boolean;
+  connectionStatus: string | null;
+  loadingConnection?: boolean;
   followMutation: UseMutationResult<void, Error, void, unknown>;
   userPosts: Post[];
   isEditing: boolean;
@@ -413,6 +419,8 @@ const ProfileContent = ({
   profile, 
   isOwnProfile, 
   isFollowing, 
+  connectionStatus,
+  loadingConnection,
   followMutation, 
   userPosts, 
   isEditing,
@@ -770,7 +778,8 @@ const ProfileContent = ({
                   <Button 
                     variant={isFollowing ? "outline" : "default"} 
                     className={cn(
-                      "w-full sm:w-auto font-semibold rounded-lg h-10 px-8 text-sm",
+                      "w-full sm:w-auto font-semibold rounded-lg h-10 px-8 text-sm group",
+                      isFollowing && "bg-background hover:bg-destructive/10 hover:text-destructive hover:border-destructive transition-colors",
                       !isFollowing && "shadow-sm"
                     )}
                     onClick={() => followMutation.mutate()}
@@ -780,8 +789,10 @@ const ProfileContent = ({
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : isFollowing ? (
                       <>
-                        <UserMinus className="w-4 h-4 mr-2" />
-                        Unfollow
+                        <Check className="w-4 h-4 mr-2 group-hover:hidden" />
+                        <span className="group-hover:hidden">Following</span>
+                        <X className="w-4 h-4 mr-2 hidden group-hover:block" />
+                        <span className="hidden group-hover:block">Unfollow</span>
                       </>
                     ) : (
                       <>
@@ -794,8 +805,31 @@ const ProfileContent = ({
                     receiverId={profile.id} 
                     receiverName={profile.full_name}
                     trigger={
-                      <Button variant="outline" className="w-full sm:w-auto font-semibold rounded-lg h-10 border-border hover:bg-muted text-sm px-6 text-foreground">
-                        Connect
+                      <Button 
+                        variant={connectionStatus === 'accepted' ? "outline" : "default"} 
+                        className={cn(
+                          "w-full sm:w-auto font-semibold rounded-lg h-10 px-6 text-sm transition-all",
+                          connectionStatus === 'accepted' && "bg-background text-foreground border-border cursor-default",
+                          connectionStatus === 'pending' && "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-80",
+                          (connectionStatus === null || connectionStatus === 'rejected') && "bg-white text-black border-border hover:bg-gray-50 shadow-sm"
+                        )}
+                        disabled={loadingConnection || connectionStatus === 'accepted' || connectionStatus === 'pending'}
+                      >
+                        {loadingConnection ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : connectionStatus === 'accepted' ? (
+                          <>
+                            <Check className="w-4 h-4 mr-2" />
+                            Connected
+                          </>
+                        ) : connectionStatus === 'pending' ? (
+                          <>
+                            <Clock className="w-4 h-4 mr-2" />
+                            Pending
+                          </>
+                        ) : (
+                          "Connect"
+                        )}
                       </Button>
                     }
                   />
@@ -1236,9 +1270,18 @@ const ProfileContent = ({
                     ))}
                   </div>
 
-                  <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-lg font-bold text-sm shadow-sm transition-all">
-                    Send Inquiry
-                  </Button>
+                  <SuggestCollabModal
+                    receiverId={profile.id}
+                    receiverName={profile.full_name}
+                    title="Send Inquiry"
+                    defaultType="sponsorship"
+                    description={`Send an inquiry to ${profile.full_name?.split(' ')[0]} about a potential sponsorship or brand partnership.`}
+                    trigger={
+                      <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-lg font-bold text-sm shadow-sm transition-all">
+                        Send Inquiry
+                      </Button>
+                    }
+                  />
                 </CardContent>
               </Card>
 

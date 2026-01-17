@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ImagePlus, Send, Loader2, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
+import Link from "next/link";
 
 interface CreatePostProps {
   userId: string;
@@ -113,10 +114,12 @@ export function CreatePost({ userId, onPostCreated, userProfile }: CreatePostPro
       <CardContent className="pt-6">
         <div className="flex gap-3 sm:gap-4">
           <div className="flex flex-col items-center gap-3">
-            <Avatar className="w-10 h-10 border border-border/50">
-              <AvatarImage src={userProfile?.avatar_url} alt={userProfile?.username} />
-              <AvatarFallback>{userProfile?.username?.[0]?.toUpperCase() || "U"}</AvatarFallback>
-            </Avatar>
+            <Link href={`/u/${userProfile?.username}`}>
+              <Avatar className="w-10 h-10 border border-border/50 hover:opacity-80 transition-opacity cursor-pointer">
+                <AvatarImage src={userProfile?.avatar_url} alt={userProfile?.username} />
+                <AvatarFallback>{userProfile?.username?.[0]?.toUpperCase() || "U"}</AvatarFallback>
+              </Avatar>
+            </Link>
             
             <div className="relative">
               <input

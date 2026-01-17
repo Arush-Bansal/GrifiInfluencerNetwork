@@ -51,14 +51,14 @@ export function UnifiedFeed({ userId }: { userId: string }) {
         <Card key={post.id} className="border-none bg-card/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Avatar className="w-8 h-8 border border-border/50">
+              <Link href={`/u/${post.author_username}`} className="flex items-center gap-2 group cursor-pointer">
+                <Avatar className="w-8 h-8 border border-border/50 group-hover:opacity-80 transition-opacity">
                   <AvatarImage src={post.author_avatar} alt={post.author_username} />
                   <AvatarFallback className="text-[10px]">{post.author_username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
                 </Avatar>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm">@{post.author_username}</span>
+                    <span className="font-semibold text-sm group-hover:text-primary transition-colors">@{post.author_username}</span>
                     <span className="text-xs text-muted-foreground">•</span>
                     <Badge variant="outline" className="text-[10px] h-4">
                       <UserIcon className="w-2 h-2 mr-1" />
@@ -70,7 +70,7 @@ export function UnifiedFeed({ userId }: { userId: string }) {
                     {new Date(post.created_at).toLocaleDateString()}
                   </div>
                 </div>
-              </div>
+              </Link>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">

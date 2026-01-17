@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Link from "next/link";
 import { LogOut, ExternalLink, Settings } from "lucide-react";
 import { User } from "@supabase/supabase-js";
 import { Logo } from "@/components/brand/Logo";
@@ -46,14 +47,16 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Avatar 
-            className="w-8 h-8 border border-border cursor-pointer hover:opacity-80 transition-opacity" 
-          >
-            <AvatarImage src={user?.user_metadata?.avatar_url || ""} />
-            <AvatarFallback className="bg-primary/5 text-primary text-[10px]">
-              {profile?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <Link href={`/u/${profile?.username || user?.user_metadata?.username}`}>
+            <Avatar 
+              className="w-8 h-8 border border-border cursor-pointer hover:opacity-80 transition-opacity" 
+            >
+              <AvatarImage src={user?.user_metadata?.avatar_url || ""} />
+              <AvatarFallback className="bg-primary/5 text-primary text-[10px]">
+                {profile?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>

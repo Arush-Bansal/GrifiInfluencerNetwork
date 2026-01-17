@@ -133,22 +133,22 @@ export default function CollabRequestsPage() {
                         return (
                             <Card key={req.id} className="group overflow-hidden hover:shadow-lg transition-all duration-300 border-border/60 hover:border-primary/30">
                                  <div className="p-5 flex flex-row items-center justify-between gap-4">
-                                      <div className="flex items-center gap-4 min-w-0">
-                                          <div className="relative">
-                                            <Avatar className="w-12 h-12 sm:w-14 sm:h-14 border-2 border-background shadow-sm ring-1 ring-border/50">
-                                                <AvatarImage src={partner.avatar_url || undefined} />
-                                                <AvatarFallback className="bg-muted text-muted-foreground"><UserIcon className="w-6 h-6" /></AvatarFallback>
-                                            </Avatar>
-                                            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full"></div>
-                                          </div>
-                                          <div className="min-w-0">
-                                              <h4 className="font-bold text-sm sm:text-base truncate tracking-tight">{partner.full_name || partner.username || "User"}</h4>
-                                              <p className="text-xs text-muted-foreground truncate mb-1.5">@{partner.username}</p>
-                                              <div className="flex items-center gap-2">
-                                                  <Badge variant="default" className="text-[10px] h-5 px-2 font-semibold capitalize bg-primary/5 text-primary border-primary/10">{req.type}</Badge>
-                                              </div>
-                                          </div>
-                                      </div>
+                                       <Link href={`/u/${partner.username}`} className="flex items-center gap-4 min-w-0 group/info">
+                                           <div className="relative">
+                                             <Avatar className="w-12 h-12 sm:w-14 sm:h-14 border-2 border-background shadow-sm ring-1 ring-border/50 group-hover/info:opacity-80 transition-opacity">
+                                                 <AvatarImage src={partner.avatar_url || undefined} />
+                                                 <AvatarFallback className="bg-muted text-muted-foreground"><UserIcon className="w-6 h-6" /></AvatarFallback>
+                                             </Avatar>
+                                             <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full"></div>
+                                           </div>
+                                           <div className="min-w-0">
+                                               <h4 className="font-bold text-sm sm:text-base truncate tracking-tight group-hover/info:text-primary transition-colors">{partner.full_name || partner.username || "User"}</h4>
+                                               <p className="text-xs text-muted-foreground truncate mb-1.5 group-hover/info:text-primary/70 transition-colors">@{partner.username}</p>
+                                               <div className="flex items-center gap-2">
+                                                   <Badge variant="default" className="text-[10px] h-5 px-2 font-semibold capitalize bg-primary/5 text-primary border-primary/10">{req.type}</Badge>
+                                               </div>
+                                           </div>
+                                       </Link>
                                       <div className="shrink-0">
                                           <ChatSheet 
                                              partnerId={partner.id} 
@@ -182,27 +182,25 @@ export default function CollabRequestsPage() {
               <Card key={req.id} className="overflow-hidden border-border/60 hover:shadow-md transition-all">
                 <CardHeader className="pb-4 pt-6 px-6">
                   <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="w-12 h-12 border shadow-sm">
-                        <AvatarImage src={req.sender?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-muted text-muted-foreground">{req.sender?.full_name?.charAt(0) || "?"}</AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <CardTitle className="text-base font-bold truncate">
-                          <Link href={`/u/${req.sender?.username}`} className="hover:text-primary transition-colors">
-                             {req.sender?.full_name || "Unknown User"}
-                          </Link>
-                        </CardTitle>
-                        <CardDescription className="flex items-center gap-2 mt-1 text-xs font-medium">
-                          <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-semibold border-primary/20 text-primary capitalize">{req.type}</Badge>
-                          <span className="text-muted-foreground/60">•</span>
-                          <span className="flex items-center gap-1 text-muted-foreground/80">
-                            <Clock className="w-3 h-3 text-muted-foreground/60" />
-                            {new Date(req.created_at).toLocaleDateString()}
-                          </span>
-                        </CardDescription>
-                      </div>
-                    </div>
+                     <Link href={`/u/${req.sender?.username}`} className="flex items-center gap-4 group/sender">
+                       <Avatar className="w-12 h-12 border shadow-sm group-hover/sender:opacity-80 transition-opacity">
+                         <AvatarImage src={req.sender?.avatar_url || undefined} />
+                         <AvatarFallback className="bg-muted text-muted-foreground">{req.sender?.full_name?.charAt(0) || "?"}</AvatarFallback>
+                       </Avatar>
+                       <div className="min-w-0">
+                         <CardTitle className="text-base font-bold truncate group-hover/sender:text-primary transition-colors">
+                              {req.sender?.full_name || "Unknown User"}
+                         </CardTitle>
+                         <CardDescription className="flex items-center gap-2 mt-1 text-xs font-medium">
+                           <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-semibold border-primary/20 text-primary capitalize">{req.type}</Badge>
+                           <span className="text-muted-foreground/60">•</span>
+                           <span className="flex items-center gap-1 text-muted-foreground/80">
+                             <Clock className="w-3 h-3 text-muted-foreground/60" />
+                             {new Date(req.created_at).toLocaleDateString()}
+                           </span>
+                         </CardDescription>
+                       </div>
+                     </Link>
                     <div className="shrink-0">
                       <StatusBadge status={req.status} />
                     </div>
@@ -254,27 +252,25 @@ export default function CollabRequestsPage() {
               <Card key={req.id} className="overflow-hidden border-border/60">
                 <CardHeader className="pb-4 pt-6 px-6">
                   <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="w-12 h-12 border shadow-sm">
-                        <AvatarImage src={req.receiver?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-muted text-muted-foreground">{req.receiver?.full_name?.charAt(0) || "?"}</AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <CardTitle className="text-base font-bold truncate">
-                          To: <Link href={`/u/${req.receiver?.username}`} className="hover:text-primary transition-colors">
-                             {req.receiver?.full_name || "Unknown User"}
-                          </Link>
-                        </CardTitle>
-                        <CardDescription className="flex items-center gap-2 mt-1 text-xs font-medium">
-                          <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-semibold border-primary/20 text-primary capitalize">{req.type}</Badge>
-                          <span className="text-muted-foreground/60">•</span>
-                          <span className="flex items-center gap-1 text-muted-foreground/80">
-                            <Clock className="w-3 h-3 text-muted-foreground/60" />
-                            {new Date(req.created_at).toLocaleDateString()}
-                          </span>
-                        </CardDescription>
-                      </div>
-                    </div>
+                     <Link href={`/u/${req.receiver?.username}`} className="flex items-center gap-4 group/receiver">
+                       <Avatar className="w-12 h-12 border shadow-sm group-hover/receiver:opacity-80 transition-opacity">
+                         <AvatarImage src={req.receiver?.avatar_url || undefined} />
+                         <AvatarFallback className="bg-muted text-muted-foreground">{req.receiver?.full_name?.charAt(0) || "?"}</AvatarFallback>
+                       </Avatar>
+                       <div className="min-w-0">
+                         <CardTitle className="text-base font-bold truncate group-hover/receiver:text-primary transition-colors">
+                           To: {req.receiver?.full_name || "Unknown User"}
+                         </CardTitle>
+                         <CardDescription className="flex items-center gap-2 mt-1 text-xs font-medium">
+                           <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-semibold border-primary/20 text-primary capitalize">{req.type}</Badge>
+                           <span className="text-muted-foreground/60">•</span>
+                           <span className="flex items-center gap-1 text-muted-foreground/80">
+                             <Clock className="w-3 h-3 text-muted-foreground/60" />
+                             {new Date(req.created_at).toLocaleDateString()}
+                           </span>
+                         </CardDescription>
+                       </div>
+                     </Link>
                     <div className="shrink-0">
                       <StatusBadge status={req.status} />
                     </div>

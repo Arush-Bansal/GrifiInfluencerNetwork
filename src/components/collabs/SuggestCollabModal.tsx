@@ -8,19 +8,31 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Send } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface SuggestCollabModalProps {
   receiverId: string;
   receiverName: string;
   trigger?: React.ReactNode;
+  defaultType?: "collab" | "sponsorship";
+  title?: string;
+  description?: string;
 }
 
-export function SuggestCollabModal({ receiverId, receiverName, trigger }: SuggestCollabModalProps) {
+export function SuggestCollabModal({ 
+  receiverId, 
+  receiverName, 
+  trigger, 
+  defaultType = "collab",
+  title = "Propose Collaboration",
+  description
+}: SuggestCollabModalProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [type, setType] = useState<"collab" | "sponsorship">("collab");
+  const [type, setType] = useState<"collab" | "sponsorship">(defaultType);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleSubmit = async () => {
     if (!message.trim()) {
@@ -62,6 +74,12 @@ export function SuggestCollabModal({ receiverId, receiverName, trigger }: Sugges
         title: "Request Sent!",
         description: `Your ${type} request has been sent to ${receiverName}.`,
       });
+
+      // Invalidate the connection status query to show "Pending"
+      queryClient.invalidateQueries({
+        queryKey: ["connection-status", senderId, receiverId]
+      });
+
       setOpen(false);
       setMessage("");
     } catch (error: unknown) {
@@ -84,9 +102,9 @@ export function SuggestCollabModal({ receiverId, receiverName, trigger }: Sugges
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Propose Collaboration</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Send a proposal to {receiverName}.
+            {description || `Send a proposal to ${receiverName}.`}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
