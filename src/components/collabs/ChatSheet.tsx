@@ -9,6 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageCircle, Send, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { useCallback } from "react";
 
 interface Message {
   id: string;
@@ -18,17 +20,21 @@ interface Message {
   created_at: string;
 }
 
-interface ChatSheetProps {
+interface ChatContentProps {
+  partnerId: string;
+  partnerName: string;
+  partnerAvatar?: string;
+  embedded?: boolean;
+}
+
+export interface ChatSheetProps {
   partnerId: string;
   partnerName: string;
   partnerAvatar?: string;
   trigger?: React.ReactNode;
 }
 
-import { useAuth } from "@/hooks/use-auth";
-import { useCallback } from "react";
-
-export function ChatSheet({ partnerId, partnerName, partnerAvatar, trigger }: ChatSheetProps) {
+export function ChatContent({ partnerId, partnerName, partnerAvatar, embedded = false }: ChatContentProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -134,38 +140,37 @@ export function ChatSheet({ partnerId, partnerName, partnerAvatar, trigger }: Ch
     };
   }, [partnerId, currentUserId, fetchMessages]);
 
-
   return (
-    <Sheet>
-      <SheetTrigger asChild>
-        {trigger || <Button variant="outline" size="sm"><MessageCircle className="w-4 h-4 mr-2"/> Chat</Button>}
-      </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md flex flex-col h-full p-0">
-        <SheetHeader className="p-4 border-b">
-          <SheetTitle className="flex items-center gap-3">
-             <Avatar className="w-8 h-8">
-               <AvatarImage src={partnerAvatar} />
-               <AvatarFallback>{(partnerName || "?").charAt(0)}</AvatarFallback>
-             </Avatar>
-             {partnerName || "Unknown User"}
-          </SheetTitle>
-        </SheetHeader>
+    <div className={`flex flex-col h-full bg-white ${embedded ? "" : "p-0"}`}>
+        {!embedded && (
+            <SheetHeader className="p-4 border-b border-slate-100">
+                <SheetTitle className="flex items-center gap-3 text-slate-900 font-semibold">
+                    <Avatar className="w-9 h-9 border border-slate-200">
+                        <AvatarImage src={partnerAvatar} />
+                        <AvatarFallback className="bg-slate-100 text-slate-500 font-medium">{(partnerName || "?").charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    {partnerName || "Network Member"}
+                </SheetTitle>
+            </SheetHeader>
+        )}
         
-        <div className="flex-1 overflow-hidden relative bg-muted/20">
-            <ScrollArea className="h-full p-4">
+        <div className={`flex-1 overflow-hidden relative bg-white`}>
+            <ScrollArea className="h-full px-4 pt-4">
                 {loading && messages.length === 0 ? (
-                    <div className="flex justify-center p-4"><Loader2 className="animate-spin opacity-50"/></div>
+                    <div className="flex justify-center p-8"><Loader2 className="animate-spin text-slate-300 w-6 h-6"/></div>
                 ) : messages.length === 0 ? (
-                    <div className="text-center text-muted-foreground p-8 opacity-50 text-sm">No messages yet. Say hi!</div>
+                    <div className="text-center text-slate-400 p-12 text-sm italic font-medium">No messages in this workspace yet.</div>
                 ) : (
-                    <div className="flex flex-col gap-3 min-h-[calc(100vh-200px)] justify-end">
+                    <div className="flex flex-col gap-4 min-h-full pb-6">
                        {messages.map((msg) => {
                            const isMe = msg.sender_id === currentUserId;
                            return (
                                <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                    <div className={`
-                                       max-w-[80%] rounded-lg px-3 py-2 text-sm
-                                       ${isMe ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}
+                                       max-w-[75%] px-4 py-2.5 text-[14px] leading-relaxed
+                                       ${isMe 
+                                         ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-none shadow-sm' 
+                                         : 'bg-slate-100 text-slate-700 rounded-2xl rounded-tl-none border border-slate-200/50'}
                                    `}>
                                        {msg.content}
                                    </div>
@@ -178,19 +183,40 @@ export function ChatSheet({ partnerId, partnerName, partnerAvatar, trigger }: Ch
             </ScrollArea>
         </div>
 
-        <div className="p-4 bg-background border-t">
+        <div className={`p-4 bg-white border-t border-slate-100`}>
            <form onSubmit={handleSend} className="flex gap-2">
                <Input 
-                 placeholder="Type a message..." 
+                 placeholder="Compose message..." 
                  value={newMessage}
                  onChange={(e) => setNewMessage(e.target.value)}
-                 className="flex-1"
+                 className="flex-1 h-11 bg-slate-50/50 border-slate-200 focus-visible:ring-indigo-500 rounded-xl"
                />
-               <Button type="submit" size="icon" disabled={sending || !newMessage.trim()}>
+               <Button 
+                type="submit" 
+                size="icon" 
+                disabled={sending || !newMessage.trim()}
+                className="h-11 w-11 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-sm"
+               >
                    <Send className="w-4 h-4" />
                </Button>
            </form>
         </div>
+    </div>
+  );
+}
+
+export function ChatSheet({ partnerId, partnerName, partnerAvatar, trigger }: ChatSheetProps) {
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        {trigger || <Button variant="outline" size="sm"><MessageCircle className="w-4 h-4 mr-2"/> Chat</Button>}
+      </SheetTrigger>
+      <SheetContent className="w-full sm:max-w-md flex flex-col h-full p-0">
+        <ChatContent 
+            partnerId={partnerId} 
+            partnerName={partnerName} 
+            partnerAvatar={partnerAvatar} 
+        />
       </SheetContent>
     </Sheet>
   );
