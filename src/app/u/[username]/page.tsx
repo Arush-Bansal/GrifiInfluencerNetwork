@@ -721,7 +721,12 @@ const ProfileContent = ({
                       <MapPin className="w-3.5 h-3.5" /> {profile.location}
                     </span>
                     {profile.website && (
-                      <a href={profile.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline transition-colors">
+                      <a 
+                        href={profile.website.startsWith('http://') || profile.website.startsWith('https://') ? profile.website : `https://${profile.website}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline transition-colors"
+                      >
                         <LinkIcon className="w-3.5 h-3.5" /> Website
                       </a>
                     )}
