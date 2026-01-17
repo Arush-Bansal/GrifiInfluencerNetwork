@@ -7,28 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSearchProfiles, useSearchSuggestions } from "@/hooks/use-search";
-import { Search as SearchIcon, User, Loader2, Filter, Star } from "lucide-react";
-import { Label } from "@/components/ui/label";
-import { MultiSelect, Option } from "@/components/ui/multi-select";
+import { Search as SearchIcon, User, Loader2, Star } from "lucide-react";
 
-const NICHE_OPTIONS: Option[] = [
-  { value: "tech", label: "Technology" },
-  { value: "lifestyle", label: "Lifestyle" },
-  { value: "gaming", label: "Gaming" },
-  { value: "fitness", label: "Fitness" },
-  { value: "beauty", label: "Beauty" },
-  { value: "food", label: "Food" },
-  { value: "travel", label: "Travel" },
-  { value: "business", label: "Business" },
-];
 
-const PLATFORM_OPTIONS: Option[] = [
-  { value: "instagram", label: "Instagram" },
-  { value: "youtube", label: "YouTube" },
-  { value: "tiktok", label: "TikTok" },
-  { value: "twitter", label: "Twitter/X" },
-  { value: "linkedin", label: "LinkedIn" },
-];
 
 interface Profile {
   id: string;
@@ -45,24 +26,18 @@ function SearchContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
   const [query, setQuery] = useState(initialQuery);
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [hasSearched, setHasSearched] = useState(!!initialQuery);
-  const [filters, setFilters] = useState({
-    niches: [] as string[],
-    platforms: [] as string[],
-    minFollowers: "",
-    minEngagement: "",
-  });
-  const [showFilters, setShowFilters] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const router = useRouter();
 
-  const searchRepo = useSearchProfiles(query, filters, true); // Enabled by default now for initial search
+  const searchRepo = useSearchProfiles(searchQuery, {}, hasSearched); // Only enabled after search is performed, uses committed searchQuery
   const suggestionsRepo = useSearchSuggestions(query, isFocused);
 
   const performSearch = () => {
     setHasSearched(true);
-    searchRepo.refetch();
+    setSearchQuery(query);
   };
 
   const performanceResults: Profile[] = searchRepo.data || [];
@@ -112,16 +87,6 @@ function SearchContent() {
           <Card className="border-none bg-card shadow-xl shadow-primary/5 rounded-2xl md:rounded-3xl">
             <CardContent className="p-2 md:p-3 space-y-3">
               <form onSubmit={handleSearch} className="flex gap-2 items-center">
-                <Button 
-                  type="button"
-                  variant="outline" 
-                  onClick={() => setShowFilters(!showFilters)}
-                  className={`h-11 md:h-12 w-11 md:w-12 p-0 rounded-xl md:rounded-2xl shrink-0 transition-all border-none bg-secondary/50 hover:bg-primary/10 ${showFilters ? 'text-primary bg-primary/10' : ''}`}
-                  title="Toggle Filters"
-                >
-                  <Filter className="w-4 h-4" />
-                </Button>
-
                 <div className="relative flex-1 group min-w-0">
                   <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                   <Input
@@ -203,49 +168,6 @@ function SearchContent() {
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
                 </Button>
               </form>
-
-              {showFilters && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <div className="space-y-1">
-                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider ml-1">Niche</Label>
-                    <MultiSelect
-                      options={NICHE_OPTIONS}
-                      selected={filters.niches}
-                      onChange={(v: string[]) => setFilters({ ...filters, niches: v })}
-                      placeholder="Niches"
-                      className="bg-secondary/50 border-transparent rounded-lg text-xs h-9"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider ml-1">Platform</Label>
-                    <MultiSelect
-                      options={PLATFORM_OPTIONS}
-                      selected={filters.platforms}
-                      onChange={(v: string[]) => setFilters({ ...filters, platforms: v })}
-                      placeholder="Platforms"
-                      className="bg-secondary/50 border-transparent rounded-lg text-xs h-9"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider ml-1">Followers</Label>
-                    <Input
-                      placeholder="Min."
-                      value={filters.minFollowers}
-                      onChange={(e) => setFilters({ ...filters, minFollowers: e.target.value })}
-                      className="h-9 bg-secondary/50 border-transparent rounded-lg text-xs"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider ml-1">Eng.</Label>
-                    <Input
-                      placeholder="Min. %"
-                      value={filters.minEngagement}
-                      onChange={(e) => setFilters({ ...filters, minEngagement: e.target.value })}
-                      className="h-9 bg-secondary/50 border-transparent rounded-lg text-xs"
-                    />
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>

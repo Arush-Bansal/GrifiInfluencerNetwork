@@ -817,10 +817,9 @@ const ProfileContent = ({
         </Card>
 
         {/* Stats Section */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8">
           {[
             { label: 'Followers', value: profile.followers, icon: Users, key: 'followers' },
-            { label: 'Engagement', value: `${profile.engagement_rate}%`, icon: Star, key: 'engagement_rate' },
             { label: 'Platform', value: profile.platform, icon: Share2, key: 'platform' },
             { label: 'Niche', value: profile.niche, icon: Briefcase, key: 'niche' }
           ].map((stat, i) => (

@@ -37,7 +37,9 @@ export function useSearchProfiles(query: string, filters: any, enabled = false) 
 
       const { data, error } = await queryBuilder.limit(20);
       if (error) throw error;
-      return data as any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+      // Filter out users with empty/null username or id
+      const filteredData = (data || []).filter(user => user?.id && user?.username?.trim());
+      return filteredData as any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
     },
     enabled,
   });
@@ -52,7 +54,9 @@ export function useSearchSuggestions(query: string, enabled: boolean) {
           .from("profiles")
           .select("id, full_name, username, avatar_url, bio, is_verified")
           .limit(5);
-        return data as any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+        // Filter out users with empty/null username or id
+        const filteredData = (data || []).filter(user => user?.id && user?.username?.trim());
+        return filteredData as any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
       }
 
       const { data } = await supabase
@@ -61,7 +65,9 @@ export function useSearchSuggestions(query: string, enabled: boolean) {
         .or(`full_name.ilike.%${query}%,username.ilike.%${query}%`)
         .limit(5);
       
-      return data as any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+      // Filter out users with empty/null username or id
+      const filteredData = (data || []).filter(user => user?.id && user?.username?.trim());
+      return filteredData as any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
     },
     enabled,
     staleTime: 1000 * 60, // 1 minute
