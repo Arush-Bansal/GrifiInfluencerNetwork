@@ -10,6 +10,7 @@ import {
   User,
   Plus,
 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 interface BottomNavProps {
   className?: string;
@@ -17,6 +18,9 @@ interface BottomNavProps {
 
 export function BottomNav({ className }: BottomNavProps) {
   const pathname = usePathname();
+  const { profile } = useAuth();
+
+  const profileHref = profile?.username ? `/u/${profile.username}` : "/dashboard/profile";
 
   const navItems = [
     {
@@ -42,7 +46,7 @@ export function BottomNav({ className }: BottomNavProps) {
     },
     {
       title: "Profile",
-      href: "/dashboard/profile",
+      href: profileHref,
       icon: User,
     },
   ];

@@ -608,7 +608,7 @@ const ProfileContent = ({
         
         {isOwnProfile && (
           <div className="absolute top-4 right-4 flex gap-2">
-            {isEditing ? (
+            {isEditing && (
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -618,16 +618,6 @@ const ProfileContent = ({
               >
                 {uploadingImage ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Camera className="w-4 h-4 mr-2" />}
                 Change Banner
-              </Button>
-            ) : (
-              <Button 
-                onClick={() => setIsEditing(true)} 
-                variant="outline" 
-                size="sm" 
-                className="bg-background/80 backdrop-blur-sm shadow-sm"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Profile
               </Button>
             )}
             <input 

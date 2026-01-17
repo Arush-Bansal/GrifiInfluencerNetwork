@@ -68,10 +68,6 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => router.push(`/u/${profile?.username || user?.user_metadata?.username}`)}>
-            <ExternalLink className="mr-2 h-4 w-4" />
-            <span>Go to Public Page</span>
-          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
             <Settings className="mr-2 h-4 w-4" />
             <span>Settings</span>
