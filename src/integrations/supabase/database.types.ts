@@ -268,67 +268,85 @@ export type Database = {
           avatar_url: string | null
           banner_url: string | null
           bio: string | null
+          email_copy_count: number | null
           engagement_rate: string | null
           followers: string | null
           full_name: string | null
           id: string
+          insta_copy_count: number | null
           instagram_url: string | null
           is_verified: boolean | null
           location: string | null
           niche: string | null
+          page_visits: number | null
           platform: string | null
+          public_email: string | null
           service_appearances: boolean | null
           service_brand: boolean
           service_ugc: boolean
+          twitter_copy_count: number | null
           twitter_url: string | null
           updated_at: string | null
           username: string | null
           website: string | null
           youtube_url: string | null
+          yt_copy_count: number | null
         }
         Insert: {
           avatar_url?: string | null
           banner_url?: string | null
           bio?: string | null
+          email_copy_count?: number | null
           engagement_rate?: string | null
           followers?: string | null
           full_name?: string | null
           id: string
+          insta_copy_count?: number | null
           instagram_url?: string | null
           is_verified?: boolean | null
           location?: string | null
           niche?: string | null
+          page_visits?: number | null
           platform?: string | null
+          public_email?: string | null
           service_appearances?: boolean | null
           service_brand?: boolean
           service_ugc?: boolean
+          twitter_copy_count?: number | null
           twitter_url?: string | null
           updated_at?: string | null
           username?: string | null
           website?: string | null
           youtube_url?: string | null
+          yt_copy_count?: number | null
         }
         Update: {
           avatar_url?: string | null
           banner_url?: string | null
           bio?: string | null
+          email_copy_count?: number | null
           engagement_rate?: string | null
           followers?: string | null
           full_name?: string | null
           id?: string
+          insta_copy_count?: number | null
           instagram_url?: string | null
           is_verified?: boolean | null
           location?: string | null
           niche?: string | null
+          page_visits?: number | null
           platform?: string | null
+          public_email?: string | null
           service_appearances?: boolean | null
           service_brand?: boolean
           service_ugc?: boolean
+          twitter_copy_count?: number | null
           twitter_url?: string | null
           updated_at?: string | null
           username?: string | null
           website?: string | null
           youtube_url?: string | null
+          yt_copy_count?: number | null
         }
         Relationships: []
       }
@@ -344,6 +362,11 @@ export type Database = {
           target_user_id: string
         }
         Returns: boolean
+      }
+      delete_own_user: { Args: never; Returns: undefined }
+      increment_profile_stat: {
+        Args: { profile_id: string; stat_column: string }
+        Returns: undefined
       }
       is_admin: { Args: { cid: string }; Returns: boolean }
       is_mod: { Args: { cid: string }; Returns: boolean }

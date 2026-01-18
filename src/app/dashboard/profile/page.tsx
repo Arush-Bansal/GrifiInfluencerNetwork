@@ -190,6 +190,47 @@ const ProfilePage = () => {
                 </Button>
               </CardContent>
             </Card>
+
+            {process.env.NODE_ENV === 'development' && (
+              <Card className="border-orange-500/20 bg-orange-500/5 shadow-sm">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-bold text-orange-600 flex items-center gap-2 uppercase tracking-tight">
+                    <XCircle className="w-4 h-4" />
+                    Developer Mode
+                  </CardTitle>
+                  <CardDescription className="text-xs">Testing tools only visible in development.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    variant="outline" 
+                    onClick={async () => {
+                      if (confirm("Are you sure you want to permanently delete your account? This action cannot be undone and will delete all your data.")) {
+                        try {
+                          const { error } = await (supabase as any).rpc('delete_own_user');
+                          if (error) throw error;
+                          
+                          await supabase.auth.signOut();
+                          router.push("/auth");
+                          toast({
+                            title: "Account Deleted",
+                            description: "Your account and all data have been permanently removed.",
+                          });
+                        } catch (error: any) {
+                          toast({
+                            title: "Error deleting account",
+                            description: error.message,
+                            variant: "destructive",
+                          });
+                        }
+                      }
+                    }}
+                    className="w-full h-10 text-sm font-bold border-orange-200 text-orange-600 hover:bg-orange-100 transition-all"
+                  >
+                    Delete My Account
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
