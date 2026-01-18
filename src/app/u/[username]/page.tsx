@@ -117,9 +117,9 @@ export default function PublicProfilePage() {
     service_ugc: profileData.service_ugc ?? true,
     service_appearances: profileData.service_appearances ?? false,
     is_verified: profileData.is_verified ?? false,
-    youtube_url: (profileData as any).youtube_url || null,
-    instagram_url: (profileData as any).instagram_url || null,
-    twitter_url: (profileData as any).twitter_url || null,
+    youtube_url: profileData.youtube_url || null,
+    instagram_url: profileData.instagram_url || null,
+    twitter_url: profileData.twitter_url || null,
   } : null;
 
   const { data: userPosts = [] } = useUserPosts(profile?.id);
@@ -211,9 +211,9 @@ export default function PublicProfilePage() {
           service_ugc: profileData.service_ugc ?? true,
           service_appearances: profileData.service_appearances ?? false,
           is_verified: profileData.is_verified ?? false,
-          youtube_url: (profileData as any).youtube_url || "",
-          instagram_url: (profileData as any).instagram_url || "",
-          twitter_url: (profileData as any).twitter_url || "",
+          youtube_url: profileData.youtube_url || "",
+          instagram_url: profileData.instagram_url || "",
+          twitter_url: profileData.twitter_url || "",
         });
       }, 0);
       return () => clearTimeout(timer);

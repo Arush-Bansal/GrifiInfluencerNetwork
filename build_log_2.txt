@@ -1,0 +1,44 @@
+
+> v4-next@0.1.0 build
+> next build --webpack
+
+   ▲ Next.js 16.0.10 (webpack)
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ (pwa) Compiling for server...
+ ✓ (pwa) Compiling for server...
+ ✓ (pwa) Compiling for client (static)...
+ ○ (pwa) Service worker: C:\Users\Arush Bansal\OneDrive - IIT Delhi\Desktop\InstaLink\v4-networking\public\sw.js
+ ○ (pwa)   URL: /sw.js
+ ○ (pwa)   Scope: /
+ ✓ Compiled successfully in 7.4s
+   Running TypeScript ...
+   Collecting page data using 15 workers ...
+   Generating static pages using 15 workers (0/13) ...
+   Generating static pages using 15 workers (3/13) 
+   Generating static pages using 15 workers (6/13) 
+   Generating static pages using 15 workers (9/13) 
+ ✓ Generating static pages using 15 workers (13/13) in 1169.7ms
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /about
+├ ○ /auth
+├ ○ /auth/reset-password
+├ ○ /auth/update-password
+├ ○ /dashboard
+├ ○ /dashboard/collabs
+├ ○ /dashboard/create
+├ ○ /dashboard/onboarding
+├ ○ /dashboard/profile
+├ ○ /dashboard/search
+└ ƒ /u/[username]
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

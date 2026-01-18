@@ -1,0 +1,31 @@
+
+> v4-next@0.1.0 build
+> next build --webpack
+
+   ▲ Next.js 16.0.10 (webpack)
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ (pwa) Compiling for server...
+ ✓ (pwa) Compiling for server...
+ ✓ (pwa) Compiling for client (static)...
+ ○ (pwa) Service worker: C:\Users\Arush Bansal\OneDrive - IIT Delhi\Desktop\InstaLink\v4-networking\public\sw.js
+ ○ (pwa)   URL: /sw.js
+ ○ (pwa)   Scope: /
+ ✓ Compiled successfully in 5.8s
+   Running TypeScript ...
+Failed to compile.
+
+./src/hooks/use-feed.ts:48:28
+Type error: Argument of type '(string | null)[]' is not assignable to parameter of type 'readonly string[]'.
+  Type 'string | null' is not assignable to type 'string'.
+    Type 'null' is not assignable to type 'string'.
+
+[0m [90m 46 |[39m           [33m.[39m[36mfrom[39m([32m"posts"[39m)
+ [90m 47 |[39m           [33m.[39mselect([32m"id, content, image_url, created_at, author_id"[39m)
+[31m[1m>[22m[39m[90m 48 |[39m           [33m.[39m[36min[39m([32m"author_id"[39m[33m,[39m allowedAuthorIds)
+ [90m    |[39m                            [31m[1m^[22m[39m
+ [90m 49 |[39m           [33m.[39morder([32m"created_at"[39m[33m,[39m { ascending[33m:[39m [36mfalse[39m })
+ [90m 50 |[39m           [33m.[39mlimit([35m25[39m)[33m;[39m
+ [90m 51 |[39m[0m
+Next.js build worker exited with code: 1 and signal: null

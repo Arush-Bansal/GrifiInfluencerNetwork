@@ -37,7 +37,8 @@ export function useFeed(userId: string) {
         );
 
         // All IDs we are allowed to see: self + followed + connected
-        const allowedAuthorIds = [...new Set([userId, ...followedIds, ...connectionIds])].filter(Boolean);
+        const allowedAuthorIds = [...new Set([userId, ...followedIds, ...connectionIds])]
+          .filter((id): id is string => !!id);
 
         if (allowedAuthorIds.length === 0) return [];
 

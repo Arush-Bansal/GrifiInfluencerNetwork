@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
-import { LogOut, ExternalLink, Settings } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import { User } from "@supabase/supabase-js";
 import { Logo } from "@/components/brand/Logo";
 

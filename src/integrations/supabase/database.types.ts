@@ -97,7 +97,7 @@ export type Database = {
           id: string
           message: string | null
           receiver_id: string
-          sender_id: string
+          sender_id: string | null
           status: Database["public"]["Enums"]["request_status"] | null
           type: Database["public"]["Enums"]["request_type"]
         }
@@ -106,7 +106,7 @@ export type Database = {
           id?: string
           message?: string | null
           receiver_id: string
-          sender_id: string
+          sender_id?: string | null
           status?: Database["public"]["Enums"]["request_status"] | null
           type: Database["public"]["Enums"]["request_type"]
         }
@@ -115,7 +115,7 @@ export type Database = {
           id?: string
           message?: string | null
           receiver_id?: string
-          sender_id?: string
+          sender_id?: string | null
           status?: Database["public"]["Enums"]["request_status"] | null
           type?: Database["public"]["Enums"]["request_type"]
         }
@@ -272,6 +272,7 @@ export type Database = {
           followers: string | null
           full_name: string | null
           id: string
+          instagram_url: string | null
           is_verified: boolean | null
           location: string | null
           niche: string | null
@@ -279,12 +280,11 @@ export type Database = {
           service_appearances: boolean | null
           service_brand: boolean
           service_ugc: boolean
+          twitter_url: string | null
           updated_at: string | null
           username: string | null
           website: string | null
           youtube_url: string | null
-          instagram_url: string | null
-          twitter_url: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -294,6 +294,7 @@ export type Database = {
           followers?: string | null
           full_name?: string | null
           id: string
+          instagram_url?: string | null
           is_verified?: boolean | null
           location?: string | null
           niche?: string | null
@@ -301,12 +302,11 @@ export type Database = {
           service_appearances?: boolean | null
           service_brand?: boolean
           service_ugc?: boolean
+          twitter_url?: string | null
           updated_at?: string | null
           username?: string | null
           website?: string | null
           youtube_url?: string | null
-          instagram_url?: string | null
-          twitter_url?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -316,6 +316,7 @@ export type Database = {
           followers?: string | null
           full_name?: string | null
           id?: string
+          instagram_url?: string | null
           is_verified?: boolean | null
           location?: string | null
           niche?: string | null
@@ -323,12 +324,11 @@ export type Database = {
           service_appearances?: boolean | null
           service_brand?: boolean
           service_ugc?: boolean
+          twitter_url?: string | null
           updated_at?: string | null
           username?: string | null
           website?: string | null
           youtube_url?: string | null
-          instagram_url?: string | null
-          twitter_url?: string | null
         }
         Relationships: []
       }
