@@ -5,21 +5,13 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
+import { ProfileUpdate } from "@/integrations/supabase/types";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   Loader2, 
-  MapPin, 
-  Link as LinkIcon, 
-  Calendar, 
-  Edit, 
-  Share2, 
-  Briefcase, 
   Users, 
-  Star, 
-  UserPlus, 
-  Clock,
   Check,
   Camera,
   X,
@@ -27,7 +19,8 @@ import {
   Play,
   Trash2,
   Plus,
-  Video
+  Video,
+  Edit
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SuggestCollabModal } from "@/components/collabs/SuggestCollabModal";
@@ -37,32 +30,23 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { 
-  Card, 
-  CardContent 
- } from "@/components/ui/card";
- import { Badge } from "@/components/ui/badge";
- import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
- import { Switch } from "@/components/ui/switch";
- import { useProfile, useUserPosts, useFollowStatus, useUpdateProfile, useUploadImage, useFeaturedReels, useManageFeaturedReels, usePastCollaborations, useManagePastCollaborations, useConnectionStatus } from "@/hooks/use-profile";
+  Badge 
+ } from "@/components/ui/badge";
+ import { useProfile, useFollowStatus, useUpdateProfile, useUploadImage, useFeaturedReels, useManageFeaturedReels, usePastCollaborations, useManagePastCollaborations, useConnectionStatus } from "@/hooks/use-profile";
  import { useQueryClient, useMutation, UseMutationResult } from "@tanstack/react-query";
  import { useAuth } from "@/hooks/use-auth";
  import Image from "next/image";
  import { mapToDashboardProfile } from "@/lib/view-models";
  import { DashboardProfile, FeaturedReel, PastCollaboration } from "@/types/dashboard";
  import { Logo } from "@/components/brand/Logo";
+import { Checkbox } from "@/components/ui/checkbox";
+
 
 
 interface Profile extends DashboardProfile {
   join_date: string;
 }
 
-interface Post {
-  id: string;
-  created_at: string;
-  content: string;
-  author_id: string;
-  image_url?: string | null;
-}
 
 const PublicNavbar = ({ user }: { user: User | null }) => (
   <nav className="h-16 border-b border-border bg-background flex items-center justify-between px-6 sticky top-0 z-50">
@@ -122,7 +106,6 @@ export default function PublicProfilePage() {
     twitter_url: profileData.twitter_url || null,
   } : null;
 
-  const { data: userPosts = [] } = useUserPosts(profile?.id);
   const { data: featuredReels = [] } = useFeaturedReels(profile?.id);
   const { addReel, deleteReel } = useManageFeaturedReels();
   const { data: pastCollaborations = [] } = usePastCollaborations(profile?.id);
@@ -191,6 +174,8 @@ export default function PublicProfilePage() {
     youtube_url: "",
     instagram_url: "",
     twitter_url: "",
+    content_views: "",
+    client_rating: "",
   });
 
   useEffect(() => {
@@ -214,6 +199,8 @@ export default function PublicProfilePage() {
           youtube_url: profileData.youtube_url || "",
           instagram_url: profileData.instagram_url || "",
           twitter_url: profileData.twitter_url || "",
+          content_views: (profileData as Record<string, unknown>).content_views as string || "5M+",
+          client_rating: (profileData as Record<string, unknown>).client_rating as string || "4.9",
         });
       }, 0);
       return () => clearTimeout(timer);
@@ -243,7 +230,7 @@ export default function PublicProfilePage() {
           youtube_url: editForm.youtube_url || null,
           instagram_url: editForm.instagram_url || null,
           twitter_url: editForm.twitter_url || null,
-        },
+        } as ProfileUpdate,
         authUpdates: {
           full_name: editForm.full_name,
         }
@@ -303,7 +290,7 @@ export default function PublicProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#F8F5F2]">
       {currentUser ? (
         <div className="flex min-h-screen">
           <Sidebar 
@@ -324,7 +311,6 @@ export default function PublicProfilePage() {
                 connectionStatus={connectionStatus || null}
                 loadingConnection={loadingConnection}
                 followMutation={followMutation}
-                userPosts={userPosts}
                 featuredReels={featuredReels}
                 addReel={addReel}
                 deleteReel={deleteReel}
@@ -338,7 +324,6 @@ export default function PublicProfilePage() {
                 handleSave={handleSave}
                 saving={updateProfileMutation.isPending}
                 handleImageUpload={handleImageUpload}
-                uploadingImage={uploadImageMutation.isPending}
                 toast={toast}
               />
             </main>
@@ -347,7 +332,7 @@ export default function PublicProfilePage() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-screen bg-[#F8F5F2]">
           <PublicNavbar user={currentUser} />
           <ProfileContent
             profile={profile}
@@ -356,7 +341,6 @@ export default function PublicProfilePage() {
             connectionStatus={connectionStatus || null}
             loadingConnection={loadingConnection}
             followMutation={followMutation}
-            userPosts={userPosts}
             featuredReels={featuredReels}
             addReel={addReel}
             deleteReel={deleteReel}
@@ -370,7 +354,6 @@ export default function PublicProfilePage() {
             handleSave={handleSave}
             saving={updateProfileMutation.isPending}
             handleImageUpload={handleImageUpload}
-            uploadingImage={uploadImageMutation.isPending}
             toast={toast}
           />
           <footer className="mt-auto border-t border-border py-10 bg-muted">
@@ -406,17 +389,14 @@ interface EditForm {
   youtube_url: string;
   instagram_url: string;
   twitter_url: string;
+  content_views: string;
+  client_rating: string;
   [key: string]: string | boolean | null | undefined;
 }
 
 interface ProfileContentProps {
   profile: Profile;
   isOwnProfile: boolean;
-  isFollowing: boolean;
-  connectionStatus: string | null;
-  loadingConnection?: boolean;
-  followMutation: UseMutationResult<void, Error, void, unknown>;
-  userPosts: Post[];
   isEditing: boolean;
   setIsEditing: (val: boolean) => void;
   editForm: EditForm;
@@ -424,7 +404,6 @@ interface ProfileContentProps {
   handleSave: () => Promise<void>;
   saving: boolean;
   handleImageUpload: (file: File, type: string) => Promise<string | void>;
-  uploadingImage: boolean;
   featuredReels: FeaturedReel[];
   addReel: UseMutationResult<FeaturedReel, Error, { profileId: string; videoUrl: string; title?: string; thumbnailUrl?: string }>;
   deleteReel: UseMutationResult<void, Error, { reelId: string; profileId: string }>;
@@ -432,16 +411,13 @@ interface ProfileContentProps {
   addCollaboration: UseMutationResult<PastCollaboration, Error, { profileId: string; brandName: string; brandLogoUrl?: string }>;
   deleteCollaboration: UseMutationResult<void, Error, { collabId: string; profileId: string }>;
   toast: (options: { title?: string; description?: string; variant?: "default" | "destructive" }) => void;
+  loadingConnection?: boolean;
+  connectionStatus: string | null;
 }
 
 const ProfileContent = ({ 
   profile, 
   isOwnProfile, 
-  isFollowing, 
-  connectionStatus,
-  loadingConnection,
-  followMutation, 
-  userPosts, 
   isEditing,
   setIsEditing,
   editForm,
@@ -449,14 +425,15 @@ const ProfileContent = ({
   handleSave,
   saving,
   handleImageUpload,
-  uploadingImage,
   featuredReels, 
   addReel, 
   deleteReel, 
   pastCollaborations,
   addCollaboration,
   deleteCollaboration,
-  toast 
+  toast,
+  loadingConnection,
+  connectionStatus
 }: ProfileContentProps) => {
   const [newReelUrl, setNewReelUrl] = useState("");
   const [newReelTitle, setNewReelTitle] = useState("");
@@ -574,243 +551,138 @@ const ProfileContent = ({
     }
   };
 
-  const handleShare = async () => {
-    const shareData = {
-      title: `${profile.full_name} (@${profile.username}) on GRIFI`,
-      text: `Check out ${profile.full_name}'s professional profile on GRIFI.`,
-      url: window.location.href,
-    };
 
-    try {
-      if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        await navigator.share(shareData);
-        toast({
-          title: "Shared successfully",
-        });
-      } else {
-        await navigator.clipboard.writeText(window.location.href);
-        toast({
-          title: "Link Copied",
-          description: "Profile link has been copied to your clipboard.",
-        });
-      }
-    } catch (err) {
-      if ((err as Error).name !== 'AbortError') {
-        console.error("Error sharing:", err);
-        toast({
-          title: "Sharing failed",
-          description: "Could not share or copy the link.",
-          variant: "destructive"
-        });
-      }
-    }
-  };
 
   return (
-    <main className="min-h-screen bg-muted/50 pb-20">
-      {/* Muted Banner Section */}
-      <section className="relative h-48 md:h-64 overflow-hidden bg-muted border-b border-border">
-        {(isEditing ? editForm.banner_url : profile.banner_url) ? (
-          <Image 
-            src={isEditing ? editForm.banner_url : profile.banner_url} 
-            alt="Profile Banner" 
-            fill
-            className="object-cover"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-muted/30" />
-        )}
-        
-        {isOwnProfile && (
-          <div className="absolute top-4 right-4 flex gap-2">
+    <main className="min-h-screen pb-20">
+      {/* Centered Profile Header */}
+      <section className="pt-12 md:pt-20 pb-12 px-4">
+        <div className="container mx-auto max-w-2xl text-center space-y-8">
+          {/* Avatar */}
+          <div className="relative inline-block group">
+            <div className="absolute -inset-1 bg-gradient-to-tr from-[#FF8A65]/20 to-transparent rounded-full blur-md opacity-50 transition-opacity group-hover:opacity-100" />
+            <Avatar className="w-40 h-40 md:w-48 md:h-48 border-4 border-white shadow-xl relative z-10 transition-transform duration-500 group-hover:scale-[1.02]">
+              <AvatarImage src={(isEditing ? editForm.avatar_url : profile.avatar_url) || undefined} alt={profile.full_name} className="object-cover" />
+              <AvatarFallback className="text-4xl font-serif bg-[#F3EFEA] text-[#2D2D2D]">
+                {profile.full_name?.charAt(0) || "U"}
+              </AvatarFallback>
+            </Avatar>
+            
             {isEditing && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="bg-background/80 backdrop-blur-sm shadow-sm"
-                onClick={() => document.getElementById('banner-upload')?.click()}
-                disabled={uploadingImage}
+              <div 
+                className="absolute inset-0 z-20 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                onClick={() => document.getElementById('avatar-upload')?.click()}
               >
-                {uploadingImage ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Camera className="w-4 h-4 mr-2" />}
-                Change Banner
-              </Button>
+                <Camera className="w-10 h-10 text-white" />
+              </div>
             )}
+            
+            {!isEditing && profile.is_verified && (
+              <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 z-20">
+                <div className="bg-[#FF8A65] text-white p-2 rounded-full shadow-lg ring-4 ring-white">
+                  <Check className="w-4 md:w-5 h-4 md:h-5 stroke-[3]" />
+                </div>
+              </div>
+            )}
+            
             <input 
               type="file" 
-              id="banner-upload" 
+              id="avatar-upload" 
               className="hidden" 
               accept="image/*" 
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) handleImageUpload(file, 'banner');
+                if (file) handleImageUpload(file, 'avatar');
               }}
             />
           </div>
-        )}
-      </section>
 
-      {/* Profile Header Card (Floating & Centered) */}
-      <div className="container mx-auto px-4 max-w-4xl relative">
-        <Card className="border border-border shadow-sm -mt-20 relative z-10 overflow-visible bg-card rounded-xl">
-          <CardContent className="pt-0 pb-10 px-6 md:px-12 text-center">
-            {/* Centered Avatar */}
-            <div className="relative -mt-16 mb-6 inline-block group">
-              <Avatar className="w-32 h-32 border-4 border-background shadow-md ring-1 ring-border relative z-10">
-                <AvatarImage src={(isEditing ? editForm.avatar_url : profile.avatar_url) || undefined} alt={profile.full_name} className="object-cover" />
-                <AvatarFallback className="text-3xl font-semibold bg-muted text-muted-foreground">
-                  {profile.full_name?.charAt(0) || "U"}
-                </AvatarFallback>
-              </Avatar>
-              {isEditing && (
-                <div 
-                  className="absolute inset-0 z-20 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                  onClick={() => document.getElementById('avatar-upload')?.click()}
-                >
-                  <Camera className="w-8 h-8 text-white" />
-                </div>
-              )}
-              {!isEditing && profile.is_verified && (
-                <div className="absolute -bottom-1 -right-1 z-20">
-                  <Badge className="bg-primary text-primary-foreground border-none px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                    <Star className="w-3 h-3 fill-primary-foreground" />
-                    <span className="font-semibold text-[10px]">Verified</span>
+          {/* Name & Headline */}
+          <div className="space-y-4">
+            {isEditing ? (
+              <div className="max-w-md mx-auto space-y-4">
+                <Input 
+                  value={editForm.full_name} 
+                  onChange={(e) => setEditForm({...editForm, full_name: e.target.value})} 
+                  className="text-center font-serif text-3xl md:text-5xl border-none bg-white/50 focus:bg-white h-auto py-2"
+                  placeholder="Your Name"
+                />
+                <div className="flex gap-2 justify-center">
+                  <Badge variant="outline" className="font-sans font-medium bg-white/50 border-[#FF8A65]/20 text-[#2D2D2D]">
+                    @{profile.username}
                   </Badge>
                 </div>
-              )}
-              <input 
-                type="file" 
-                id="avatar-upload" 
-                className="hidden" 
-                accept="image/*" 
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleImageUpload(file, 'avatar');
-                }}
-              />
-            </div>
-
-            {/* Name & Username */}
-            <div className="space-y-1 mb-8">
-              {isEditing ? (
-                <div className="max-w-xs mx-auto space-y-2">
-                  <Input 
-                    value={editForm.full_name} 
-                    onChange={(e) => setEditForm({...editForm, full_name: e.target.value})} 
-                    className="text-center font-bold text-xl h-10"
-                    placeholder="Display Name"
-                  />
-                  <p className="text-sm text-muted-foreground font-medium">@{profile.username}</p>
+                <div className="flex gap-4 justify-center pt-2">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#FF8A65]">Instagram</label>
+                    <Input 
+                      value={editForm.instagram_url || ""} 
+                      onChange={(e) => setEditForm({...editForm, instagram_url: e.target.value})} 
+                      className="h-8 text-xs bg-white/50 focus:bg-white border-[#FF8A65]/10"
+                      placeholder="username"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#FF8A65]">YouTube</label>
+                    <Input 
+                      value={editForm.youtube_url || ""} 
+                      onChange={(e) => setEditForm({...editForm, youtube_url: e.target.value})} 
+                      className="h-8 text-xs bg-white/50 focus:bg-white border-[#FF8A65]/10"
+                      placeholder="username"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#FF8A65]">Twitter</label>
+                    <Input 
+                      value={editForm.twitter_url || ""} 
+                      onChange={(e) => setEditForm({...editForm, twitter_url: e.target.value})} 
+                      className="h-8 text-xs bg-white/50 focus:bg-white border-[#FF8A65]/10"
+                      placeholder="username"
+                    />
+                  </div>
                 </div>
-              ) : (
-                <>
-                  <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                    {profile.full_name}
-                  </h1>
-                </>
-              )}
-              
-              <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 pt-3">
-                {isEditing ? (
-                  <>
-                    <div className="flex gap-2 w-full max-w-md mx-auto">
-                      <div className="relative flex-1">
-                        <MapPin className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                        <Input 
-                          value={editForm.location} 
-                          onChange={(e) => setEditForm({...editForm, location: e.target.value})} 
-                          className="pl-8 h-8 text-xs"
-                          placeholder="Location"
-                        />
-                      </div>
-                      <div className="relative flex-1">
-                        <LinkIcon className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                        <Input 
-                          value={editForm.website} 
-                          onChange={(e) => setEditForm({...editForm, website: e.target.value})} 
-                          className="pl-8 h-8 text-xs"
-                          placeholder="Website URL"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2 w-full max-w-md mx-auto mt-2">
-                      <div className="relative flex-1 min-w-[120px]">
-                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">IG</span>
-                        <Input 
-                          value={editForm.instagram_url || ""} 
-                          onChange={(e) => setEditForm({...editForm, instagram_url: e.target.value})} 
-                          className="pl-8 h-8 text-xs"
-                          placeholder="Instagram"
-                        />
-                      </div>
-                      <div className="relative flex-1 min-w-[120px]">
-                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">X</span>
-                        <Input 
-                          value={editForm.twitter_url || ""} 
-                          onChange={(e) => setEditForm({...editForm, twitter_url: e.target.value})} 
-                          className="pl-6 h-8 text-xs"
-                          placeholder="Twitter/X"
-                        />
-                      </div>
-                      <div className="relative flex-1 min-w-[120px]">
-                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">YT</span>
-                        <Input 
-                          value={editForm.youtube_url || ""} 
-                          onChange={(e) => setEditForm({...editForm, youtube_url: e.target.value})} 
-                          className="pl-8 h-8 text-xs"
-                          placeholder="YouTube"
-                        />
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                      <MapPin className="w-3.5 h-3.5" /> {profile.location}
-                    </span>
-                    {profile.website && (
-                      <a 
-                        href={profile.website.startsWith('http://') || profile.website.startsWith('https://') ? profile.website : `https://${profile.website}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline transition-colors"
-                      >
-                        <LinkIcon className="w-3.5 h-3.5" /> Website
-                      </a>
-                    )}
-                    <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                      <Calendar className="w-3.5 h-3.5" /> Joined {new Date(profile.join_date).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
-                    </span>
-                    <div className="flex items-center gap-3 pt-1">
-                      {profile.instagram_url && (
-                        <a href={profile.instagram_url.startsWith('http') ? profile.instagram_url : `https://instagram.com/${profile.instagram_url}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-[#E4405F] transition-colors">
-                          <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                        </a>
-                      )}
-                      {profile.twitter_url && (
-                        <a href={profile.twitter_url.startsWith('http') ? profile.twitter_url : `https://twitter.com/${profile.twitter_url}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-[#1DA1F2] transition-colors">
-                          <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.84 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
-                        </a>
-                      )}
-                      {profile.youtube_url && (
-                        <a href={profile.youtube_url.startsWith('http') ? profile.youtube_url : `https://youtube.com/@${profile.youtube_url}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-[#FF0000] transition-colors">
-                          <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                        </a>
-                      )}
-                    </div>
-                </>
-                )}
+                <div className="flex gap-4 justify-center pt-2">
+                  <div className="space-y-1 flex-1">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#FF8A65]">Location</label>
+                    <Input 
+                      value={editForm.location || ""} 
+                      onChange={(e) => setEditForm({...editForm, location: e.target.value})} 
+                      className="h-8 text-xs bg-white/50 focus:bg-white border-[#FF8A65]/10 text-center"
+                      placeholder="Location"
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-4">
+                <h1 className="text-5xl md:text-7xl font-serif tracking-tight text-[#2D2D2D] leading-tight">
+                  {profile.full_name?.split(' ').map((part: string, i: number) => (
+                    <span key={i} className={i === 1 ? "text-[#FF8A65]" : ""}>
+                      {part}{i < (profile.full_name?.split(' ').length || 0) - 1 ? " " : ""}
+                    </span>
+                  ))}
+                </h1>
+                <p className="text-xs md:text-sm font-sans text-muted-foreground font-bold uppercase tracking-[0.3em]">
+                  {profile.niche?.split(',')[0]} • CONTENT STRATEGIST
+                </p>
+                <p className="text-lg md:text-xl font-serif text-muted-foreground italic max-w-lg mx-auto leading-relaxed">
+                  &quot;Crafting authentic stories that connect brands with their audience&quot;
+                </p>
+              </div>
+            )}
 
-            {/* Primary Actions */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+
+          </div>
+
+          <div className="flex flex-col items-center justify-center gap-6 pt-6">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               {isOwnProfile ? (
                 isEditing ? (
-                  <>
+                  <div className="flex gap-2">
                     <Button 
                       onClick={handleSave} 
                       disabled={saving} 
-                      className="w-full sm:w-auto font-semibold rounded-lg h-10 px-8 shadow-md"
+                      className="bg-[#FF8A65] hover:bg-[#FF8A65]/90 text-white font-bold rounded-xl h-12 px-8 shadow-lg shadow-[#FF8A65]/20 transition-all hover:scale-105 active:scale-95"
                     >
                       {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                       Save Changes
@@ -818,543 +690,512 @@ const ProfileContent = ({
                     <Button 
                       onClick={() => setIsEditing(false)} 
                       variant="ghost" 
-                      className="w-full sm:w-auto font-semibold rounded-lg h-10 px-6"
+                      className="font-bold rounded-xl h-12 px-6"
                     >
-                      <X className="w-4 h-4 mr-2" />
                       Cancel
                     </Button>
-                  </>
+                  </div>
                 ) : (
-                  <Button onClick={() => setIsEditing(true)} variant="outline" className="w-full sm:w-auto font-semibold rounded-lg h-10 px-8">
+                  <Button onClick={() => setIsEditing(true)} variant="outline" className="font-bold rounded-xl h-12 px-10 border-[#FF8A65] text-[#FF8A65] hover:bg-[#FF8A65]/5 transition-all">
                     <Edit className="w-4 h-4 mr-2" />
-                    Edit Profile
+                    Edit Portfolio
                   </Button>
                 )
               ) : (
-                <>
-                  <Button 
-                    variant={isFollowing ? "outline" : "default"} 
-                    className={cn(
-                      "w-full sm:w-auto font-semibold rounded-lg h-10 px-8 text-sm group",
-                      isFollowing && "bg-background hover:bg-destructive/10 hover:text-destructive hover:border-destructive transition-colors",
-                      !isFollowing && "shadow-sm"
-                    )}
-                    onClick={() => followMutation.mutate()}
-                    disabled={followMutation.isPending}
-                  >
-                    {followMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : isFollowing ? (
-                      <>
-                        <Check className="w-4 h-4 mr-2 group-hover:hidden" />
-                        <span className="group-hover:hidden">Following</span>
-                        <X className="w-4 h-4 mr-2 hidden group-hover:block" />
-                        <span className="hidden group-hover:block">Unfollow</span>
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Follow
-                      </>
-                    )}
-                  </Button>
+                <div className="flex flex-wrap items-center justify-center gap-4">
                   <SuggestCollabModal 
                     receiverId={profile.id} 
                     receiverName={profile.full_name}
                     trigger={
                       <Button 
-                        variant={connectionStatus === 'accepted' ? "outline" : "default"} 
-                        className={cn(
-                          "w-full sm:w-auto font-semibold rounded-lg h-10 px-6 text-sm transition-all",
-                          connectionStatus === 'accepted' && "bg-background text-foreground border-border cursor-default",
-                          connectionStatus === 'pending' && "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-80",
-                          (connectionStatus === null || connectionStatus === 'rejected') && "bg-white text-black border-border hover:bg-gray-50 shadow-sm"
-                        )}
+                        className="bg-[#FF8A65] hover:bg-[#FF8A65]/90 text-white font-bold rounded-2xl h-14 px-10 text-base shadow-xl shadow-[#FF8A65]/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
                         disabled={loadingConnection || connectionStatus === 'accepted' || connectionStatus === 'pending'}
                       >
-                        {loadingConnection ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : connectionStatus === 'accepted' ? (
+                        {loadingConnection ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                           <>
-                            <Check className="w-4 h-4 mr-2" />
-                            Connected
+                            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                              <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                            </svg>
+                            Work With Me
                           </>
-                        ) : connectionStatus === 'pending' ? (
-                          <>
-                            <Clock className="w-4 h-4 mr-2" />
-                            Pending
-                          </>
-                        ) : (
-                          "Connect"
                         )}
                       </Button>
                     }
                   />
-                </>
-              )}
-              {!isEditing && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-10 w-10 border border-border hover:bg-muted rounded-lg text-muted-foreground"
-                  onClick={handleShare}
-                >
-                  <Share2 className="w-4 h-4" />
-                </Button>
+                  
+                  <Button 
+                    variant="outline"
+                    className="font-bold rounded-2xl h-14 px-10 text-base border-[#FF8A65] text-[#FF8A65] hover:bg-[#FF8A65]/5 transition-all"
+                    asChild
+                  >
+                    <Link href="#portfolio">View Portfolio</Link>
+                  </Button>
+                </div>
               )}
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Stats Section */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8">
-          {[
-            { label: 'Followers', value: profile.followers, icon: Users, key: 'followers' },
-            { label: 'Platform', value: profile.platform, icon: Share2, key: 'platform' },
-            { label: 'Niche', value: profile.niche, icon: Briefcase, key: 'niche' }
-          ].map((stat, i) => (
-            <div key={i} className="bg-card p-6 rounded-lg border border-border text-center space-y-1 shadow-sm hover:border-muted-foreground/20 transition-colors">
-              <div className="w-8 h-8 mx-auto rounded-lg bg-muted flex items-center justify-center mb-1">
-                <stat.icon className="w-4 h-4 text-muted-foreground" />
+            {/* Social Icons Moved Here */}
+            {!isEditing && (
+              <div className="flex items-center justify-center gap-6 pt-2">
+                {profile.instagram_url && (
+                  <a href={profile.instagram_url.startsWith('http') ? profile.instagram_url : `https://instagram.com/${profile.instagram_url}`} target="_blank" rel="noopener noreferrer" className="opacity-60 hover:opacity-100 transition-opacity">
+                    <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                  </a>
+                )}
+                {profile.youtube_url && (
+                  <a href={profile.youtube_url.startsWith('http') ? profile.youtube_url : `https://youtube.com/@${profile.youtube_url}`} target="_blank" rel="noopener noreferrer" className="opacity-60 hover:opacity-100 transition-opacity">
+                    <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                  </a>
+                )}
               </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+
+        {/* Content Sections */}
+        <div className="container mx-auto max-w-4xl space-y-24 px-4 pt-12">
+          
+          {/* About Section */}
+          <section className="text-center space-y-8">
+            <div className="space-y-4">
+              <h3 className="text-[#FF8A65] text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] font-sans">ABOUT ME</h3>
+              <h2 className="text-4xl md:text-6xl font-serif text-[#2D2D2D] leading-tight max-w-2xl mx-auto">
+                Creating Content That <span className="text-[#FF8A65]">Converts</span>
+              </h2>
+            </div>
+            
+            <div className="max-w-2xl mx-auto space-y-6">
               {isEditing ? (
-                <div className="relative">
-                  {stat.key === 'platform' ? (
-                    <Select value={editForm.platform} onValueChange={(v) => setEditForm({ ...editForm, platform: v })}>
-                      <SelectTrigger className="h-7 text-[10px] font-bold">
-                        <SelectValue placeholder="Platform" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="instagram">Instagram</SelectItem>
-                        <SelectItem value="youtube">YouTube</SelectItem>
-                        <SelectItem value="tiktok">TikTok</SelectItem>
-                        <SelectItem value="twitter">Twitter/X</SelectItem>
-                        <SelectItem value="linkedin">LinkedIn</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : stat.key === 'niche' ? (
-                    <Select value={editForm.niche} onValueChange={(v) => setEditForm({ ...editForm, niche: v })}>
-                      <SelectTrigger className="h-7 text-[10px] font-bold">
-                        <SelectValue placeholder="Niche" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="tech">Technology</SelectItem>
-                        <SelectItem value="lifestyle">Lifestyle</SelectItem>
-                        <SelectItem value="gaming">Gaming</SelectItem>
-                        <SelectItem value="fitness">Fitness</SelectItem>
-                        <SelectItem value="beauty">Beauty</SelectItem>
-                        <SelectItem value="food">Food</SelectItem>
-                        <SelectItem value="travel">Travel</SelectItem>
-                        <SelectItem value="business">Business</SelectItem>
-                      </SelectContent>
-                    </Select>
+                <Textarea 
+                  value={editForm.bio} 
+                  onChange={(e) => setEditForm({...editForm, bio: e.target.value})} 
+                  className="min-h-[150px] text-lg leading-relaxed font-sans border-[#FF8A65]/20 bg-white/50 focus:bg-white text-center rounded-2xl"
+                  placeholder="Tell your story..."
+                />
+              ) : (
+                <div className="space-y-6">
+                  <div className="text-lg md:text-xl text-muted-foreground/70 leading-relaxed font-sans font-normal whitespace-pre-wrap max-w-xl mx-auto">
+                    {profile.bio || (
+                      <>
+                        <p className="mb-6">Hey there! I&apos;m Sarah, a passionate UGC creator based in Los Angeles with over 3 years of experience helping brands tell their stories through authentic, engaging content.</p>
+                        <p>From lifestyle and beauty to tech and wellness, I specialize in creating scroll-stopping content that resonates with your target audience and drives real results.</p>
+                      </>
+                    )}
+                  </div>
+                  <p className="text-lg md:text-xl font-bold text-[#2D2D2D] flex items-center justify-center gap-2">
+                    <span className="text-[#FF8A65] text-xl">✨</span> Let&apos;s create something amazing together.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Niche Tags */}
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-6">
+              {profile.niche && profile.niche.split(',').map((tag: string, i: number) => (
+                <Badge 
+                  key={i} 
+                  variant="default" 
+                  className="px-6 py-2 rounded-full bg-[#EAE8E4] hover:bg-[#E2E0DC] text-[#2D2D2D] text-[13px] font-medium border-none transition-colors"
+                >
+                  {tag.trim()}
+                </Badge>
+              ))}
+              {isEditing && (
+                <div className="w-full max-w-xs mx-auto mt-4">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#FF8A65] mb-2 block">Edit Niches (comma separated)</label>
+                  <Input 
+                    value={editForm.niche} 
+                    onChange={(e) => setEditForm({...editForm, niche: e.target.value})} 
+                    className="h-8 text-xs bg-white/50 border-[#FF8A65]/10 text-center"
+                    placeholder="Beauty, Lifestyle, Tech"
+                  />
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Stats Banner Section */}
+          <section className="w-screen relative left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] bg-[#1E1E1C] py-16 md:py-24 my-12 overflow-hidden">
+            <div className="container mx-auto max-w-5xl px-4 relative z-10">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-12 md:gap-4">
+                {/* Followers */}
+                <div className="text-center space-y-3">
+                  {isEditing ? (
+                    <div className="space-y-1">
+                      <Input 
+                        value={editForm.followers} 
+                        onChange={(e) => setEditForm({...editForm, followers: e.target.value})} 
+                        className="text-4xl font-serif text-white bg-white/5 border-white/10 text-center h-auto py-2"
+                      />
+                      <div className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Followers</div>
+                    </div>
                   ) : (
-                    <Input 
-                      value={(editForm[stat.key] as string) || ""} 
-                      onChange={(e) => setEditForm({...editForm, [stat.key]: e.target.value})} 
-                      className="h-7 text-sm font-bold text-center px-1"
-                    />
+                    <>
+                      <div className="text-5xl md:text-6xl font-serif text-white tracking-tighter">
+                        {profile.followers}
+                      </div>
+                      <div className="text-xs md:text-sm text-white/40 font-bold uppercase tracking-[0.25em]">Followers</div>
+                    </>
                   )}
                 </div>
-              ) : (
-                <div className="text-xl font-bold text-foreground tracking-tight">{stat.value}</div>
-              )}
-              <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">{stat.label}</div>
+
+                {/* Brand Collabs */}
+                <div className="text-center space-y-3">
+                  <div className="text-5xl md:text-6xl font-serif text-white tracking-tighter">
+                    {pastCollaborations.length > 0 ? `${pastCollaborations.length}+` : "0"}
+                  </div>
+                  <div className="text-xs md:text-sm text-white/40 font-bold uppercase tracking-[0.25em]">Brand Collabs</div>
+                </div>
+
+                {/* Content Views */}
+                <div className="text-center space-y-3">
+                  {isEditing ? (
+                    <div className="space-y-1">
+                      <Input 
+                        value={editForm.content_views} 
+                        onChange={(e) => setEditForm({...editForm, content_views: e.target.value})} 
+                        className="text-4xl font-serif text-white bg-white/5 border-white/10 text-center h-auto py-2"
+                        placeholder="5M+"
+                      />
+                      <div className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Content Views</div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-5xl md:text-6xl font-serif text-white tracking-tighter">
+                        {editForm.content_views || "5M+"}
+                      </div>
+                      <div className="text-xs md:text-sm text-white/40 font-bold uppercase tracking-[0.25em]">Content Views</div>
+                    </>
+                  )}
+                </div>
+
+                {/* Client Rating */}
+                <div className="text-center space-y-3">
+                  {isEditing ? (
+                    <div className="space-y-1">
+                      <Input 
+                        value={editForm.client_rating} 
+                        onChange={(e) => setEditForm({...editForm, client_rating: e.target.value})} 
+                        className="text-4xl font-serif text-white bg-white/5 border-white/10 text-center h-auto py-2"
+                        placeholder="4.9"
+                      />
+                      <div className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Client Rating</div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-5xl md:text-7xl font-serif text-white tracking-tighter">
+                        {editForm.client_rating || "4.9"}
+                        <span className="text-[#FF8A65] ml-1">★</span>
+                      </div>
+                      <div className="text-xs md:text-sm text-white/40 font-bold uppercase tracking-[0.25em]">Client Rating</div>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
-          ))}
-        </div>
+          </section>
 
-        <div className="grid lg:grid-cols-3 gap-12 mt-12">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-12">
-
-            <section className="space-y-4">
-              <div className="flex items-center gap-4">
-                <h3 className="font-bold text-lg tracking-tight text-foreground text-left">About</h3>
-                <div className="h-px flex-1 bg-border" />
-              </div>
-              <div className="p-6 bg-muted border border-border rounded-lg">
-                {isEditing ? (
-                  <Textarea 
-                    value={editForm.bio} 
-                    onChange={(e) => setEditForm({...editForm, bio: e.target.value})} 
-                    className="min-h-[120px] text-sm font-medium leading-relaxed"
-                    placeholder="Write your bio..."
+          {/* Services Pill Section */}
+          <section className="flex flex-wrap items-center justify-center gap-2 -mt-6 relative z-20">
+            {[
+              { label: 'Brand Partnerships', key: 'service_brand' },
+              { label: 'UGC Creation', key: 'service_ugc' },
+              { label: 'Performances', key: 'service_appearances' }
+            ].map((service, idx) => (
+              <Badge 
+                key={idx} 
+                variant={profile[service.key as keyof Profile] ? "default" : "outline"}
+                className={cn(
+                  "px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-sm border-2",
+                  profile[service.key as keyof Profile] 
+                    ? "bg-[#FF8A65] text-white border-[#FF8A65] hover:bg-[#FF8A65]/90" 
+                    : "bg-white text-muted-foreground border-border/50 opacity-60"
+                )}
+              >
+                {service.label}
+                {isEditing && (
+                  <Checkbox 
+                    checked={!!editForm[service.key]} 
+                    onCheckedChange={(val: boolean | "indeterminate") => setEditForm({...editForm, [service.key]: val === true})}
+                    className="ml-3 h-4 w-4 border-white/50"
                   />
-                ) : (
-                  <p className="text-foreground leading-relaxed whitespace-pre-wrap text-sm font-medium">
-                    {profile.bio || "No bio information provided yet."}
-                  </p>
                 )}
-              </div>
-            </section>
+              </Badge>
+            ))}
+          </section>
 
-            <section className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4 flex-1">
-                  <h3 className="font-bold text-lg tracking-tight text-foreground flex items-center gap-2">
-                    Worked With <Badge variant="outline" className="rounded-full text-[10px] px-2 font-bold text-muted-foreground">{pastCollaborations.length}</Badge>
-                  </h3>
-                  <div className="h-px flex-1 bg-border" />
-                </div>
-                {isEditing && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setShowAddBrand(!showAddBrand)}
-                    className="ml-4"
-                  >
-                    {showAddBrand ? <X className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-                    {showAddBrand ? "Cancel" : "Add Brand"}
-                  </Button>
-                )}
-              </div>
-
-              {isEditing && showAddBrand && (
-                <Card className="border-dashed border-2 border-primary/20 bg-primary/5">
-                  <CardContent className="p-6 space-y-4">
-                    <div className="grid gap-4">
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Brand Name</label>
-                        <Input 
-                          placeholder="e.g. Nike, Red Bull, etc." 
-                          value={newBrandName}
-                          onChange={(e) => setNewBrandName(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Brand Logo (Optional)</label>
-                        <div className="flex items-center gap-4">
-                          {newBrandLogo && (
-                            <div className="relative w-16 h-16 rounded-full overflow-hidden border border-border bg-white">
-                              <Image src={newBrandLogo} alt="Brand logo preview" fill className="object-contain p-2" />
-                              <button 
-                                onClick={() => setNewBrandLogo("")}
-                                className="absolute top-0 right-0 bg-black/50 rounded-full p-1 hover:bg-black/70 transition-colors"
-                              >
-                                <X className="w-2 h-2 text-white" />
-                              </button>
-                            </div>
-                          )}
-                          <div className="flex-1">
-                            <input 
-                              type="file" 
-                              accept="image/*"
-                              className="hidden" 
-                              id="brand-logo-upload"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) internalHandleImageUpload(file, 'brand-logo');
-                              }}
-                            />
-                            <label 
-                              htmlFor="brand-logo-upload" 
-                              className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl p-4 cursor-pointer hover:bg-muted/50 transition-colors h-16"
-                            >
-                              {uploadingImage ? <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /> : <Camera className="w-5 h-5 text-muted-foreground" />}
-                              <span className="text-[9px] font-bold uppercase tracking-tighter mt-0.5">Logo</span>
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <Button 
-                      className="w-full" 
-                      onClick={handleAddCollaboration}
-                      disabled={addCollaboration.isPending || !newBrandName || uploadingImage}
-                    >
-                      {addCollaboration.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
-                      Add Brand
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-
-              {pastCollaborations.length === 0 ? (
-                <div className="p-8 text-center bg-muted/30 border border-dashed border-border rounded-lg">
-                  <Briefcase className="w-6 h-6 mx-auto text-muted-foreground/30 mb-2" />
-                  <p className="text-muted-foreground font-bold text-xs uppercase tracking-widest">No brand collaborations listed yet.</p>
-                </div>
-              ) : (
-                <div className="flex flex-wrap items-center justify-center gap-6 p-8 bg-card rounded-xl border border-border shadow-sm">
-                  {pastCollaborations.map((collab) => (
-                    <div key={collab.id} className="group relative">
-                      {collab.brand_logo_url ? (
-                        <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-white border border-border flex items-center justify-center p-4 shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-300 overflow-hidden">
-                          <Image 
-                            src={collab.brand_logo_url} 
-                            alt={collab.brand_name} 
-                            width={80} 
-                            height={80} 
-                            className="object-contain transition-transform duration-300 group-hover:scale-110" 
-                          />
-                        </div>
-                      ) : (
-                        <div className="px-6 py-3 rounded-xl bg-muted border border-border shadow-sm hover:bg-muted/80 transition-all">
-                          <span className="text-sm font-bold text-foreground/80 tracking-tight">{collab.brand_name}</span>
-                        </div>
-                      )}
-                      
-                      {isEditing && (
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          className="absolute -top-2 -right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-all z-10 rounded-full shadow-md"
-                          onClick={() => handleDeleteCollaboration(collab.id)}
-                          disabled={deleteCollaboration.isPending}
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4 flex-1">
-                  <h3 className="font-bold text-lg tracking-tight text-foreground flex items-center gap-2">
-                    Featured Reels <Badge variant="outline" className="rounded-full text-[10px] px-2 font-bold text-muted-foreground">{featuredReels.length}</Badge>
-                  </h3>
-                  <div className="h-px flex-1 bg-border" />
-                </div>
-                {isEditing && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setShowAddReel(!showAddReel)}
-                    className="ml-4"
-                  >
-                    {showAddReel ? <X className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-                    {showAddReel ? "Cancel" : "Add Reel"}
-                  </Button>
-                )}
-              </div>
-
-              {isEditing && showAddReel && (
-                <Card className="border-dashed border-2 border-primary/20 bg-primary/5">
-                  <CardContent className="p-6 space-y-4">
-                    <div className="grid gap-4">
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Video URL</label>
-                        <Input 
-                          placeholder="Instagram or TikTok reel URL" 
-                          value={newReelUrl}
-                          onChange={(e) => setNewReelUrl(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Title (Optional)</label>
-                        <Input 
-                          placeholder="Performance at..." 
-                          value={newReelTitle}
-                          onChange={(e) => setNewReelTitle(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Thumbnail (Optional)</label>
-                        <div className="flex items-center gap-4">
-                          {newReelThumbnail && (
-                            <div className="relative w-16 h-24 rounded-lg overflow-hidden border border-border">
-                              <Image src={newReelThumbnail} alt="Thumbnail preview" fill className="object-cover" />
-                              <button 
-                                onClick={() => setNewReelThumbnail("")}
-                                className="absolute top-1 right-1 bg-black/50 rounded-full p-1 hover:bg-black/70 transition-colors"
-                              >
-                                <X className="w-3 h-3 text-white" />
-                              </button>
-                            </div>
-                          )}
-                          <div className="flex-1">
-                            <input 
-                              type="file" 
-                              accept="image/*"
-                              className="hidden" 
-                              id="reel-thumb-upload"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) internalHandleImageUpload(file, 'reel-thumbnail');
-                              }}
-                            />
-                            <label 
-                              htmlFor="reel-thumb-upload" 
-                              className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl p-4 cursor-pointer hover:bg-muted/50 transition-colors h-24"
-                            >
-                              {uploadingImage ? <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /> : <Camera className="w-6 h-6 text-muted-foreground" />}
-                              <span className="text-[10px] font-bold uppercase tracking-tighter mt-1">{newReelThumbnail ? "Change Image" : "Upload Thumbnail"}</span>
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <Button 
-                      className="w-full" 
-                      onClick={handleAddReel}
-                      disabled={addReel.isPending || !newReelUrl || uploadingImage}
-                    >
-                      {addReel.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
-                      Add to Featured Reels
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-
-              {featuredReels.length === 0 ? (
-                <div className="p-12 text-center bg-muted/30 border border-dashed border-border rounded-lg">
-                  <Video className="w-8 h-8 mx-auto text-muted-foreground/30 mb-2" />
-                  <p className="text-muted-foreground font-bold text-sm">No featured reels yet.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                  {featuredReels.map((reel: FeaturedReel) => (
-                    <div key={reel.id} className="group relative aspect-[9/16] bg-secondary/30 rounded-2xl overflow-hidden shadow-lg border border-border/50 transition-all hover:scale-[1.02] hover:shadow-xl">
-                      {/* Background: Image or Gradient */}
-                      {reel.thumbnail_url ? (
+          {/* Worked With Section */}
+          <section className="space-y-8 text-center">
+            <h2 className="text-2xl font-serif text-[#2D2D2D]">Trusted By</h2>
+            <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16 opacity-70 grayscale hover:grayscale-0 transition-all duration-700">
+              {pastCollaborations.length > 0 ? (
+                pastCollaborations.map((collab: PastCollaboration) => (
+                  <div key={collab.id} className="relative group">
+                    {collab.brand_logo_url ? (
+                      <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center">
                         <Image 
-                          src={reel.thumbnail_url} 
-                          alt={reel.title || "Featured Reel"} 
-                          fill 
-                          className="object-cover transition-transform duration-500 group-hover:scale-110" 
-                        />
-                      ) : (
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-secondary/10" />
-                      )}
-                      
-                      {/* Dark overlay for better text contrast */}
-                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors z-0" />
-                      
-                      <div className="absolute inset-0 flex flex-col items-center justify-center transition-all">
-                        <div className="w-16 h-16 rounded-full bg-background/80 backdrop-blur-md flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                          <Play className="w-8 h-8 text-primary fill-primary/20 ml-1" />
-                        </div>
-                        <a 
-                          href={reel.video_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="absolute inset-0 z-10"
+                          src={collab.brand_logo_url} 
+                          alt={collab.brand_name} 
+                          width={80} 
+                          height={80} 
+                          className="object-contain transition-transform group-hover:scale-110" 
                         />
                       </div>
-                      
-                      <div className="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-20">
-                        <p className="text-white font-black text-base leading-tight mb-1 drop-shadow-sm">{reel.title || "Featured Reel"}</p>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-[9px] uppercase tracking-widest bg-white/10 text-white/80 border-white/20 px-2 py-0 border-none font-black italic">
-                            Watch Now
-                          </Badge>
-                        </div>
-                      </div>
-
-                      {isEditing && (
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-3 right-3 h-9 w-9 opacity-0 group-hover:opacity-100 transition-all z-30 rounded-xl shadow-lg hover:rotate-6"
-                          onClick={() => handleDeleteReel(reel.id)}
-                          disabled={deleteReel.isPending}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-lg tracking-tight text-foreground flex items-center gap-2">
-                  Recent Activity <Badge variant="outline" className="rounded-full text-[10px] px-2 font-bold text-muted-foreground">{userPosts.length}</Badge>
-                </h3>
-              </div>
-              {userPosts.length === 0 ? (
-                <div className="p-12 text-center bg-muted border border-dashed border-border rounded-lg">
-                  <p className="text-muted-foreground font-bold text-sm">No posts yet.</p>
-                </div>
+                    ) : (
+                      <span className="text-lg font-bold text-[#2D2D2D] tracking-tight">{collab.brand_name}</span>
+                    )}
+                    {isEditing && (
+                      <button 
+                        onClick={() => handleDeleteCollaboration(collab.id)}
+                        className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                ))
               ) : (
-                <div className="space-y-4">
-                  {userPosts.map((post: Post) => (
-                    <div key={post.id} className="p-6 bg-card rounded-lg border border-border hover:border-muted-foreground/20 transition-all shadow-sm group">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Clock className="w-3.5 h-3.5 text-muted-foreground/50" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                          {new Date(post.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </span>
-                      </div>
-                      <p className="text-foreground text-sm leading-relaxed font-medium">{post.content}</p>
+                <p className="text-sm text-muted-foreground italic">Ready for new partnerships</p>
+              )}
+            </div>
+            {isEditing && (
+              <div className="space-y-6 max-w-lg mx-auto pt-8">
+                {showAddBrand ? (
+                  <div className="p-6 bg-white rounded-3xl border border-[#FF8A65]/20 shadow-sm space-y-4">
+                    <div className="space-y-2 text-left">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-[#FF8A65]">Brand Name</label>
+                      <Input 
+                        value={newBrandName} 
+                        onChange={(e) => setNewBrandName(e.target.value)}
+                        placeholder="e.g. Nike"
+                        className="rounded-xl border-[#FF8A65]/10"
+                      />
                     </div>
-                  ))}
+                    <div className="space-y-2 text-left">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-[#FF8A65]">Brand Logo</label>
+                      <div className="flex gap-4 items-center">
+                        <Button
+                          variant="outline"
+                          onClick={() => document.getElementById('brand-logo-upload')?.click()}
+                          className="rounded-xl border-[#FF8A65]/10"
+                        >
+                           <Camera className="w-4 h-4 mr-2" />
+                           Upload Logo
+                        </Button>
+                        {newBrandLogo && <div className="text-xs text-muted-foreground truncate">Logo uploaded</div>}
+                      </div>
+                      <input 
+                        type="file" 
+                        id="brand-logo-upload" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) internalHandleImageUpload(file, 'brand-logo');
+                        }}
+                      />
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        onClick={handleAddCollaboration}
+                        className="flex-1 bg-[#FF8A65] hover:bg-[#FF8A65]/90 text-white rounded-xl font-bold"
+                        disabled={!newBrandName}
+                      >
+                        Add Brand
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => setShowAddBrand(false)}
+                        className="rounded-xl"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setShowAddBrand(true)} 
+                    className="text-[#FF8A65] font-bold"
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Add Brand
+                  </Button>
+                )}
+              </div>
+            )}
+          </section>
+
+          {/* Portfolio Grid */}
+          <section className="space-y-12">
+            <div className="text-center space-y-4">
+              <h2 className="text-4xl font-serif text-[#2D2D2D]">Portfolio</h2>
+              <p className="text-muted-foreground font-medium uppercase tracking-[0.2em] text-xs">A selection of my recent work</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {featuredReels.length > 0 ? (
+                featuredReels.map((reel: FeaturedReel) => (
+                  <div key={reel.id} className="group relative aspect-[4/5] bg-white rounded-[2rem] overflow-hidden shadow-xl shadow-[#FF8A65]/5 transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#FF8A65]/10">
+                    <Image 
+                      src={reel.thumbnail_url || ""} 
+                      alt={reel.title || "Portfolio item"} 
+                      fill 
+                      className="object-cover transition-transform duration-700 group-hover:scale-110" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100">
+                      <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/30">
+                        <Play className="w-6 h-6 fill-current ml-1" />
+                      </div>
+                    </div>
+                    <a href={reel.video_url} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-10" />
+                    
+                    <div className="absolute bottom-6 left-6 right-6 translate-y-4 group-hover:translate-y-0 transition-transform">
+                      <p className="text-[#FF8A65] text-[10px] font-bold uppercase tracking-widest mb-1">FASHION</p>
+                      <p className="text-white font-serif text-2xl">{reel.title || "Project Title"}</p>
+                    </div>
+
+                    {isEditing && (
+                      <button 
+                        onClick={() => handleDeleteReel(reel.id)}
+                        className="absolute top-4 right-4 bg-white/20 backdrop-blur-md text-white rounded-full p-2 hover:bg-destructive transition-colors z-20"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="md:col-span-3 h-64 border-2 border-dashed border-[#FF8A65]/10 rounded-[2rem] flex flex-col items-center justify-center text-muted-foreground space-y-4">
+                  <Video className="w-10 h-10 opacity-20" />
+                  <p className="font-serif">No projects showcase yet</p>
                 </div>
               )}
-            </section>
-          </div>
-
-          {/* Sidebar info */}
-          <div className="space-y-8">
-            <div className="sticky top-24 space-y-8">
-              <Card className="border border-border shadow-sm bg-card rounded-xl overflow-hidden">
-                <CardContent className="p-8 space-y-6">
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-bold tracking-tight text-foreground">
-                      Work with {profile.full_name?.split(' ')[0]}
-                    </h3>
-                    <p className="text-xs text-muted-foreground font-medium tracking-tight">Available for collaboration</p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    {[
-                      { label: 'Brand Partnerships', key: 'service_brand' },
-                      { label: 'UGC Content Creation', key: 'service_ugc' },
-                      { label: 'Public Appearances', key: 'service_appearances' }
-                    ].map((service, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-muted border border-border">
-                        <span className="font-semibold text-xs text-foreground/80">{service.label}</span>
-                        {isEditing ? (
-                          <Switch 
-                            checked={!!editForm[service.key]} 
-                            onCheckedChange={(val) => setEditForm({...editForm, [service.key]: val})}
-                          />
-                        ) : (
-                          profile[service.key as keyof Profile] ? (
-                            <Check className="w-3.5 h-3.5 text-primary" />
-                          ) : (
-                            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">N/A</span>
-                          )
-                        )}
+              {isEditing && (
+                showAddReel ? (
+                  <div className="aspect-[4/5] p-6 bg-white rounded-[2rem] border-2 border-[#FF8A65]/20 shadow-sm flex flex-col justify-between">
+                    <div className="space-y-4">
+                      <div className="space-y-1 text-left">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-[#FF8A65]">Project Title</label>
+                        <Input 
+                          value={newReelTitle} 
+                          onChange={(e) => setNewReelTitle(e.target.value)}
+                          placeholder="My Creative Work"
+                          className="h-8 text-xs rounded-lg border-[#FF8A65]/10"
+                        />
                       </div>
-                    ))}
-                  </div>
-
-                  <SuggestCollabModal
-                    receiverId={profile.id}
-                    receiverName={profile.full_name}
-                    title="Send Inquiry"
-                    defaultType="sponsorship"
-                    description={`Send an inquiry to ${profile.full_name?.split(' ')[0]} about a potential sponsorship or brand partnership.`}
-                    trigger={
-                      <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-lg font-bold text-sm shadow-sm transition-all">
-                        Send Inquiry
+                      <div className="space-y-1 text-left">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-[#FF8A65]">Video URL</label>
+                        <Input 
+                          value={newReelUrl} 
+                          onChange={(e) => setNewReelUrl(e.target.value)}
+                          placeholder="https://..."
+                          className="h-8 text-xs rounded-lg border-[#FF8A65]/10"
+                        />
+                      </div>
+                      <div className="space-y-1 text-left">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-[#FF8A65]">Thumbnail</label>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full h-8 text-[10px] font-bold uppercase tracking-widest rounded-lg border-[#FF8A65]/10"
+                          onClick={() => document.getElementById('reel-thumb-upload')?.click()}
+                        >
+                           <Camera className="w-3 h-3 mr-2" />
+                           Upload Cover
+                        </Button>
+                        <input 
+                          type="file" 
+                          id="reel-thumb-upload" 
+                          className="hidden" 
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) internalHandleImageUpload(file, 'reel-thumbnail');
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm"
+                        onClick={handleAddReel}
+                        className="flex-1 bg-[#FF8A65] hover:bg-[#FF8A65]/90 text-white rounded-xl font-bold text-[10px] h-10 uppercase tracking-widest"
+                        disabled={!newReelUrl}
+                      >
+                        Save
                       </Button>
-                    }
-                  />
-                </CardContent>
-              </Card>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setShowAddReel(false)}
+                        className="rounded-xl text-[10px] uppercase tracking-widest h-10"
+                      >
+                        X
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={() => setShowAddReel(true)}
+                    className="aspect-[4/5] border-2 border-dashed border-[#FF8A65]/20 rounded-[2rem] flex flex-col items-center justify-center text-[#FF8A65] hover:bg-[#FF8A65]/5 transition-all"
+                  >
+                    <Plus className="w-8 h-8 mb-2" />
+                    <span className="font-bold text-sm uppercase tracking-widest">Add Project</span>
+                  </button>
+                )
+              )}
+            </div>
+          </section>
 
-              <div className="p-8 bg-secondary/20 rounded-[2.5rem] border border-border/50 space-y-4">
-                <h4 className="font-black text-sm uppercase tracking-widest text-muted-foreground">Networking</h4>
-                <p className="text-sm font-bold text-foreground leading-relaxed italic opacity-60">
-                  &ldquo;Expanding horizons through creative partnerships and authentic storytelling...&rdquo;
-                </p>
-                <Button variant="link" className="p-0 h-auto font-black text-primary text-xs uppercase tracking-widest">
-                  Browse More Creators &rarr;
-                </Button>
+          {/* Services Section */}
+          <section className="space-y-12 pb-20">
+            <div className="text-center space-y-4">
+              <h3 className="text-[#FF8A65] text-xs font-bold uppercase tracking-[0.3em] font-sans">SERVICES</h3>
+              <h2 className="text-4xl md:text-5xl font-serif text-[#2D2D2D]">What I <span className="text-[#FF8A65]">Offer</span></h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              <div className="bg-white/40 p-10 rounded-[2.5rem] border border-[#FF8A65]/5 space-y-6">
+                <div className="w-16 h-16 bg-[#FF8A65]/10 rounded-2xl flex items-center justify-center text-[#FF8A65]">
+                  <Video className="w-8 h-8" />
+                </div>
+                <div className="space-y-3">
+                  <h4 className="text-2xl font-serif text-[#2D2D2D]">Video Content</h4>
+                  <p className="text-muted-foreground leading-relaxed font-sans font-medium text-sm">
+                    Engaging short-form videos optimized for TikTok, Instagram Reels, and YouTube Shorts.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white/40 p-10 rounded-[2.5rem] border border-[#FF8A65]/5 space-y-6">
+                <div className="w-16 h-16 bg-[#FF8A65]/10 rounded-2xl flex items-center justify-center text-[#FF8A65]">
+                  <Camera className="w-8 h-8" />
+                </div>
+                <div className="space-y-3">
+                  <h4 className="text-2xl font-serif text-[#2D2D2D]">Photo Content</h4>
+                  <p className="text-muted-foreground leading-relaxed font-sans font-medium text-sm">
+                    High-quality lifestyle and product photography for your brand&apos;s digital presence.
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          </section>
+          
+          {/* Footer Branding */}
+          <section className="pt-20 pb-12 text-center border-t border-[#FF8A65]/10">
+            <div className="inline-flex items-center gap-3 mb-6">
+              <Logo size={40} />
+              <span className="font-serif text-2xl text-[#2D2D2D]">Grifi</span>
+            </div>
+            <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest max-w-sm mx-auto">
+              Building the next generation of creative identities
+            </p>
+          </section>
         </div>
-      </div>
-    </main>
-  );
-};
+      </main>
+    );
+  };
