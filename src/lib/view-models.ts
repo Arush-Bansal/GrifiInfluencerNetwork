@@ -2,10 +2,6 @@
 import { Tables } from "@/integrations/supabase/types";
 import { DashboardProfile } from "@/types/dashboard";
 
-interface RawProfileWithAnalytics extends Tables<"profiles"> {
-  // These are handled by the database schema now, but we keep this interface 
-  // for any purely client-side runtime extensions if needed in the future.
-}
 
 /**
  * Maps a raw Supabase profile row to a safe UI DashboardProfile
@@ -34,6 +30,7 @@ export function mapToDashboardProfile(profile: Tables<"profiles"> | DashboardPro
       insta_copy_count: 0,
       yt_copy_count: 0,
       twitter_copy_count: 0,
+      services: [],
     };
   }
 
@@ -63,5 +60,6 @@ export function mapToDashboardProfile(profile: Tables<"profiles"> | DashboardPro
     yt_copy_count: profile.yt_copy_count || 0,
     twitter_copy_count: profile.twitter_copy_count || 0,
     public_email: profile.public_email || null,
+    services: (profile as Record<string, any>).services || [],
   };
 }

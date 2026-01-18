@@ -26,6 +26,7 @@ export interface DashboardProfile {
   yt_copy_count?: number;
   twitter_copy_count?: number;
   public_email?: string | null;
+  services?: string[] | null;
 }
 
 export interface FeaturedReel {
