@@ -108,7 +108,7 @@ export default function PublicProfilePage() {
     youtube_url: profileData.youtube_url || null,
     instagram_url: profileData.instagram_url || null,
     twitter_url: profileData.twitter_url || null,
-    public_email: (profileData as any).public_email || null,
+    public_email: profileData.public_email || null,
   } as Profile : null;
 
   const incrementStat = useIncrementStat();
@@ -218,9 +218,9 @@ export default function PublicProfilePage() {
           youtube_url: profileData.youtube_url || "",
           instagram_url: profileData.instagram_url || "",
           twitter_url: profileData.twitter_url || "",
-          content_views: (profileData as Record<string, unknown>).content_views as string || "5M+",
-          client_rating: (profileData as Record<string, unknown>).client_rating as string || "4.9",
-          public_email: (profileData as any).public_email || "",
+          content_views: (profileData as any).content_views || "5M+",
+          client_rating: (profileData as any).client_rating || "4.9",
+          public_email: profileData.public_email || "",
         });
       }, 0);
       return () => clearTimeout(timer);

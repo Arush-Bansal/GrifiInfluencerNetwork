@@ -6,19 +6,21 @@
    - Environments: .env
 
    Creating an optimized production build ...
- ✓ Compiled successfully in 4.2s
+ ✓ Compiled successfully in 4.0s
    Running TypeScript ...
 Failed to compile.
 
-./src/app/u/[username]/page.tsx:310:17
-Type error: Type '{ profile: Profile; isOwnProfile: boolean; isFollowing: boolean; connectionStatus: "pending" | "rejected" | "accepted" | "completed" | null; loadingConnection: boolean; followMutation: UseMutationResult<...>; ... 13 more ...; toast: ({ title, description, variant, ...props }: ToastProps) => string | number; }' is not assignable to type 'IntrinsicAttributes & ProfileContentProps'.
-  Property 'isFollowing' does not exist on type 'IntrinsicAttributes & ProfileContentProps'.
+./src/lib/view-models.ts:5:11
+Type error: Interface 'RawProfileWithAnalytics' incorrectly extends interface '{ avatar_url: string | null; banner_url: string | null; bio: string | null; email_copy_count: number | null; engagement_rate: string | null; followers: string | null; full_name: string | null; ... 18 more ...; yt_copy_count: number | null; }'.
+  Types of property 'email_copy_count' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number | null'.
+      Type 'undefined' is not assignable to type 'number | null'.
 
-[0m [90m 308 |[39m                 profile[33m=[39m{profile} 
- [90m 309 |[39m                 isOwnProfile[33m=[39m{isOwnProfile} 
-[31m[1m>[22m[39m[90m 310 |[39m                 isFollowing[33m=[39m{[33m![39m[33m![39misFollowing}
- [90m     |[39m                 [31m[1m^[22m[39m
- [90m 311 |[39m                 connectionStatus[33m=[39m{connectionStatus [33m||[39m [36mnull[39m}
- [90m 312 |[39m                 loadingConnection[33m=[39m{loadingConnection}
- [90m 313 |[39m                 followMutation[33m=[39m{followMutation}[0m
+[0m [90m 3 |[39m [36mimport[39m { [33mDashboardProfile[39m } [36mfrom[39m [32m"@/types/dashboard"[39m[33m;[39m
+ [90m 4 |[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36minterface[39m [33mRawProfileWithAnalytics[39m [36mextends[39m [33mTables[39m[33m<[39m[32m"profiles"[39m[33m>[39m {
+ [90m   |[39m           [31m[1m^[22m[39m
+ [90m 6 |[39m   page_visits[33m?[39m[33m:[39m number[33m;[39m
+ [90m 7 |[39m   email_copy_count[33m?[39m[33m:[39m number[33m;[39m
+ [90m 8 |[39m   insta_copy_count[33m?[39m[33m:[39m number[33m;[39m[0m
 Next.js build worker exited with code: 1 and signal: null
