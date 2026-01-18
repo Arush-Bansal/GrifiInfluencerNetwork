@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Search,
@@ -26,7 +25,6 @@ interface SidebarProps {
 
 export function Sidebar({ className, user, role, profile }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
 
   const navItems = [
     {
@@ -94,14 +92,18 @@ export function Sidebar({ className, user, role, profile }: SidebarProps) {
           )}
           {isInfluencer && (
             <>
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground h-9 px-3"
-                onClick={() => router.push(`/u/${profile?.username}`)}
+              <Link
+                href={`/u/${profile?.username}`}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  pathname === `/u/${profile?.username}`
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                )}
               >
                 <ExternalLink className="w-4 h-4" />
                 Visit Your Page
-              </Button>
+              </Link>
             </>
           )}
         </div>
