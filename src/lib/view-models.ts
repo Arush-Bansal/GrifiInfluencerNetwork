@@ -2,6 +2,15 @@
 import { Tables } from "@/integrations/supabase/types";
 import { DashboardProfile } from "@/types/dashboard";
 
+interface RawProfileWithAnalytics extends Tables<"profiles"> {
+  page_visits?: number;
+  email_copy_count?: number;
+  insta_copy_count?: number;
+  yt_copy_count?: number;
+  twitter_copy_count?: number;
+  public_email?: string | null;
+}
+
 /**
  * Maps a raw Supabase profile row to a safe UI DashboardProfile
  */
@@ -24,6 +33,11 @@ export function mapToDashboardProfile(profile: Tables<"profiles"> | DashboardPro
       service_ugc: true,
       service_appearances: false,
       is_verified: false,
+      page_visits: 0,
+      email_copy_count: 0,
+      insta_copy_count: 0,
+      yt_copy_count: 0,
+      twitter_copy_count: 0,
     };
   }
 
@@ -47,5 +61,11 @@ export function mapToDashboardProfile(profile: Tables<"profiles"> | DashboardPro
     youtube_url: profile.youtube_url || null,
     instagram_url: profile.instagram_url || null,
     twitter_url: profile.twitter_url || null,
+    page_visits: (profile as RawProfileWithAnalytics).page_visits || 0,
+    email_copy_count: (profile as RawProfileWithAnalytics).email_copy_count || 0,
+    insta_copy_count: (profile as RawProfileWithAnalytics).insta_copy_count || 0,
+    yt_copy_count: (profile as RawProfileWithAnalytics).yt_copy_count || 0,
+    twitter_copy_count: (profile as RawProfileWithAnalytics).twitter_copy_count || 0,
+    public_email: (profile as RawProfileWithAnalytics).public_email || null,
   };
 }

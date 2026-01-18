@@ -288,3 +288,17 @@ export function useManagePastCollaborations() {
 
   return { addCollaboration, deleteCollaboration };
 }
+export function useIncrementStat() {
+  return useMutation({
+    mutationFn: async ({ profileId, stat }: { profileId: string, stat: 'page_visits' | 'email_copy_count' | 'insta_copy_count' | 'yt_copy_count' | 'twitter_copy_count' }) => {
+      const { error } = await (supabase as unknown as { rpc: (name: string, args: Record<string, unknown>) => Promise<{ error: Error | null }> }).rpc('increment_profile_stat', {
+        profile_id: profileId,
+        stat_column: stat
+      });
+      
+      if (error) {
+        console.error("Increment error:", error);
+      }
+    }
+  });
+}

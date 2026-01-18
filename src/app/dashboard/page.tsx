@@ -9,6 +9,7 @@ import { CreatePost } from "@/components/dashboard/CreatePost";
 import { BrandCampaigns } from "@/components/campaigns/BrandCampaigns";
 import { InfluencerCampaigns } from "@/components/campaigns/InfluencerCampaigns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { StatsDashboard } from "@/components/dashboard/StatsDashboard";
 
 // import { ContextSidebar } from "@/components/dashboard/ContextSidebar";
 import { mapToDashboardProfile } from "@/lib/view-models";
@@ -68,50 +69,56 @@ const DashboardContent = () => {
             </div>
           </div>
 
-          <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6 max-w-full">
-            <div className="border-b border-border -mx-4 px-4 sm:mx-0 sm:px-0">
-              <div className="overflow-x-auto no-scrollbar scroll-smooth">
-                <TabsList className="bg-transparent rounded-none p-0 h-auto flex justify-start gap-4 sm:gap-8 border-none min-w-max pb-[2px]">
-                  <TabsTrigger 
-                    value="feed" 
-                    className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none shadow-none px-2 py-3 text-sm font-bold transition-all whitespace-nowrap"
-                  >
-                    Global
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="campaigns" 
-                    className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none shadow-none px-2 py-3 text-sm font-bold transition-all whitespace-nowrap"
-                  >
-                    Campaigns
-                  </TabsTrigger>
-                </TabsList>
+          {role === 'brand' ? (
+            <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6 max-w-full">
+              <div className="border-b border-border -mx-4 px-4 sm:mx-0 sm:px-0">
+                <div className="overflow-x-auto no-scrollbar scroll-smooth">
+                  <TabsList className="bg-transparent rounded-none p-0 h-auto flex justify-start gap-4 sm:gap-8 border-none min-w-max pb-[2px]">
+                    <TabsTrigger 
+                      value="feed" 
+                      className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none shadow-none px-2 py-3 text-sm font-bold transition-all whitespace-nowrap"
+                    >
+                      Global
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="campaigns" 
+                      className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none shadow-none px-2 py-3 text-sm font-bold transition-all whitespace-nowrap"
+                    >
+                      Campaigns
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+              </div>
+
+              <TabsContent value="feed" className="animate-in fade-in slide-in-from-bottom-2 duration-300 outline-none">
+                  <div className="space-y-6">
+                    <div className="hidden lg:block">
+                      <CreatePost 
+                        userId={user?.id || ""} 
+                        userProfile={{ username: profile.username }}
+                        onPostCreated={() => {
+                          queryClient.invalidateQueries({ queryKey: ["feed"] });
+                        }}
+                      />
+                    </div>
+                    <UnifiedFeed userId={user?.id || ""} />
+                  </div>
+              </TabsContent>
+
+              <TabsContent value="campaigns" className="animate-in fade-in slide-in-from-bottom-2 duration-300 outline-none">
+                <BrandCampaigns brandId={user?.id || ""} />
+              </TabsContent>
+            </Tabs>
+          ) : (
+            <div className="space-y-8">
+              <StatsDashboard profile={profile} />
+              
+              <div className="pt-4">
+                <h2 className="text-xl font-bold mb-4">Your Campaigns</h2>
+                <InfluencerCampaigns influencerId={user?.id || ""} />
               </div>
             </div>
-
-            <TabsContent value="feed" className="animate-in fade-in slide-in-from-bottom-2 duration-300 outline-none">
-                <div className="space-y-6">
-                   <div className="hidden lg:block">
-                     <CreatePost 
-                       userId={user?.id || ""} 
-                       userProfile={{ username: profile.username }}
-                       onPostCreated={() => {
-                         queryClient.invalidateQueries({ queryKey: ["feed"] });
-                       }}
-                     />
-                   </div>
-                   <UnifiedFeed userId={user?.id || ""} />
-                </div>
-            </TabsContent>
-
-            <TabsContent value="campaigns" className="animate-in fade-in slide-in-from-bottom-2 duration-300 outline-none">
-              {role === 'brand' ? (
-                <BrandCampaigns brandId={user?.id || ""} />
-              ) : (
-                <InfluencerCampaigns influencerId={user?.id || ""} />
-              )}
-            </TabsContent>
-
-          </Tabs>
+          )}
         </div>
 
         {/* Contextual Sidebar (Right) */}

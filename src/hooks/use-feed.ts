@@ -10,6 +10,7 @@ export interface FeedPost {
   author_username?: string;
   author_avatar?: string;
   image_url?: string | null;
+  type: 'general' | 'campaign';
 }
 
 export function useFeed(userId: string) {
@@ -55,20 +56,42 @@ export function useFeed(userId: string) {
           throw postsError;
         }
 
-        if (!postsData || postsData.length === 0) return [];
+        // 3b. Fetch campaigns from these specific authors
+        const { data: campaignsData, error: campaignsError } = await supabase
+          .from("campaigns")
+          .select("id, title, description, created_at, brand_id")
+          .in("brand_id", allowedAuthorIds)
+          .order("created_at", { ascending: false })
+          .limit(25);
 
-        // 4. Fetch profiles for these authors in a separate query to bypass join issues
-        const authorIds = [...new Set(postsData.map(p => p.author_id))];
+        if (campaignsError) {
+          console.error("Feed campaigns error:", campaignsError.message);
+        }
+
+        const allContent = [
+          ...(postsData || []).map(p => ({ ...p, type: 'general' as const })),
+          ...(campaignsData || []).map(c => ({ 
+            id: c.id, 
+            content: `${c.title}\n\n${c.description}`, 
+            created_at: c.created_at, 
+            author_id: c.brand_id,
+            type: 'campaign' as const 
+          }))
+        ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+        if (allContent.length === 0) return [];
+
+        // 4. Fetch profiles for these authors
+        const authorIds = [...new Set(allContent.map(p => p.author_id))];
         const { data: profilesData } = await supabase
           .from("profiles")
           .select("id, username, avatar_url")
           .in("id", authorIds);
 
-        // Create a lookup map for profiles
         const profileMap = new Map((profilesData || []).map(p => [p.id, p]));
 
         // 5. Merge data
-        return postsData.map(p => {
+        return allContent.map(p => {
           const profile = profileMap.get(p.author_id);
           return {
             id: p.id,
@@ -77,7 +100,8 @@ export function useFeed(userId: string) {
             author_id: p.author_id,
             author_username: profile?.username || 'user',
             author_avatar: profile?.avatar_url || undefined,
-            image_url: p.image_url || undefined
+            image_url: (p as { image_url?: string }).image_url || undefined,
+            type: p.type
           } as FeedPost;
         });
       } catch (err) {

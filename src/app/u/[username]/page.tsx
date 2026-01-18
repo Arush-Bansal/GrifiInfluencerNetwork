@@ -20,7 +20,11 @@ import {
   Trash2,
   Plus,
   Video,
-  Edit
+  Edit,
+  Mail,
+  Twitter,
+  ExternalLink,
+  Copy
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SuggestCollabModal } from "@/components/collabs/SuggestCollabModal";
@@ -32,7 +36,7 @@ import { cn } from "@/lib/utils";
 import { 
   Badge 
  } from "@/components/ui/badge";
- import { useProfile, useFollowStatus, useUpdateProfile, useUploadImage, useFeaturedReels, useManageFeaturedReels, usePastCollaborations, useManagePastCollaborations, useConnectionStatus } from "@/hooks/use-profile";
+ import { useProfile, useFollowStatus, useUpdateProfile, useUploadImage, useFeaturedReels, useManageFeaturedReels, usePastCollaborations, useManagePastCollaborations, useConnectionStatus, useIncrementStat } from "@/hooks/use-profile";
  import { useQueryClient, useMutation, UseMutationResult } from "@tanstack/react-query";
  import { useAuth } from "@/hooks/use-auth";
  import Image from "next/image";
@@ -104,7 +108,21 @@ export default function PublicProfilePage() {
     youtube_url: profileData.youtube_url || null,
     instagram_url: profileData.instagram_url || null,
     twitter_url: profileData.twitter_url || null,
-  } : null;
+    public_email: (profileData as any).public_email || null,
+  } as Profile : null;
+
+  const incrementStat = useIncrementStat();
+
+  // Track page visit
+  useEffect(() => {
+    if (profileData && profileData.id && currentUser?.id !== profileData.id) {
+      // Small debounce to avoid accidental double counts
+      const timer = setTimeout(() => {
+        incrementStat.mutate({ profileId: profileData.id, stat: 'page_visits' });
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [profileData?.id, currentUser?.id, incrementStat, profileData]);
 
   const { data: featuredReels = [] } = useFeaturedReels(profile?.id);
   const { addReel, deleteReel } = useManageFeaturedReels();
@@ -176,6 +194,7 @@ export default function PublicProfilePage() {
     twitter_url: "",
     content_views: "",
     client_rating: "",
+    public_email: "",
   });
 
   useEffect(() => {
@@ -201,6 +220,7 @@ export default function PublicProfilePage() {
           twitter_url: profileData.twitter_url || "",
           content_views: (profileData as Record<string, unknown>).content_views as string || "5M+",
           client_rating: (profileData as Record<string, unknown>).client_rating as string || "4.9",
+          public_email: (profileData as any).public_email || "",
         });
       }, 0);
       return () => clearTimeout(timer);
@@ -230,6 +250,7 @@ export default function PublicProfilePage() {
           youtube_url: editForm.youtube_url || null,
           instagram_url: editForm.instagram_url || null,
           twitter_url: editForm.twitter_url || null,
+          public_email: editForm.public_email || null,
         } as ProfileUpdate,
         authUpdates: {
           full_name: editForm.full_name,
@@ -325,6 +346,7 @@ export default function PublicProfilePage() {
                 saving={updateProfileMutation.isPending}
                 handleImageUpload={handleImageUpload}
                 toast={toast}
+                incrementStat={incrementStat}
               />
             </main>
 
@@ -355,6 +377,7 @@ export default function PublicProfilePage() {
             saving={updateProfileMutation.isPending}
             handleImageUpload={handleImageUpload}
             toast={toast}
+            incrementStat={incrementStat}
           />
           <footer className="mt-auto border-t border-border py-10 bg-muted">
             <div className="container mx-auto px-6 text-center">
@@ -391,6 +414,7 @@ interface EditForm {
   twitter_url: string;
   content_views: string;
   client_rating: string;
+  public_email: string;
   [key: string]: string | boolean | null | undefined;
 }
 
@@ -415,6 +439,7 @@ interface ProfileContentProps {
   connectionStatus: string | null;
   isFollowing: boolean;
   followMutation: UseMutationResult<void, Error, void>;
+  incrementStat: any;
 }
 
 const ProfileContent = ({ 
@@ -435,7 +460,8 @@ const ProfileContent = ({
   deleteCollaboration,
   toast,
   loadingConnection,
-  connectionStatus
+  connectionStatus,
+  incrementStat
 }: ProfileContentProps) => {
   const [newReelUrl, setNewReelUrl] = useState("");
   const [newReelTitle, setNewReelTitle] = useState("");
@@ -653,6 +679,15 @@ const ProfileContent = ({
                       placeholder="Location"
                     />
                   </div>
+                  <div className="space-y-1 flex-1">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#FF8A65]">Public Email</label>
+                    <Input 
+                      value={editForm.public_email || ""} 
+                      onChange={(e) => setEditForm({...editForm, public_email: e.target.value})} 
+                      className="h-8 text-xs bg-white/50 focus:bg-white border-[#FF8A65]/10 text-center"
+                      placeholder="Email for enquiries"
+                    />
+                  </div>
                 </div>
               </div>
             ) : (
@@ -740,15 +775,57 @@ const ProfileContent = ({
             {!isEditing && (
               <div className="flex items-center justify-center gap-6 pt-2">
                 {profile.instagram_url && (
-                  <a href={profile.instagram_url.startsWith('http') ? profile.instagram_url : `https://instagram.com/${profile.instagram_url}`} target="_blank" rel="noopener noreferrer" className="opacity-60 hover:opacity-100 transition-opacity">
+                  <a 
+                    href={profile.instagram_url.startsWith('http') ? profile.instagram_url : `https://instagram.com/${profile.instagram_url}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="opacity-60 hover:opacity-100 transition-opacity"
+                    onClick={() => incrementStat.mutate({ profileId: profile.id, stat: 'insta_copy_count' })}
+                  >
                     <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
                   </a>
                 )}
                 {profile.youtube_url && (
-                  <a href={profile.youtube_url.startsWith('http') ? profile.youtube_url : `https://youtube.com/@${profile.youtube_url}`} target="_blank" rel="noopener noreferrer" className="opacity-60 hover:opacity-100 transition-opacity">
+                  <a 
+                    href={profile.youtube_url.startsWith('http') ? profile.youtube_url : `https://youtube.com/@${profile.youtube_url}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="opacity-60 hover:opacity-100 transition-opacity"
+                    onClick={() => incrementStat.mutate({ profileId: profile.id, stat: 'yt_copy_count' })}
+                  >
                     <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
                   </a>
                 )}
+                {profile.twitter_url && (
+                  <a 
+                    href={profile.twitter_url.startsWith('http') ? profile.twitter_url : `https://twitter.com/${profile.twitter_url}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="opacity-60 hover:opacity-100 transition-opacity"
+                    onClick={() => incrementStat.mutate({ profileId: profile.id, stat: 'twitter_copy_count' })}
+                  >
+                    <Twitter className="w-5 h-5 fill-current" />
+                  </a>
+                )}
+              </div>
+            )}
+
+            {!isEditing && profile.public_email && (
+              <div className="flex flex-col items-center gap-2 pt-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">For business enquiries:</p>
+                <div className="flex items-center gap-2 bg-white/50 backdrop-blur-sm border border-[#FF8A65]/10 rounded-xl px-4 py-2 group hover:bg-white transition-colors">
+                  <span className="text-sm font-medium text-[#2D2D2D]">{profile.public_email}</span>
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(profile.public_email!);
+                      incrementStat.mutate({ profileId: profile.id, stat: 'email_copy_count' });
+                      toast({ title: "Email copied", description: "Email address copied to clipboard" });
+                    }}
+                    className="p-1 hover:text-[#FF8A65] transition-colors"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             )}
           </div>

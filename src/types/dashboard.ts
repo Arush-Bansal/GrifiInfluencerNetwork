@@ -20,6 +20,12 @@ export interface DashboardProfile {
   youtube_url?: string | null;
   instagram_url?: string | null;
   twitter_url?: string | null;
+  page_visits?: number;
+  email_copy_count?: number;
+  insta_copy_count?: number;
+  yt_copy_count?: number;
+  twitter_copy_count?: number;
+  public_email?: string | null;
 }
 
 export interface FeaturedReel {

@@ -2,11 +2,12 @@
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MessageSquare, User as UserIcon } from "lucide-react";
+import { Clock, Tag, User as UserIcon, Globe } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
 import { useFeed } from "@/hooks/use-feed";
+import { cn } from "@/lib/utils";
 
 
 export function UnifiedFeed({ userId }: { userId: string }) {
@@ -24,18 +25,13 @@ export function UnifiedFeed({ userId }: { userId: string }) {
 
   if (posts.length === 0) {
     return (
-      <Card className="border-none bg-card/50 backdrop-blur-sm text-center py-12">
+      <Card className="border-none bg-card/50 backdrop-blur-sm text-center py-20">
         <CardContent>
-          <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4 text-muted-foreground/50">
-            <MessageSquare className="w-6 h-6" />
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 text-primary/40 animate-pulse">
+            <Globe className="w-8 h-8" />
           </div>
-          <p className="font-medium text-lg mb-1">Your feed is empty</p>
-          <p className="text-muted-foreground text-sm mb-6">Follow users to see updates here.</p>
-          <div className="flex justify-center gap-4">
-            <Link href="/dashboard/search">
-               <span className="text-primary font-semibold hover:underline cursor-pointer">Find People</span>
-            </Link>
-          </div>
+          <p className="font-serif text-2xl mb-2">Coming soon</p>
+          <p className="text-muted-foreground text-sm max-w-xs mx-auto">We&apos;re currently building a more curated feed experience for you.</p>
         </CardContent>
       </Card>
     );
@@ -60,9 +56,9 @@ export function UnifiedFeed({ userId }: { userId: string }) {
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-sm group-hover:text-primary transition-colors">@{post.author_username}</span>
                     <span className="text-xs text-muted-foreground">•</span>
-                    <Badge variant="outline" className="text-[10px] h-4">
-                      <UserIcon className="w-2 h-2 mr-1" />
-                      Personal
+                    <Badge variant={post.type === 'campaign' ? "default" : "outline"} className={cn("text-[10px] h-4", post.type === 'campaign' && "bg-primary/20 text-primary border-none hover:bg-primary/30")}>
+                      {post.type === 'campaign' ? <Tag className="w-2 h-2 mr-1" /> : <UserIcon className="w-2 h-2 mr-1" />}
+                      {post.type === 'campaign' ? "Campaign" : "General"}
                     </Badge>
                   </div>
                   <div className="text-[10px] text-muted-foreground flex items-center gap-1">

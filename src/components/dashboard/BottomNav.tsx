@@ -5,10 +5,9 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
-  Search,
   MessageSquare,
   User,
-  Plus,
+  Users,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -29,23 +28,17 @@ export function BottomNav({ className }: BottomNavProps) {
       icon: LayoutDashboard,
     },
     {
-      title: "Explore",
-      href: "/dashboard/search",
-      icon: Search,
-    },
-    {
-      title: "Create",
-      href: "/dashboard/create",
-      icon: Plus,
-      isAction: true,
-    },
-    {
-      title: "Collabs",
+      title: "Inbound",
       href: "/dashboard/collabs",
       icon: MessageSquare,
     },
     {
-      title: "Profile",
+      title: "Network",
+      href: "/dashboard/network",
+      icon: Users,
+    },
+    {
+      title: "Your Page",
       href: profileHref,
       icon: User,
     },
@@ -59,17 +52,13 @@ export function BottomNav({ className }: BottomNavProps) {
           href={item.href}
           className={cn(
             "flex flex-col items-center gap-1 transition-colors relative",
-            item.isAction 
-              ? "bg-primary text-primary-foreground p-3 rounded-full -mt-8 shadow-lg shadow-primary/30 active:scale-95 transition-transform"
-              : pathname === item.href
-                ? "text-primary"
-                : "text-muted-foreground"
+            pathname === item.href
+              ? "text-primary"
+              : "text-muted-foreground"
           )}
         >
-          <item.icon className={cn(item.isAction ? "w-6 h-6" : "w-5 h-5")} />
-          {!item.isAction && (
-            <span className="text-[10px] font-medium leading-none">{item.title}</span>
-          )}
+          <item.icon className="w-5 h-5" />
+          <span className="text-[10px] font-medium leading-none">{item.title}</span>
         </Link>
       ))}
     </nav>

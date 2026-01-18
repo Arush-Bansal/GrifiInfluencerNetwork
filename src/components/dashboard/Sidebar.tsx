@@ -5,12 +5,12 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
-  Search,
   MessageSquare,
+  Users,
   PlusCircle,
-  ExternalLink,
+  User as UserIcon,
 } from "lucide-react";
-import { User } from "@supabase/supabase-js";
+import { User as AuthUser } from "@supabase/supabase-js";
 import { DashboardProfile } from "@/types/dashboard";
 import { SidebarUserMenu } from "./SidebarUserMenu";
 import { UserRole } from "@/types/enums";
@@ -18,7 +18,7 @@ import { Logo } from "@/components/brand/Logo";
 
 interface SidebarProps {
   className?: string;
-  user: User | null;
+  user: AuthUser | null;
   role: string | null;
   profile: DashboardProfile | null;
 }
@@ -28,19 +28,19 @@ export function Sidebar({ className, user, role, profile }: SidebarProps) {
 
   const navItems = [
     {
-      title: "Dashboard",
+      title: "Home",
       href: "/dashboard",
       icon: LayoutDashboard,
     },
     {
-      title: "Explore",
-      href: "/dashboard/search",
-      icon: Search,
-    },
-    {
-      title: "Collaborations",
+      title: "Inbound",
       href: "/dashboard/collabs",
       icon: MessageSquare,
+    },
+    {
+      title: "Network",
+      href: "/dashboard/network",
+      icon: Users,
     },
   ];
 
@@ -101,8 +101,8 @@ export function Sidebar({ className, user, role, profile }: SidebarProps) {
                     : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 )}
               >
-                <ExternalLink className="w-4 h-4" />
-                Visit Your Page
+                <UserIcon className="w-4 h-4" />
+                Your Page
               </Link>
             </>
           )}
