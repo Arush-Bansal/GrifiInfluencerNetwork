@@ -413,6 +413,8 @@ interface ProfileContentProps {
   toast: (options: { title?: string; description?: string; variant?: "default" | "destructive" }) => void;
   loadingConnection?: boolean;
   connectionStatus: string | null;
+  isFollowing: boolean;
+  followMutation: UseMutationResult<void, Error, void>;
 }
 
 const ProfileContent = ({ 

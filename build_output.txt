@@ -1,0 +1,24 @@
+
+> v4-next@0.1.0 build
+> next build --webpack
+
+   ▲ Next.js 16.0.10 (webpack)
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 4.2s
+   Running TypeScript ...
+Failed to compile.
+
+./src/app/u/[username]/page.tsx:310:17
+Type error: Type '{ profile: Profile; isOwnProfile: boolean; isFollowing: boolean; connectionStatus: "pending" | "rejected" | "accepted" | "completed" | null; loadingConnection: boolean; followMutation: UseMutationResult<...>; ... 13 more ...; toast: ({ title, description, variant, ...props }: ToastProps) => string | number; }' is not assignable to type 'IntrinsicAttributes & ProfileContentProps'.
+  Property 'isFollowing' does not exist on type 'IntrinsicAttributes & ProfileContentProps'.
+
+[0m [90m 308 |[39m                 profile[33m=[39m{profile} 
+ [90m 309 |[39m                 isOwnProfile[33m=[39m{isOwnProfile} 
+[31m[1m>[22m[39m[90m 310 |[39m                 isFollowing[33m=[39m{[33m![39m[33m![39misFollowing}
+ [90m     |[39m                 [31m[1m^[22m[39m
+ [90m 311 |[39m                 connectionStatus[33m=[39m{connectionStatus [33m||[39m [36mnull[39m}
+ [90m 312 |[39m                 loadingConnection[33m=[39m{loadingConnection}
+ [90m 313 |[39m                 followMutation[33m=[39m{followMutation}[0m
+Next.js build worker exited with code: 1 and signal: null
