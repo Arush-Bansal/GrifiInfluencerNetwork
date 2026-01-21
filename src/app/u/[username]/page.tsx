@@ -53,21 +53,35 @@ interface Profile extends DashboardProfile {
 
 
 const PublicNavbar = ({ user }: { user: User | null }) => (
-  <nav className="h-16 border-b border-border bg-background flex items-center justify-between px-6 sticky top-0 z-50">
-    <Link 
-      href={user ? "/dashboard" : "/"} 
-      className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-    >
-      <Logo size={32} />
-      <span className="font-bold text-lg tracking-tight">GRIFI</span>
-    </Link>
-    <div className="flex items-center gap-2">
-      <Button variant="ghost" size="sm" asChild>
-        <Link href="/auth">Login</Link>
-      </Button>
-      <Button size="sm" asChild>
-        <Link href="/auth">Sign Up</Link>
-      </Button>
+  <nav className="border-b border-slate-200/60 bg-white/70 backdrop-blur-md sticky top-0 z-50">
+    <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+      <Link 
+        href={user ? "/dashboard" : "/"} 
+        className="flex items-center gap-2 group transition-all"
+      >
+        <Logo size={32} />
+        <span className="text-xl font-bold tracking-tight text-slate-900">GRIFI</span>
+      </Link>
+      <div className="flex items-center gap-4">
+        {user ? (
+          <Link href="/dashboard">
+            <Button variant="outline" className="rounded-full border-slate-200 hover:bg-slate-50 font-bold px-6">
+              Dashboard
+            </Button>
+          </Link>
+        ) : (
+          <>
+            <Link href="/auth">
+              <Button variant="ghost" className="rounded-full text-sm font-medium">Log In</Button>
+            </Link>
+            <Link href="/auth?mode=signup">
+              <Button className="rounded-full bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 text-sm font-bold px-6">
+                Get Started
+              </Button>
+            </Link>
+          </>
+        )}
+      </div>
     </div>
   </nav>
 );

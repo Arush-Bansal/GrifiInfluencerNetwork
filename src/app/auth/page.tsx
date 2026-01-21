@@ -282,24 +282,24 @@ const AuthContent = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-[#FAFAFA] flex">
       {/* Left side - Form */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-8 overflow-y-auto">
         <div className="w-full max-w-md space-y-8">
           
           {/* Header */}
           <div className="flex flex-col space-y-2 text-left">
-            <Link href="/" className="flex items-center gap-2 mb-6 w-fit hover:opacity-80 transition-opacity">
-              <Logo size={32} />
-              <span className="text-xl font-bold tracking-tight">GRIFI</span>
+            <Link href="/" className="flex items-center gap-2 mb-8 w-fit group transition-all">
+              <Logo size={40} />
+              <span className="text-2xl font-bold tracking-tight text-slate-900 group-hover:text-primary transition-colors">GRIFI</span>
             </Link>
 
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            <h1 className="text-4xl font-bold tracking-tight text-slate-900">
               {isSignUp 
-                ? (role ? `Sign up as ${ROLES.find(r => r.id === role)?.title}` : "Create your account") 
+                ? (role ? `Join as ${ROLES.find(r => r.id === role)?.title}` : "Create your account") 
                 : "Welcome back"}
             </h1>
-            <p className="text-muted-foreground text-sm sm:text-base">
+            <p className="text-slate-500 text-base font-medium">
               {showVerification 
                 ? "Verify your email to complete your registration."
                 : (isSignUp 
@@ -365,18 +365,18 @@ const AuthContent = () => {
                   <Card 
                     key={r.id}
                     className={cn(
-                      "cursor-pointer hover:border-primary/50 hover:bg-accent/5 transition-all duration-200 group relative overflow-hidden",
-                      "border-border/60 shadow-none hover:shadow-md"
+                      "cursor-pointer hover:border-primary/20 hover:bg-white hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 group relative overflow-hidden",
+                      "border-slate-100 bg-white/50 shadow-sm rounded-[1.5rem]"
                     )}
                     onClick={() => handleRoleSelect(r.id)}
                   >
-                    <CardContent className="p-5 flex flex-col gap-3">
-                      <div className="p-2.5 w-fit rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-200">
-                        <Icon size={20} />
+                    <CardContent className="p-6 flex flex-col gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300 flex items-center justify-center">
+                        <Icon size={24} />
                       </div>
                       <div className="space-y-1">
-                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{r.title}</h3>
-                        <p className="text-xs text-muted-foreground leading-relaxed">{r.description}</p>
+                        <h3 className="font-bold text-slate-900 group-hover:text-primary transition-colors">{r.title}</h3>
+                        <p className="text-xs text-slate-500 font-medium leading-relaxed">{r.description}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -405,7 +405,7 @@ const AuthContent = () => {
               )}
               
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Email Address</Label>
                 <Input
                   id="email"
                   type="email"
@@ -413,24 +413,24 @@ const AuthContent = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com"
                   required
-                  className="h-11"
+                  className="h-14 rounded-2xl border-slate-100 bg-white shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6"
                 />
                 {isSignUp && role === "brand" && (
-                  <p className="text-[10px] text-muted-foreground italic">
-                    * Brand accounts require a company email address.
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest ml-1">
+                    * Brand accounts require a company email.
                   </p>
                 )}
               </div>
               
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
+                <div className="flex items-center justify-between ml-1">
+                  <Label htmlFor="password" className="text-xs font-bold uppercase tracking-widest text-slate-400">Password</Label>
                   {!isSignUp && (
                     <Link 
                       href="/auth/reset-password" 
-                      className="text-xs font-medium text-primary hover:text-primary/80"
+                      className="text-xs font-bold text-primary hover:text-primary/80 transition-colors"
                     >
-                      Forgot password?
+                      Forgot?
                     </Link>
                   )}
                 </div>
@@ -441,18 +441,18 @@ const AuthContent = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="h-11"
+                  className="h-14 rounded-2xl border-slate-100 bg-white shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6"
                 />
               </div>
 
-              <div className="flex flex-col gap-3 pt-2">
+              <div className="flex flex-col gap-4 pt-4">
                 <Button 
                   type="submit" 
-                  className="w-full h-11 text-base font-medium"
+                  className="w-full h-14 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg shadow-xl shadow-slate-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   disabled={loading}
                 >
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {isSignUp ? "Create Account" : "Log In"}
+                  {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                  {isSignUp ? "Create My Account" : "Sign In to Grifi"}
                 </Button>
 
                 {isSignUp && role && (
@@ -460,9 +460,9 @@ const AuthContent = () => {
                     type="button" 
                     variant="ghost" 
                     onClick={() => setRole(null)}
-                    className="w-full h-11 text-muted-foreground hover:text-foreground"
+                    className="w-full h-12 rounded-full font-bold text-slate-500 hover:text-slate-900"
                   >
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Change Role
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
                   </Button>
                 )}
               </div>
@@ -491,32 +491,41 @@ const AuthContent = () => {
       </div>
 
       {/* Right side - Visual */}
-      <div className="hidden lg:flex flex-1 bg-muted/30 border-l border-border/50 items-center justify-center p-8 relative overflow-hidden">
-        
-        <div className="max-w-lg text-center space-y-8 relative z-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-primary mb-2 shadow-xl shadow-primary/20 ring-4 ring-background overflow-hidden p-4">
-            <Logo size={80} className="w-full h-full" />
+      <div className="hidden lg:flex flex-1 bg-slate-900 relative overflow-hidden items-center justify-center p-12">
+        {/* Background Effects */}
+        <div className="absolute top-0 left-0 w-full h-full">
+            <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-primary/20 rounded-full blur-[120px] opacity-50" />
+            <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-500/10 rounded-full blur-[100px] opacity-30" />
+        </div>
+
+        <div className="max-w-md text-center space-y-10 relative z-10 p-8">
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-[2rem] bg-white mb-4 shadow-2xl shadow-black/20 ring-8 ring-white/10 p-5 rotate-3 hover:rotate-0 transition-transform duration-500">
+            <Logo size={80} />
           </div>
           
-          <div className="space-y-4">
-            <h2 className="text-3xl font-bold tracking-tight text-foreground">
-              The Identity Layer for the Creator Economy
+          <div className="space-y-6">
+            <h2 className="text-4xl font-bold tracking-tight text-white leading-tight">
+              The Professional Identity Layer of the <span className="text-primary italic">Creator Economy</span>
             </h2>
-            <p className="text-muted-foreground text-lg leading-relaxed max-w-md mx-auto">
-              Connect, collaborate, and grow. Whether you&apos;re a creator, brand, or agency, Grifi is your professional home.
+            <p className="text-slate-400 text-lg font-medium leading-relaxed">
+              Connect, collaborate, and grow. Grifi is where India&apos;s top creators and brands build their professional future.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 text-left pt-4">
-            <div className="p-5 bg-background border border-border/60 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-              <div className="text-3xl font-bold text-primary tracking-tight">Verified</div>
-              <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-2">Professional Network</div>
+          <div className="grid grid-cols-2 gap-4 text-left pt-6">
+            <div className="p-6 bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl group hover:bg-white/10 transition-all">
+              <div className="text-3xl font-black text-white tracking-tight">Verified</div>
+              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-3">Professional Network</div>
             </div>
-            <div className="p-5 bg-background border border-border/60 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-              <div className="text-3xl font-bold text-primary tracking-tight">Seamless</div>
-              <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-2">Collaboration Tools</div>
+            <div className="p-6 bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl group hover:bg-white/10 transition-all">
+              <div className="text-3xl font-black text-primary tracking-tight">Seamless</div>
+              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-3">Verified Collabs</div>
             </div>
           </div>
+        </div>
+
+        <div className="absolute bottom-10 text-white/20 text-[10px] font-bold uppercase tracking-[0.4em]">
+            Empowering 100k+ Creators in India
         </div>
       </div>
     </div>

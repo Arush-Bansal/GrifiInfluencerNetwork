@@ -106,38 +106,38 @@ export default function UpdatePassword() {
 
   if (checkingSession) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-[#FAFAFA] flex flex-col items-center justify-center gap-6">
         <div className="animate-bounce">
-          <Logo size={48} />
+          <Logo size={64} />
         </div>
-        <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
-          <Loader2 className="w-4 h-4 animate-spin" />
-          <span className="text-sm font-medium">Verifying reset link...</span>
+        <div className="flex flex-col items-center gap-3 text-slate-500 animate-pulse">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          <span className="text-sm font-bold uppercase tracking-widest">Verifying Link</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6 sm:p-8">
-      <div className="w-full max-w-md space-y-8">
+    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-6 sm:p-8">
+      <div className="w-full max-w-md space-y-10">
         <div className="flex flex-col space-y-2 text-left">
-          <div className="flex items-center gap-2 mb-6 w-fit">
-            <Logo size={32} />
-            <span className="text-xl font-bold tracking-tight">GRIFI</span>
+          <div className="flex items-center gap-2 mb-8 w-fit group transition-all">
+            <Logo size={40} />
+            <span className="text-2xl font-bold tracking-tight text-slate-900">GRIFI</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
             Set New Password
           </h1>
-          <p className="text-muted-foreground text-sm sm:text-base">
-            Please enter your new password below.
+          <p className="text-slate-500 text-base font-medium">
+            Please enter your new professional password below.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+        <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
           <div className="space-y-2">
-            <Label htmlFor="password">New Password</Label>
+            <Label htmlFor="password" className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">New Password</Label>
             <Input
               id="password"
               type="password"
@@ -145,12 +145,12 @@ export default function UpdatePassword() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
-              className="h-11"
+              className="h-14 rounded-2xl border-slate-100 bg-white shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm New Password</Label>
+            <Label htmlFor="confirmPassword" className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Confirm Password</Label>
             <Input
               id="confirmPassword"
               type="password"
@@ -158,18 +158,18 @@ export default function UpdatePassword() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
               required
-              className="h-11"
+              className="h-14 rounded-2xl border-slate-100 bg-white shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6"
             />
           </div>
 
-          <div className="flex flex-col gap-3 pt-2">
+          <div className="flex flex-col gap-3 pt-4">
             <Button 
               type="submit" 
-              className="w-full h-11 text-base font-medium"
+              className="w-full h-14 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg shadow-xl shadow-slate-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
               disabled={loading}
             >
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Update Password
+              {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+              Update My Password
             </Button>
           </div>
         </form>

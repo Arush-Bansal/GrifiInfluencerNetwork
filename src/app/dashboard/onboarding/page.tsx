@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { Logo } from "@/components/brand/Logo";
 import { 
   Loader2, Check, XCircle, Rocket, User, Heart, Globe, 
   Mail, Instagram, Twitter as TwitterIcon, Youtube, 
   ArrowRight, ArrowLeft, Plus, Sparkles, Briefcase, 
-  CheckCircle2, Building
+  CheckCircle2, Building, Star, PlayCircle
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useCheckUsername, useUpdateProfile } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
-import { OnboardingSkeleton } from "@/components/skeletons";
+// import { OnboardingSkeleton } from "@/components/skeletons";
 import { cn } from "@/lib/utils";
 
 // --- Constants & Schema ---
@@ -158,7 +159,7 @@ export default function OnboardingPage() {
     }
 
     // Check if onboarding is already complete
-    if (profile?.username && profile?.full_name && (profile as Record<string, any>)?.onboarding_completed) {
+    if (profile?.username && profile?.full_name && (profile as any)?.onboarding_completed) {
       router.push("/dashboard");
     }
   }, [user, profile, authLoading, router]);
@@ -174,11 +175,11 @@ export default function OnboardingPage() {
         full_name: profile?.full_name || metadata.full_name || "",
         niche: profile?.niche || metadata.niche || "",
         platform: profile?.platform || metadata.platform || "",
-        youtube_url: (profile as Record<string, any>)?.youtube_url || "",
-        instagram_url: (profile as Record<string, any>)?.instagram_url || "",
-        twitter_url: (profile as Record<string, any>)?.twitter_url || "",
-        public_email: (profile as Record<string, any>)?.public_email || user.email || "",
-        services: (profile as Record<string, any>)?.services || [],
+        youtube_url: (profile as any)?.youtube_url || "",
+        instagram_url: (profile as any)?.instagram_url || "",
+        twitter_url: (profile as any)?.twitter_url || "",
+        public_email: (profile as any)?.public_email || user.email || "",
+        services: (profile as any)?.services || [],
         featured_reel_url: "",
         featured_reel_title: "",
         brand_name: "",
@@ -246,7 +247,7 @@ export default function OnboardingPage() {
           });
       }
 
-      // Handle brand collaboration if provided
+      // SUCCESS COMPONENT (OPTIONAL REFACTOR)
       if (data.brand_name) {
         await supabase
           .from("past_collaborations")
@@ -283,61 +284,90 @@ export default function OnboardingPage() {
 
   if (authLoading || isFinishing) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background space-y-6">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FAFAFA] space-y-8">
+        <div className="absolute inset-0 bg-noise opacity-5 pointer-events-none" />
         {showSuccess ? (
-          <div className="flex flex-col items-center space-y-4 animate-in fade-in zoom-in duration-500">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
-              <Sparkles className="w-10 h-10 text-primary animate-pulse" />
+          <div className="flex flex-col items-center space-y-6 animate-in fade-in zoom-in duration-700 relative z-10">
+            <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center">
+              <Sparkles className="w-12 h-12 text-primary animate-pulse" />
             </div>
-            <h2 className="text-2xl font-black italic tracking-tight">CREATING YOUR BUSINESS PRESENCE...</h2>
-            <div className="w-48 h-1 bg-secondary rounded-full overflow-hidden">
+            <div className="text-center">
+              <h2 className="text-3xl font-black tracking-tight text-slate-900">PREPARING YOUR PROFILE</h2>
+              <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mt-2">Elevating your professional identity...</p>
+            </div>
+            <div className="w-64 h-1.5 bg-slate-100 rounded-full overflow-hidden">
               <div className="h-full bg-primary animate-progress" />
             </div>
           </div>
         ) : (
-          <OnboardingSkeleton />
+          <div className="flex flex-col items-center gap-4 relative z-10">
+            <Logo size={64} className="animate-bounce" />
+            <div className="flex flex-col items-center gap-2">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Securing Session</span>
+            </div>
+          </div>
         )}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-primary/5 flex items-center justify-center p-4">
-      <div className="w-full max-w-lg animate-in fade-in zoom-in duration-500">
+    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-6 relative overflow-hidden">
+      <div className="absolute inset-0 bg-noise opacity-5 pointer-events-none" />
+      
+      {/* Background Orbs */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[120px] animate-blob" />
+          <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-blue-400/5 rounded-full blur-[100px] animate-blob animation-delay-2000" />
+      </div>
+
+      <div className="w-full max-w-xl animate-in fade-in slide-in-from-bottom-8 duration-700 relative z-10">
         
-        {/* Progress Bar */}
-        <div className="flex justify-between mb-8 px-2">
-          {[1, 2, 3, 4, 5].map((s) => (
-            <div 
-              key={s} 
-              className={cn(
-                "h-1.5 rounded-full transition-all duration-300",
-                s === currentStep ? "w-12 bg-primary" : 
-                s < currentStep ? "w-8 bg-primary/40" : "w-8 bg-muted"
-              )}
-            />
-          ))}
+        {/* Progress Header */}
+        <div className="flex items-center justify-between mb-12 px-2">
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Onboarding Flow</span>
+            <div className="flex items-center gap-2">
+              <h3 className="text-2xl font-black tracking-tight text-slate-900">Professional Setup</h3>
+              <span className="text-slate-300 font-bold text-xl">/</span>
+              <span className="text-slate-400 font-bold">Step {currentStep}</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-1.5">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <div 
+                key={s} 
+                className={cn(
+                  "h-1.5 rounded-full transition-all duration-500",
+                  s === currentStep ? "w-8 bg-primary" : 
+                  s < currentStep ? "w-2 bg-primary/40" : "w-2 bg-slate-200"
+                )}
+              />
+            ))}
+          </div>
         </div>
 
-        <Card className="border-none shadow-2xl bg-card/80 backdrop-blur-xl">
-          <CardHeader className="text-center space-y-2">
-            <CardTitle className="text-3xl font-black italic tracking-tighter bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent uppercase text-center">
-              {currentStep === 1 && "Start Your Journey"}
-              {currentStep === 2 && "Connect Your Socials"}
-              {currentStep === 3 && "What You Offer"}
-              {currentStep === 4 && "Portfolio Samples"}
-              {currentStep === 5 && "Brand Relationships"}
+        <Card className="border-none shadow-[0_32px_64px_-15px_rgba(0,0,0,0.1)] bg-white rounded-[3rem] overflow-hidden">
+          <CardHeader className="text-left pt-12 px-10 pb-4">
+            <CardTitle className="text-4xl font-black tracking-tight text-slate-900 leading-tight">
+              {currentStep === 1 && "The Essentials"}
+              {currentStep === 2 && "Social Footprint"}
+              {currentStep === 3 && "Core Services"}
+              {currentStep === 4 && "Showcase Samples"}
+              {currentStep === 5 && "Industry Network"}
             </CardTitle>
-            <CardDescription className="text-lg text-center">
-              {currentStep === 1 && "First, let's get the basics right."}
-              {currentStep === 2 && "Where can brands find your work?"}
-              {currentStep === 3 && "Select the services you provide to clients."}
-              {currentStep === 4 && "Add a link to your best work/reel."}
-              {currentStep === 5 && "Which brands have you worked with?"}
+            <CardDescription className="text-base text-slate-500 font-medium pt-2">
+              {currentStep === 1 && "Let's build your professional identifier on the network."}
+              {currentStep === 2 && "Synchronize your presence across platforms."}
+              {currentStep === 3 && "Which areas of expertise define your brand?"}
+              {currentStep === 4 && "Add your most high-impact work sample."}
+              {currentStep === 5 && "Highlight the brands that have trusted you."}
             </CardDescription>
           </CardHeader>
           
-          <CardContent>
+          <CardContent className="px-10 pb-12">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 
@@ -348,14 +378,11 @@ export default function OnboardingPage() {
                       name="full_name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="flex items-center gap-2">
-                            <User className="w-4 h-4 text-primary" />
-                            Full Name
-                          </FormLabel>
+                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Full Name</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="Alex Rivera" 
-                              className="h-12 bg-background/50 border-border/50 rounded-xl"
+                              className="h-14 rounded-2xl border-slate-100 bg-[#FAFAFA] shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6"
                               {...field} 
                             />
                           </FormControl>
@@ -369,16 +396,13 @@ export default function OnboardingPage() {
                       name="username"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="flex items-center gap-2">
-                            <Globe className="w-4 h-4 text-primary" />
-                            User ID
-                          </FormLabel>
+                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Universal ID (Username)</FormLabel>
                           <div className="relative">
                             <FormControl>
                               <Input
                                 placeholder="username"
                                 className={cn(
-                                  "h-12 bg-background/50 border-border/50 rounded-xl pr-10",
+                                  "h-14 rounded-2xl border-slate-100 bg-[#FAFAFA] shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6",
                                   usernameStatus === 'unavailable' && "border-destructive focus-visible:ring-destructive",
                                   usernameStatus === 'available' && "border-green-500 focus-visible:ring-green-500"
                                 )}
@@ -389,13 +413,13 @@ export default function OnboardingPage() {
                                 }}
                               />
                             </FormControl>
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                              {usernameStatus === 'checking' && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                              {usernameStatus === 'available' && <Check className="h-4 w-4 text-green-500" />}
-                              {usernameStatus === 'unavailable' && <XCircle className="h-4 w-4 text-destructive" />}
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                              {usernameStatus === 'checking' && <Loader2 className="h-5 w-5 animate-spin text-slate-400" />}
+                              {usernameStatus === 'available' && <Check className="h-5 w-5 text-green-500" />}
+                              {usernameStatus === 'unavailable' && <XCircle className="h-5 w-5 text-destructive" />}
                             </div>
                           </div>
-                          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
+                          <p className="text-[10px] text-primary font-bold uppercase tracking-[0.2em] ml-1">
                             grifi.in/u/{watchedUsername || "username"}
                           </p>
                           <FormMessage />
@@ -403,25 +427,22 @@ export default function OnboardingPage() {
                       )}
                     />
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-6">
                       <FormField
                         control={form.control}
                         name="niche"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="flex items-center gap-2">
-                              <Heart className="w-4 h-4 text-primary" />
-                              Niche
-                            </FormLabel>
+                            <FormLabel className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Core Niche</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                               <FormControl>
-                                <SelectTrigger className="h-12 bg-background/50 border-border/50 rounded-xl">
+                                <SelectTrigger className="h-14 rounded-2xl border-slate-100 bg-[#FAFAFA] shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6">
                                   <SelectValue placeholder="Select" />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent>
+                              <SelectContent className="rounded-2xl border-slate-100">
                                 {NICHES.map((niche) => (
-                                  <SelectItem key={niche.value} value={niche.value}>{niche.label}</SelectItem>
+                                  <SelectItem key={niche.value} value={niche.value} className="rounded-xl">{niche.label}</SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
@@ -435,19 +456,16 @@ export default function OnboardingPage() {
                         name="platform"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="flex items-center gap-2">
-                              <Globe className="w-4 h-4 text-primary" />
-                              Main Platform
-                            </FormLabel>
+                            <FormLabel className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Main Platform</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                               <FormControl>
-                                <SelectTrigger className="h-12 bg-background/50 border-border/50 rounded-xl">
+                                <SelectTrigger className="h-14 rounded-2xl border-slate-100 bg-[#FAFAFA] shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6">
                                   <SelectValue placeholder="Select" />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent>
+                              <SelectContent className="rounded-2xl border-slate-100">
                                 {PLATFORMS.map((platform) => (
-                                  <SelectItem key={platform.value} value={platform.value}>{platform.label}</SelectItem>
+                                  <SelectItem key={platform.value} value={platform.value} className="rounded-xl">{platform.label}</SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
@@ -466,16 +484,13 @@ export default function OnboardingPage() {
                       name="public_email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Mail className="w-4 h-4 text-primary" />
-                              Professional Email
-                            </div>
+                          <FormLabel className="flex items-center justify-between ml-1">
+                            <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Professional Email</span>
                             <Button 
                               type="button" 
                               variant="ghost" 
                               size="sm" 
-                              className="h-6 text-[10px] uppercase font-bold text-primary hover:text-primary"
+                              className="h-6 text-[10px] uppercase font-bold text-primary hover:text-primary hover:bg-primary/5"
                               onClick={() => form.setValue('public_email', user?.email || '')}
                             >
                               Same as login
@@ -484,7 +499,7 @@ export default function OnboardingPage() {
                           <FormControl>
                             <Input 
                               placeholder="collab@yourbrand.com" 
-                              className="h-12 bg-background/50 border-border/50 rounded-xl"
+                              className="h-14 rounded-2xl border-slate-100 bg-[#FAFAFA] shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6"
                               {...field} 
                             />
                           </FormControl>
@@ -494,20 +509,17 @@ export default function OnboardingPage() {
                     />
 
                     <div className="space-y-4">
-                      <FormLabel className="flex items-center gap-2 text-muted-foreground">
-                        <Plus className="w-4 h-4" />
-                        Social Handles (Optional)
-                      </FormLabel>
+                      <span className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1 block mb-2">Social Hub (Optional)</span>
                       
                       <FormField
                         control={form.control}
                         name="instagram_url"
                         render={({ field }) => (
                           <div className="relative group">
-                            <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                            <Instagram className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
                             <Input 
                               placeholder="instagram_handle" 
-                              className="h-12 pl-12 bg-background/50 border-border/50 rounded-xl"
+                              className="h-14 pl-14 rounded-2xl border-slate-100 bg-[#FAFAFA] shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6"
                               {...field} 
                             />
                           </div>
@@ -519,10 +531,10 @@ export default function OnboardingPage() {
                         name="youtube_url"
                         render={({ field }) => (
                           <div className="relative group">
-                            <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                            <Youtube className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
                             <Input 
                               placeholder="youtube_channel_id" 
-                              className="h-12 pl-12 bg-background/50 border-border/50 rounded-xl"
+                              className="h-14 pl-14 rounded-2xl border-slate-100 bg-[#FAFAFA] shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6"
                               {...field} 
                             />
                           </div>
@@ -534,10 +546,10 @@ export default function OnboardingPage() {
                         name="twitter_url"
                         render={({ field }) => (
                           <div className="relative group">
-                            <TwitterIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                            <TwitterIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
                             <Input 
                               placeholder="twitter_handle" 
-                              className="h-12 pl-12 bg-background/50 border-border/50 rounded-xl"
+                              className="h-14 pl-14 rounded-2xl border-slate-100 bg-[#FAFAFA] shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6"
                               {...field} 
                             />
                           </div>
@@ -553,7 +565,7 @@ export default function OnboardingPage() {
                        <Briefcase className="w-4 h-4 text-primary" />
                        Select your services
                     </FormLabel>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-4">
                       {SERVICE_OPTIONS.map((option) => {
                         const isSelected = form.getValues('services')?.includes(option.value);
                         return (
@@ -570,16 +582,20 @@ export default function OnboardingPage() {
                               form.trigger('services');
                             }}
                             className={cn(
-                              "flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all duration-200 gap-2",
+                              "flex flex-col items-center justify-center p-6 rounded-[2rem] border-2 transition-all duration-300 gap-3 group relative overflow-hidden",
                               isSelected 
-                                ? "bg-primary/10 border-primary text-primary shadow-lg shadow-primary/5" 
-                                : "bg-background/50 border-border/50 text-muted-foreground hover:border-primary/50"
+                                ? "bg-primary text-white border-primary shadow-xl shadow-primary/20 scale-[1.02]" 
+                                : "bg-[#FAFAFA] border-slate-100 text-slate-400 hover:border-primary/30 hover:bg-white"
                             )}
                           >
-                            <span className="text-[11px] font-black uppercase text-center leading-tight">
+                            <span className="text-[11px] font-black uppercase text-center leading-tight tracking-widest relative z-10">
                               {option.label}
                             </span>
-                            {isSelected && <CheckCircle2 className="w-4 h-4" />}
+                            {isSelected ? (
+                              <CheckCircle2 className="w-5 h-5 relative z-10" />
+                            ) : (
+                                <Plus className="w-4 h-4 text-slate-200 group-hover:text-primary transition-colors" />
+                            )}
                           </button>
                         );
                       })}
@@ -594,14 +610,17 @@ export default function OnboardingPage() {
 
                 {currentStep === 4 && (
                   <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                    <div className="p-6 bg-primary/5 border border-primary/20 rounded-[2rem] space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                          <Rocket className="text-primary-foreground w-5 h-5" />
+                    <div className="p-8 bg-[#FAFAFA] border border-slate-100 rounded-[2.5rem] space-y-6 relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-8 opacity-5">
+                          <PlayCircle size={100} />
+                      </div>
+                      <div className="flex items-center gap-4 relative z-10">
+                        <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+                          <Rocket className="text-white w-6 h-6" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-sm italic">FEATURE YOUR BEST WORK</h4>
-                          <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">Help brands see your value instantly</p>
+                          <h4 className="font-black text-slate-900 tracking-tight uppercase">Featured Work</h4>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Showcase your viral impact</p>
                         </div>
                       </div>
 
@@ -652,14 +671,17 @@ export default function OnboardingPage() {
 
                 {currentStep === 5 && (
                   <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                    <div className="p-6 bg-primary/5 border border-primary/20 rounded-[2rem] space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                          <Building className="text-primary-foreground w-5 h-5" />
+                    <div className="p-8 bg-[#FAFAFA] border border-slate-100 rounded-[2.5rem] space-y-6 relative overflow-hidden">
+                       <div className="absolute top-0 right-0 p-8 opacity-5">
+                          <Building size={100} />
+                      </div>
+                      <div className="flex items-center gap-4 relative z-10">
+                        <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center shadow-lg shadow-slate-200">
+                          <Building className="text-white w-6 h-6" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-sm italic uppercase">Past Collaborations</h4>
-                          <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest text-left">Who has trusted your brand?</p>
+                          <h4 className="font-black text-slate-900 tracking-tight uppercase">Brand Trust</h4>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest text-left">Who have you partnered with?</p>
                         </div>
                       </div>
 
@@ -668,11 +690,11 @@ export default function OnboardingPage() {
                         name="brand_name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-[10px] font-bold uppercase tracking-widest">Brand Name</FormLabel>
+                            <FormLabel className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Featured Brand Name</FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="e.g. Nike, Red Bull, etc." 
-                                className="h-10 bg-background/50 border-border/50 rounded-lg text-left"
+                                className="h-14 rounded-2xl border-slate-100 bg-[#FAFAFA] shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6 text-left"
                                 {...field} 
                               />
                             </FormControl>
@@ -685,11 +707,11 @@ export default function OnboardingPage() {
                         name="brand_logo_url"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-left">Brand Logo URL (Optional)</FormLabel>
+                            <FormLabel className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Brand Identity URL (Optional)</FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="https://logo-url.com/logo.png" 
-                                className="h-10 bg-background/50 border-border/50 rounded-lg text-left"
+                                className="h-14 rounded-2xl border-slate-100 bg-[#FAFAFA] shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6 text-left"
                                 {...field} 
                               />
                             </FormControl>
@@ -699,21 +721,21 @@ export default function OnboardingPage() {
                       />
                     </div>
                     
-                    <div className="flex items-center gap-2 p-4 bg-secondary/20 rounded-2xl border border-secondary/10">
-                      <Sparkles className="w-5 h-5 text-secondary shrink-0" />
-                      <p className="text-[11px] font-medium leading-relaxed italic text-left">
-                        Brand names help build immediate authority and trust with new potential clients.
+                    <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                      <Sparkles className="w-5 h-5 text-primary shrink-0" />
+                      <p className="text-[11px] font-bold text-slate-500 leading-relaxed italic text-left uppercase tracking-widest">
+                        Social proof converts brands 3x faster.
                       </p>
                     </div>
                   </div>
                 )}
 
-                <div className="flex gap-4 pt-4">
+                <div className="flex gap-4 pt-8">
                   {currentStep > 1 && (
                     <Button
                       type="button"
-                      variant="outline"
-                      className="flex-1 h-12 rounded-xl text-lg font-bold"
+                      variant="ghost"
+                      className="flex-1 h-14 rounded-full text-base font-bold text-slate-500 hover:text-slate-900 transition-all"
                       onClick={prevStep}
                       disabled={isFinishing}
                     >
@@ -725,7 +747,7 @@ export default function OnboardingPage() {
                   {currentStep < 5 ? (
                     <Button
                       type="button"
-                      className="flex-[2] h-12 rounded-xl text-lg font-bold shadow-xl shadow-primary/20"
+                      className="flex-[2] h-14 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-base font-bold shadow-xl shadow-slate-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
                       onClick={nextStep}
                     >
                       Next Step
@@ -734,7 +756,7 @@ export default function OnboardingPage() {
                   ) : (
                     <Button
                       type="submit"
-                      className="flex-[2] h-12 rounded-xl text-lg font-bold shadow-xl shadow-primary/20"
+                      className="flex-[2] h-14 rounded-full bg-primary hover:bg-primary/90 text-white text-base font-bold shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                       disabled={isFinishing}
                     >
                       {isFinishing ? (
@@ -753,8 +775,8 @@ export default function OnboardingPage() {
           </CardContent>
         </Card>
         
-        <p className="text-center mt-8 text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-           Step {currentStep} of 5 • Building your digital identity
+        <p className="text-center mt-10 text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em]">
+           STEP {currentStep} OF 5 • VERIFYING PROFESSIONAL IDENTITY
         </p>
       </div>
     </div>

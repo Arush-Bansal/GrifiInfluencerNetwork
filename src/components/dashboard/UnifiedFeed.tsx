@@ -31,7 +31,7 @@ export function UnifiedFeed({ userId }: { userId: string }) {
             <Globe className="w-8 h-8" />
           </div>
           <p className="font-serif text-2xl mb-2">Coming soon</p>
-          <p className="text-muted-foreground text-sm max-w-xs mx-auto">We&apos;re currently building a more curated feed experience for you.</p>
+          <p className="text-muted-foreground text-sm max-w-xs mx-auto">Apply to the biggest brand campaigns and get paid for your content.</p>
         </CardContent>
       </Card>
     );

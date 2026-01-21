@@ -1,16 +1,17 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { DashboardProfile } from "@/types/dashboard";
 import { 
   Eye, 
   Mail, 
   Instagram, 
   Youtube, 
-  Twitter, 
   Copy, 
   Check, 
-  Link as LinkIcon 
+  Link as LinkIcon,
+  Sparkles,
+  Zap
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -40,82 +41,96 @@ export function StatsDashboard({ profile }: StatsDashboardProps) {
 
   const statCards = [
     {
-      title: "Page Visits",
+      title: "Page Reach",
       value: profile.page_visits || 0,
       icon: Eye,
-      color: "text-blue-500",
-      bg: "bg-blue-500/10",
+      color: "text-blue-600",
+      bg: "bg-blue-50",
     },
     {
-      title: "Email Copies",
+      title: "Inquiries",
       value: profile.email_copy_count || 0,
       icon: Mail,
-      color: "text-purple-500",
-      bg: "bg-purple-500/10",
+      color: "text-indigo-600",
+      bg: "bg-indigo-50",
     },
     {
-      title: "Instagram Clicks",
+      title: "IG Intent",
       value: profile.insta_copy_count || 0,
       icon: Instagram,
-      color: "text-pink-500",
-      bg: "bg-pink-500/10",
+      color: "text-rose-600",
+      bg: "bg-rose-50",
     },
     {
-      title: "YouTube Clicks",
+      title: "YT Reach",
       value: profile.yt_copy_count || 0,
       icon: Youtube,
-      color: "text-red-500",
-      bg: "bg-red-500/10",
+      color: "text-red-600",
+      bg: "bg-red-50",
     },
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
+    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Profile Link Card */}
-      <Card className="border-none bg-gradient-to-br from-primary/10 via-background to-background shadow-xl overflow-hidden relative group">
-        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-          <LinkIcon size={120} />
+      <Card className="border-none bg-slate-900 shadow-[0_32px_64px_-15px_rgba(0,0,0,0.2)] rounded-[3rem] overflow-hidden relative group">
+        <div className="absolute inset-0 bg-noise opacity-10" />
+        <div className="absolute top-0 right-0 p-12 opacity-10 group-hover:opacity-20 transition-opacity duration-700">
+          <Sparkles size={180} className="text-white" />
         </div>
-        <CardContent className="p-8 relative z-10">
-          <div className="space-y-4">
-            <div>
-              <h2 className="text-sm font-bold uppercase tracking-widest text-primary/60 mb-1">Your Professional identity</h2>
-              <CardTitle className="text-3xl font-serif">Share your profile</CardTitle>
+        
+        <CardContent className="p-10 md:p-14 relative z-10">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-10">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="px-3 py-1 bg-primary/20 rounded-full border border-primary/30">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Live Profile</span>
+                </div>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              </div>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tight text-white leading-tight">
+                Your professional <br />
+                identity is active.
+              </h2>
             </div>
             
-            <div className="flex items-center gap-2 p-1 pl-4 bg-muted/50 rounded-2xl border border-border/50 max-w-xl group/link hover:bg-muted transition-colors">
-              <span className="text-sm font-medium text-muted-foreground truncate flex-1">
-                {profileUrl}
-              </span>
-              <Button 
-                onClick={() => copyToClipboard(profileUrl, "Profile Link")}
-                className="rounded-xl h-10 px-6 font-bold shadow-lg shadow-primary/20"
-              >
-                {copiedField === "Profile Link" ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
-                {copiedField === "Profile Link" ? "Copied" : "Copy Link"}
-              </Button>
+            <div className="flex flex-col gap-4 w-full md:w-auto">
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs ml-1">Universal Sharing Link</p>
+              <div className="flex items-center gap-2 p-1.5 pl-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 w-full md:min-w-[400px] hover:bg-white/10 transition-all group/link">
+                <span className="text-sm font-medium text-slate-300 truncate flex-1">
+                  {profileUrl}
+                </span>
+                <Button 
+                  onClick={() => copyToClipboard(profileUrl, "Profile Link")}
+                  className="rounded-xl h-12 px-8 font-black bg-white text-slate-900 hover:bg-slate-100 transition-all active:scale-95 shadow-xl"
+                >
+                  {copiedField === "Profile Link" ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                  {copiedField === "Profile Link" ? "COPIED" : "COPY"}
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {statCards.map((stat) => (
-          <Card key={stat.title} className="border-none bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all group overflow-hidden">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className={`p-3 rounded-2xl ${stat.bg} ${stat.color} transition-transform group-hover:scale-110 duration-500`}>
-                  <stat.icon className="w-6 h-6" />
-                </div>
+          <Card key={stat.title} className="border-none bg-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] hover:shadow-[0_32px_64px_-15px_rgba(0,0,0,0.1)] transition-all group overflow-hidden">
+            <CardContent className="p-8">
+              <div className={`w-14 h-14 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center transition-transform group-hover:scale-110 duration-500`}>
+                <stat.icon className="w-6 h-6" />
               </div>
-              <div className="mt-4">
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">{stat.title}</p>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <h3 className="text-4xl font-serif font-bold tracking-tighter">
+              <div className="mt-8">
+                <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{stat.title}</p>
+                <div className="flex items-center gap-3">
+                  <h3 className="text-5xl font-black tracking-tighter text-slate-900">
                     {stat.value.toLocaleString()}
                   </h3>
-                  <span className="text-xs font-bold text-green-500">+0%</span>
+                  <div className="flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-600 rounded-full border border-green-100">
+                     <Zap className="w-3 h-3 fill-current" />
+                     <span className="text-[10px] font-bold">+0%</span>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -123,40 +138,27 @@ export function StatsDashboard({ profile }: StatsDashboardProps) {
         ))}
       </div>
 
-      {/* Additional Stats / Quick Actions */}
-      <div className="grid md:grid-cols-3 gap-6">
-        <Card className="md:col-span-2 border-none bg-card/50 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-xl font-serif">Reach Over Time</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64 w-full bg-muted/20 rounded-2xl flex items-center justify-center border border-dashed border-border">
-              <p className="text-sm text-muted-foreground font-medium">Analytics visualization coming soon</p>
+      {/* Analytics Placeholder */}
+      <Card className="border-none bg-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-[3rem] overflow-hidden">
+        <CardContent className="p-10 md:p-12">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h3 className="text-2xl font-black tracking-tight text-slate-900">Engagement Growth</h3>
+              <p className="text-sm text-slate-400 font-medium">Tracking your performance across all connected channels.</p>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none bg-[#1E1E1C] text-white overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <Twitter className="w-24 h-24" />
+            <Button variant="ghost" className="rounded-full text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary/5">
+              View Detailed Analytics
+            </Button>
           </div>
-          <CardContent className="p-8 h-full flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="p-3 bg-white/10 rounded-2xl w-fit">
-                <Twitter className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold">Twitter Clicks</h3>
-                <p className="text-sm text-white/60">Real-time engagement from your bio</p>
-              </div>
+          <div className="h-64 w-full bg-slate-50 rounded-[2rem] flex flex-col items-center justify-center border border-slate-100 relative group overflow-hidden">
+            <div className="absolute inset-0 bg-noise opacity-[0.03]" />
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-700 mb-4 scale-90 opacity-80 backdrop-blur-sm">
+                <LinkIcon className="text-slate-200 w-8 h-8" />
             </div>
-            <div className="mt-8">
-              <h3 className="text-5xl font-serif font-bold">{profile.twitter_copy_count || 0}</h3>
-              <p className="text-xs font-bold uppercase tracking-widest text-white/40 mt-1">Total Clicks</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest relative z-10">Data Visualization Syncing...</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

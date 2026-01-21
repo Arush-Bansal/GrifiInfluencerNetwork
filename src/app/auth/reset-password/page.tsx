@@ -45,18 +45,18 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6 sm:p-8">
-      <div className="w-full max-w-md space-y-8">
+    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-6 sm:p-8">
+      <div className="w-full max-w-md space-y-10">
         <div className="flex flex-col space-y-2 text-left">
-          <Link href="/auth" className="flex items-center gap-2 mb-6 w-fit hover:opacity-80 transition-opacity">
-            <Logo size={32} />
-            <span className="text-xl font-bold tracking-tight">GRIFI</span>
+          <Link href="/" className="flex items-center gap-2 mb-8 w-fit group transition-all">
+            <Logo size={40} />
+            <span className="text-2xl font-bold tracking-tight text-slate-900 group-hover:text-primary transition-colors">GRIFI</span>
           </Link>
 
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
             Reset Password
           </h1>
-          <p className="text-muted-foreground text-sm sm:text-base">
+          <p className="text-slate-500 text-base font-medium">
             {submitted 
               ? "We&apos;ve sent a password reset link to your email."
               : "Enter your email address and we&apos;ll send you a link to reset your password."
@@ -91,7 +91,7 @@ export default function ResetPassword() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Email Address</Label>
               <Input
                 id="email"
                 type="email"
@@ -99,26 +99,26 @@ export default function ResetPassword() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@company.com"
                 required
-                className="h-11"
+                className="h-14 rounded-2xl border-slate-100 bg-white shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6"
               />
             </div>
 
-            <div className="flex flex-col gap-3 pt-2">
+            <div className="flex flex-col gap-4 pt-4">
               <Button 
                 type="submit" 
-                className="w-full h-11 text-base font-medium"
+                className="w-full h-14 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg shadow-xl shadow-slate-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 disabled={loading}
               >
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                 Send Reset Link
               </Button>
               <Button 
                 asChild
                 variant="ghost" 
-                className="w-full h-11 text-muted-foreground hover:text-foreground"
+                className="w-full h-12 rounded-full font-bold text-slate-500 hover:text-slate-900"
               >
                 <Link href="/auth">
-                  <ArrowLeft className="mr-2 h-4 w-4" /> Back to login
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Back to Login
                 </Link>
               </Button>
             </div>

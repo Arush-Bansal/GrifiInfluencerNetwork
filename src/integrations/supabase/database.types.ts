@@ -278,12 +278,14 @@ export type Database = {
           is_verified: boolean | null
           location: string | null
           niche: string | null
+          onboarding_completed: boolean | null
           page_visits: number | null
           platform: string | null
           public_email: string | null
           service_appearances: boolean | null
           service_brand: boolean
           service_ugc: boolean
+          services: string[] | null
           twitter_copy_count: number | null
           twitter_url: string | null
           updated_at: string | null
@@ -306,12 +308,14 @@ export type Database = {
           is_verified?: boolean | null
           location?: string | null
           niche?: string | null
+          onboarding_completed?: boolean | null
           page_visits?: number | null
           platform?: string | null
           public_email?: string | null
           service_appearances?: boolean | null
           service_brand?: boolean
           service_ugc?: boolean
+          services?: string[] | null
           twitter_copy_count?: number | null
           twitter_url?: string | null
           updated_at?: string | null
@@ -334,12 +338,14 @@ export type Database = {
           is_verified?: boolean | null
           location?: string | null
           niche?: string | null
+          onboarding_completed?: boolean | null
           page_visits?: number | null
           platform?: string | null
           public_email?: string | null
           service_appearances?: boolean | null
           service_brand?: boolean
           service_ugc?: boolean
+          services?: string[] | null
           twitter_copy_count?: number | null
           twitter_url?: string | null
           updated_at?: string | null
