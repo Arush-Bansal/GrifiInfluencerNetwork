@@ -7,11 +7,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Logo } from "@/components/brand/Logo";
 import { 
-  Loader2, Check, XCircle, Rocket, User, Heart, Globe, 
-  Mail, Instagram, Twitter as TwitterIcon, Youtube, 
+  Loader2, Check, XCircle, Rocket, Instagram, Twitter as TwitterIcon, Youtube, 
   ArrowRight, ArrowLeft, Plus, Sparkles, Briefcase, 
   CheckCircle2, Building, Star, PlayCircle
 } from "lucide-react";
+import { TiltCard } from "@/components/ui/tilt-card";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -569,34 +569,35 @@ export default function OnboardingPage() {
                       {SERVICE_OPTIONS.map((option) => {
                         const isSelected = form.getValues('services')?.includes(option.value);
                         return (
-                          <button
-                            key={option.value}
-                            type="button"
-                            onClick={() => {
-                              const current = form.getValues('services') || [];
-                              if (current.includes(option.value)) {
-                                form.setValue('services', current.filter(v => v !== option.value));
-                              } else {
-                                form.setValue('services', [...current, option.value]);
-                              }
-                              form.trigger('services');
-                            }}
-                            className={cn(
-                              "flex flex-col items-center justify-center p-6 rounded-[2rem] border-2 transition-all duration-300 gap-3 group relative overflow-hidden",
-                              isSelected 
-                                ? "bg-primary text-white border-primary shadow-xl shadow-primary/20 scale-[1.02]" 
-                                : "bg-[#FAFAFA] border-slate-100 text-slate-400 hover:border-primary/30 hover:bg-white"
-                            )}
-                          >
-                            <span className="text-[11px] font-black uppercase text-center leading-tight tracking-widest relative z-10">
-                              {option.label}
-                            </span>
-                            {isSelected ? (
-                              <CheckCircle2 className="w-5 h-5 relative z-10" />
-                            ) : (
-                                <Plus className="w-4 h-4 text-slate-200 group-hover:text-primary transition-colors" />
-                            )}
-                          </button>
+                          <TiltCard key={option.value}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const current = form.getValues('services') || [];
+                                if (current.includes(option.value)) {
+                                  form.setValue('services', current.filter(v => v !== option.value));
+                                } else {
+                                  form.setValue('services', [...current, option.value]);
+                                }
+                                form.trigger('services');
+                              }}
+                              className={cn(
+                                "flex flex-col items-center justify-center p-6 rounded-[2rem] border-2 transition-all duration-300 gap-3 group relative overflow-hidden h-full w-full",
+                                isSelected 
+                                  ? "bg-primary text-white border-primary shadow-xl shadow-primary/20 scale-[1.02]" 
+                                  : "bg-[#FAFAFA] border-slate-100 text-slate-400 hover:border-primary/30 hover:bg-white"
+                              )}
+                            >
+                              <span className="text-[11px] font-black uppercase text-center leading-tight tracking-widest relative z-10">
+                                {option.label}
+                              </span>
+                              {isSelected ? (
+                                <CheckCircle2 className="w-5 h-5 relative z-10" />
+                              ) : (
+                                  <Plus className="w-4 h-4 text-slate-200 group-hover:text-primary transition-colors" />
+                              )}
+                            </button>
+                          </TiltCard>
                         );
                       })}
                     </div>
