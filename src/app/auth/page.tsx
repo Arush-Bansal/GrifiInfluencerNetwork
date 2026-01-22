@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, ElementType } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase, getURL } from "@/integrations/supabase/client";
 import { z } from "zod";
-import { Briefcase, Building2, ArrowLeft, Loader2, Sparkles, Users, Mail, CheckCircle2 } from "lucide-react";
+import { Briefcase, Building2, ArrowLeft, Loader2, Sparkles, Users, Mail, CheckCircle2, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User, AuthChangeEvent } from "@supabase/supabase-js";
 import { Logo } from "@/components/brand/Logo";
@@ -22,7 +22,7 @@ const authSchema = z.object({
 
 type UserRole = "influencer" | "creator_ops" | "brand" | "agency";
 
-const ROLES: { id: UserRole; title: string; description: string; icon: ElementType }[] = [
+const ROLES: { id: UserRole; title: string; description: string; icon: LucideIcon }[] = [
   {
     id: "influencer",
     title: "Influencer",

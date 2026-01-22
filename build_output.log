@@ -1,0 +1,23 @@
+
+> v4-next@0.1.0 build
+> next build --webpack
+
+   ▲ Next.js 16.0.10 (webpack)
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 4.9s
+   Running TypeScript ...
+Failed to compile.
+
+./src/app/auth/page.tsx:375:31
+Type error: Type 'number' is not assignable to type 'never'.
+
+[0m [90m 373 |[39m                     [33m<[39m[33mCardContent[39m className[33m=[39m[32m"p-6 flex flex-col gap-4"[39m[33m>[39m
+ [90m 374 |[39m                       [33m<[39m[33mdiv[39m className[33m=[39m[32m"w-12 h-12 rounded-2xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300 flex items-center justify-center"[39m[33m>[39m
+[31m[1m>[22m[39m[90m 375 |[39m                         [33m<[39m[33mIcon[39m size[33m=[39m{[35m24[39m} [33m/[39m[33m>[39m
+ [90m     |[39m                               [31m[1m^[22m[39m
+ [90m 376 |[39m                       [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m 377 |[39m                       [33m<[39m[33mdiv[39m className[33m=[39m[32m"space-y-1"[39m[33m>[39m
+ [90m 378 |[39m                         [33m<[39m[33mh3[39m className[33m=[39m[32m"font-bold text-slate-900 group-hover:text-primary transition-colors"[39m[33m>[39m{r[33m.[39mtitle}[33m<[39m[33m/[39m[33mh3[39m[33m>[39m[0m
+Next.js build worker exited with code: 1 and signal: null

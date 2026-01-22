@@ -10,14 +10,13 @@ import {
   PlayCircle,
   Users,
   Star,
-  CheckCircle2,
   Plus,
-  Zap,
-  ShieldCheck,
-  Award,
   Globe,
   BarChart3,
-  CreditCard
+  CreditCard,
+  LayoutGrid,
+  Languages,
+  TrendingUp
 } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,20 +49,20 @@ const Index = () => {
     {
       icon: <MessageSquare className="w-8 h-8" />,
       title: "Chat & Connect",
-      desc: "Communicate directly with brands to discuss campaign goals and creative vision.",
-      label: "Communicate"
+      desc: "communicate directly with brands to discuss campaign goals & creative vision",
+      label: ""
     },
     {
       icon: <PlayCircle className="w-8 h-8" />,
-      title: "Create & Receive",
-      desc: "Produce high-quality UGC content and submit it for brand review within the platform.",
-      label: "Receive Video"
+      title: "Submit Video",
+      desc: "Receive products, produce high quality content and submit for review",
+      label: ""
     },
     {
       icon: <CreditCard className="w-8 h-8" />,
-      title: "Secure Payments",
-      desc: "Get paid instantly and securely via UPI once the content is approved.",
-      label: "Make Payment"
+      title: "Receive Payments",
+      desc: "Get paid instantly and securely via UPI once content is approved",
+      label: ""
     }
   ];
 
@@ -176,7 +175,7 @@ const Index = () => {
                 </div>
               ))}
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Trusted by 2,000+ Premium Creators</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Trusted by 10,000+ Creators</span>
           </motion.div>
 
           <motion.h1 
@@ -185,8 +184,8 @@ const Index = () => {
             transition={{ duration: 0.8, delay: 0.1 }}
             className="text-6xl md:text-[9rem] font-black tracking-tight mb-8 leading-[0.9] text-slate-900"
           >
-            THE PULSE OF <br />
-            <span className="bg-gradient-to-r from-primary via-primary to-primary/50 bg-clip-text text-transparent italic">CREATION.</span>
+            THE FUTURE OF <br />
+            <span className="bg-gradient-to-r from-primary via-primary to-primary/50 bg-clip-text text-transparent italic">MARKETING.</span>
           </motion.h1>
           
           <motion.p 
@@ -195,7 +194,7 @@ const Index = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-xl md:text-3xl text-slate-500 mb-14 max-w-4xl mx-auto leading-tight font-medium"
           >
-            India&apos;s most elite influencer and UGC network. We connect <br className="hidden md:block" /> visionary brands with the storytellers who define tomorrow.
+            India&apos;s first AI-powered Influencer & UGC Creator Network. <br className="hidden md:block" /> Enabling smarter collabs with the most loved Brands!
           </motion.p>
 
           <motion.div 
@@ -206,12 +205,12 @@ const Index = () => {
           >
             <Link href="/auth?mode=signup">
               <Button size="lg" className="h-18 px-14 text-xl font-black rounded-2xl bg-slate-900 hover:bg-slate-800 text-white shadow-[0_20px_40px_-12px_rgba(0,0,0,0.3)] transition-all hover:scale-[1.05] active:scale-95 group">
-                Join the Pulse <Plus className="ml-3 w-6 h-6 group-hover:rotate-90 transition-transform" />
+                Join Grifi <Plus className="ml-3 w-6 h-6 group-hover:rotate-90 transition-transform" />
               </Button>
             </Link>
             <Link href="/dashboard/network">
               <Button size="lg" variant="outline" className="h-18 px-14 text-xl font-bold rounded-2xl border-slate-200 bg-white/50 backdrop-blur-sm hover:bg-white transition-all shadow-lg shadow-slate-100">
-                Explore Talent
+                Discover Creators
               </Button>
             </Link>
           </motion.div>
@@ -222,16 +221,16 @@ const Index = () => {
                   {/* Left Column - Stats */}
                   <div className="hidden md:flex flex-col gap-8 text-left">
                       <div className="p-6 rounded-3xl bg-white border border-slate-100 shadow-xl shadow-slate-100/50 hover:-translate-y-1 transition-transform">
-                          <div className="text-4xl font-black text-slate-900 mb-1">98%</div>
-                          <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Campaign Retention</div>
+                          <div className="text-4xl font-black text-slate-900 mb-1">10k+</div>
+                          <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Creators</div>
                       </div>
                       <div className="p-6 rounded-3xl bg-white border border-slate-100 shadow-xl shadow-slate-100/50 translate-x-12 hover:-translate-y-1 transition-transform">
-                          <div className="text-4xl font-black text-slate-900 mb-1">24Hr</div>
-                          <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Payment Processing</div>
+                          <div className="text-4xl font-black text-slate-900 mb-1">Smarter</div>
+                          <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Partnerships</div>
                       </div>
                       <div className="p-6 rounded-3xl bg-white border border-slate-100 shadow-xl shadow-slate-100/50 hover:-translate-y-1 transition-transform">
-                          <div className="text-4xl font-black text-slate-900 mb-1">10k+</div>
-                          <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Active Collaborations</div>
+                          <div className="text-4xl font-black text-slate-900 mb-1">Crazy</div>
+                          <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Growth</div>
                       </div>
                   </div>
 
@@ -243,7 +242,6 @@ const Index = () => {
                             <img src="/creators/avatar3.png" alt="Featured Creator" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
                             <div className="absolute bottom-12 left-12 right-12 text-left">
-                                <Badge className="bg-primary text-white border-0 mb-6 px-4 py-1.5 font-black text-[10px] tracking-widest uppercase rounded-full">Pro Member • Verified</Badge>
                                 <div className="text-5xl text-white font-black leading-tight tracking-tighter mb-2">Aryan Khanna</div>
                                 <div className="flex items-center gap-4">
                                     <div className="text-white/60 text-sm font-bold uppercase tracking-[0.2em]">Lifestyle & Tech</div>
@@ -258,10 +256,10 @@ const Index = () => {
                   {/* Right Column - Brand Logos/Icons */}
                   <div className="grid grid-cols-2 md:grid-cols-1 gap-6 md:gap-8">
                       {[
-                        { icon: <Zap className="w-8 h-8 text-amber-500" />, label: "Instant Connection" },
-                        { icon: <ShieldCheck className="w-8 h-8 text-emerald-500" />, label: "Verified Only" },
-                        { icon: <Award className="w-8 h-8 text-primary" />, label: "Elite Campaigns" },
-                        { icon: <Globe className="w-8 h-8 text-blue-500" />, label: "Global Standard" }
+                        { icon: <LayoutGrid className="w-8 h-8 text-amber-500" />, label: "20+ Categories" },
+                        { icon: <Users className="w-8 h-8 text-emerald-500" />, label: "Diverse Age Groups" },
+                        { icon: <Languages className="w-8 h-8 text-primary" />, label: "10+ Languages" },
+                        { icon: <Globe className="w-8 h-8 text-blue-500" />, label: "Multi - Ethnicity" }
                       ].map((item, i) => (
                         <div key={i} className="flex items-center gap-4 p-4 rounded-3xl bg-white border border-slate-100 shadow-lg shadow-slate-100/50 md:even:translate-x-[-20%]">
                             <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center">
@@ -279,10 +277,10 @@ const Index = () => {
       {/* Brand Cloud - Social Proof */}
       <section className="py-20 bg-white border-y border-slate-100 overflow-hidden">
         <div className="container mx-auto px-4">
-            <p className="text-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-12">Empowering Growth for Emerging & Established Brands</p>
+            <p className="text-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-12">Empowering growth for ambitious brands!</p>
             <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-60 grayscale hover:grayscale-0 transition-all">
                 {/* Brand Logos as components for better visuals */}
-                {["Aura", "Nebula", "Loom", "Vortex", "Pulse", "Zenith"].map(brand => (
+                {["Coding Ninjas", "Dopamine Store", "Gimi Michi"].map(brand => (
                     <div key={brand} className="text-2xl font-black tracking-tighter text-slate-300 select-none cursor-default hover:text-primary transition-colors">
                         {brand.toUpperCase()}
                     </div>
@@ -328,18 +326,18 @@ const Index = () => {
 
                 <div className="space-y-12">
                     <div className="space-y-6">
-                        <Badge className="bg-primary/10 text-primary border-none font-black px-4 py-1.5 rounded-full">THE PLATFORM</Badge>
-                        <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-none text-slate-900">A Unified Hub for <br />Campaign Success.</h2>
+                        <Badge className="bg-primary/10 text-primary border-none font-black px-4 py-1.5 rounded-full">About Grifi</Badge>
+                        <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-none text-slate-900">Designed for Social Media <br />Campaign Success.</h2>
                         <p className="text-lg md:text-xl text-slate-500 font-medium leading-relaxed">
-                            Stop juggling between DMs and emails. Grifi provides a professional workflow designed for the speed of modern social media.
+                            Stop juggling between DMs and emails. Grifi provides one-stop solution for all your problems through AI
                         </p>
                     </div>
 
                     <div className="grid gap-8">
                         {[
-                            { icon: <Users />, title: "Creator Network", desc: "Access a curated list of verified creators across every niche." },
-                            { icon: <BarChart3 />, title: "Real-time Analytics", desc: "Track campaign performance and ROI directly in your dashboard." },
-                            { icon: <CheckCircle2 />, title: "Verified Deliverables", desc: "Every piece of content is reviewed and approved before payment." }
+                            { icon: <Users />, title: "Discover Creator", desc: "Access the ideal creator across niches and demographics" },
+                            { icon: <BarChart3 />, title: "Real-time Analytics", desc: "Track views, likes and performance directly on your dashboard" },
+                            { icon: <TrendingUp />, title: "Boost efficiency", desc: "No more Google Sheets & screenshot challenges for marketing managers." }
                         ].map((item, i) => (
                             <div key={i} className="flex gap-6 items-start group">
                                 <div className="w-14 h-14 rounded-2xl bg-white border border-slate-100 shadow-lg flex items-center justify-center text-primary shrink-0 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all">
@@ -362,8 +360,8 @@ const Index = () => {
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[150px] -z-0 opacity-50" />
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center mb-24">
-            <h2 className="text-5xl md:text-7xl font-black mb-8 leading-none tracking-tighter">THE WORKFLOW. <br /><span className="text-primary italic">REIMAGINED.</span></h2>
-            <p className="text-xl text-slate-400 font-medium max-w-2xl mx-auto">Shipping, tracking, and payments — all handled in one place with military-grade precision.</p>
+            <h2 className="text-5xl md:text-7xl font-black mb-8 leading-none tracking-tighter">Zero Hassle for Creators.</h2>
+            <p className="text-xl text-slate-400 font-medium max-w-2xl mx-auto">Brand interaction, products shipping, payments - all handled with the perfect tech</p>
           </div>
 
           <div className="relative mb-24">
@@ -381,9 +379,11 @@ const Index = () => {
                                 {step.icon}
                             </div>
                         </div>
-                        <Badge variant="outline" className="mb-6 border-slate-700 text-slate-400 font-black tracking-[0.3em] uppercase text-[10px] py-1.5 px-4 rounded-full">
-                            {step.label}
-                        </Badge>
+                        {step.label && (
+                            <Badge variant="outline" className="mb-6 border-slate-700 text-slate-400 font-black tracking-[0.3em] uppercase text-[10px] py-1.5 px-4 rounded-full">
+                                {step.label}
+                            </Badge>
+                        )}
                         <h3 className="text-3xl font-black mb-4 tracking-tight">{step.title}</h3>
                         <p className="text-slate-400 font-medium leading-relaxed max-w-sm">
                             {step.desc}
@@ -393,6 +393,7 @@ const Index = () => {
             </div>
           </div>
 
+          {/* 
           <div className="pt-20 border-t border-slate-800/50 grid md:grid-cols-3 gap-12 items-center">
               <div className="flex flex-col items-center md:items-start">
                   <div className="text-6xl font-black text-white mb-2 tracking-tighter">500k+</div>
@@ -407,6 +408,7 @@ const Index = () => {
                   <div className="text-primary text-xs font-black uppercase tracking-[0.3em]">Success Rate</div>
               </div>
           </div>
+          */}
         </div>
       </section>
 
@@ -416,7 +418,7 @@ const Index = () => {
           <div className="flex flex-col md:flex-row items-end justify-between mb-20 gap-8">
             <div className="space-y-6">
                 <Badge className="bg-slate-100 text-slate-900 border-none font-black px-4 py-1.5 rounded-full">PORTFOLIO</Badge>
-                <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-none">THE WALL OF <br /><span className="italic text-slate-400">IMPACT.</span></h2>
+                <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-none">Impactful Reels</h2>
             </div>
             <Link href="/dashboard" className="text-primary font-black flex items-center gap-2 hover:gap-4 transition-all pb-2 text-xl">
                 Browse More <ArrowRight className="w-6 h-6" />
@@ -458,8 +460,8 @@ const Index = () => {
       <section id="testimonials" className="py-32 bg-[#FDFDFD] border-t border-slate-100">
         <div className="container mx-auto px-4">
           <div className="text-center mb-24">
-            <h2 className="text-5xl md:text-7xl font-black mb-8 leading-none tracking-tighter">WHAT THEY <span className="text-primary italic">SAY.</span></h2>
-            <p className="text-xl text-slate-500 font-medium max-w-2xl mx-auto">Don&apos;t just take our word for it. Hear from those at the center of the pulse.</p>
+            <h2 className="text-5xl md:text-7xl font-black mb-8 leading-none tracking-tighter">What Grifi partners say</h2>
+            <p className="text-xl text-slate-500 font-medium max-w-2xl mx-auto">Hear from creators and Marketing leaders who use Grifi</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-10">
@@ -517,14 +519,14 @@ const Index = () => {
                 <div className="absolute -top-1/2 -left-1/4 w-full h-full bg-primary/20 blur-[150px] animate-pulse" />
                 
                 <div className="relative z-10 space-y-12">
-                    <h2 className="text-5xl md:text-8xl font-black text-white tracking-tighter leading-[0.9]">READY TO <br /><span className="text-primary italic">PULSE?</span></h2>
+                    <h2 className="text-5xl md:text-8xl font-black text-white tracking-tighter leading-[0.9]">ready to Grifi</h2>
                     <p className="text-xl md:text-2xl text-slate-400 font-medium max-w-2xl mx-auto">
-                        Join India&apos;s most exclusive creator network today and start defining the future of commerce.
+                        Dont miss out on the AI Marketing Revolution
                     </p>
                     <div className="flex flex-col sm:flex-row gap-6 justify-center">
                         <Link href="/auth?mode=signup">
                             <Button size="lg" className="h-20 px-16 text-2xl font-black rounded-[2.5rem] bg-white text-slate-900 hover:bg-slate-100 shadow-2xl transition-all hover:scale-105 active:scale-95">
-                                Join Now
+                                Join Grifi
                             </Button>
                         </Link>
                         <Link href="/dashboard/network">
