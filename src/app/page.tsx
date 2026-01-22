@@ -302,7 +302,7 @@ const Index = () => {
                                 <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
                                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
                             </div>
-                            <div className="bg-white/10 rounded-md px-3 py-1 text-[10px] text-white/40 font-mono ml-4">grifi.network/dashboard/feed</div>
+                            <div className="bg-white/10 rounded-md px-3 py-1 text-[10px] text-white/40 font-mono ml-4">grifi.in/dashboard/feed</div>
                         </div>
                         <div className="p-8 space-y-6">
                             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
@@ -326,7 +326,7 @@ const Index = () => {
 
                 <div className="space-y-12">
                     <div className="space-y-6">
-                        <Badge className="bg-primary/10 text-primary border-none font-black px-4 py-1.5 rounded-full">About Grifi</Badge>
+                        <Badge className="bg-primary/10 text-primary border-none font-black px-4 py-1.5 rounded-full">About</Badge>
                         <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-none text-slate-900">Designed for Social Media <br />Campaign Success.</h2>
                         <p className="text-lg md:text-xl text-slate-500 font-medium leading-relaxed">
                             Stop juggling between DMs and emails. Grifi provides one-stop solution for all your problems through AI
@@ -460,7 +460,7 @@ const Index = () => {
       <section id="testimonials" className="py-32 bg-[#FDFDFD] border-t border-slate-100">
         <div className="container mx-auto px-4">
           <div className="text-center mb-24">
-            <h2 className="text-5xl md:text-7xl font-black mb-8 leading-none tracking-tighter">What Grifi partners say</h2>
+            <h2 className="text-5xl md:text-7xl font-black mb-8 leading-none tracking-tighter">What <span className="text-primary italic">Grifi</span> partners say</h2>
             <p className="text-xl text-slate-500 font-medium max-w-2xl mx-auto">Hear from creators and Marketing leaders who use Grifi</p>
           </div>
 
@@ -519,7 +519,7 @@ const Index = () => {
                 <div className="absolute -top-1/2 -left-1/4 w-full h-full bg-primary/20 blur-[150px] animate-pulse" />
                 
                 <div className="relative z-10 space-y-12">
-                    <h2 className="text-5xl md:text-8xl font-black text-white tracking-tighter leading-[0.9]">ready to Grifi</h2>
+                    <h2 className="text-5xl md:text-8xl font-black text-white tracking-tighter leading-[0.9]">ready to <span className="text-primary italic">Grifi</span></h2>
                     <p className="text-xl md:text-2xl text-slate-400 font-medium max-w-2xl mx-auto">
                         Dont miss out on the AI Marketing Revolution
                     </p>

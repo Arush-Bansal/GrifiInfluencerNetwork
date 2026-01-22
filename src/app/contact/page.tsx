@@ -80,7 +80,7 @@ const ContactPage = () => {
                         </div>
                         <div>
                             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Email us</p>
-                            <p className="font-bold text-slate-900">hello@grifi.network</p>
+                            <p className="font-bold text-slate-900">hello@grifi.in</p>
                         </div>
                    </div>
 

@@ -22,7 +22,7 @@ export const Footer = () => {
             </p>
             <div className="flex gap-4">
               {[
-                { icon: <Instagram className="w-5 h-5" />, href: "https://instagram.com/grifi.network" },
+                { icon: <Instagram className="w-5 h-5" />, href: "https://instagram.com/grifi.in" },
                 { icon: <Linkedin className="w-5 h-5" />, href: "https://linkedin.com/company/grifi" }
               ].map((social, i) => (
                 <a key={i} href={social.href} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white hover:border-primary hover:-translate-y-1 transition-all">
@@ -51,8 +51,8 @@ export const Footer = () => {
           </div>
           
           <div className="flex items-center gap-6">
-            <a href="mailto:hello@grifi.network" className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white flex items-center gap-2 transition-colors">
-                <Mail className="w-3 h-3" /> hello@grifi.network
+            <a href="mailto:hello@grifi.in" className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white flex items-center gap-2 transition-colors">
+                <Mail className="w-3 h-3" /> hello@grifi.in
             </a>
           </div>
         </div>
