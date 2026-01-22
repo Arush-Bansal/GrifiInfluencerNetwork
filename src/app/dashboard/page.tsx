@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { UnifiedFeed } from "@/components/dashboard/UnifiedFeed";
@@ -75,9 +76,11 @@ const DashboardContent = () => {
             </div>
             
             <div className="shrink-0 relative z-10">
+              <Link href={`/u/${profile.username || ""}`}>
                 <Button variant="outline" className="rounded-full h-12 px-8 font-black text-slate-900 border-slate-100 hover:bg-slate-50 shadow-sm transition-all active:scale-95">
-                    VIEW PUBLIC PROFILE
+                    VIEW PUBLIC PAGE
                 </Button>
+              </Link>
             </div>
           </div>
 
