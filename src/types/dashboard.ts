@@ -27,6 +27,9 @@ export interface DashboardProfile {
   twitter_copy_count?: number;
   public_email?: string | null;
   services?: string[] | null;
+  onboarding_completed?: boolean;
+  content_views?: string | null;
+  client_rating?: string | null;
 }
 
 export interface FeaturedReel {

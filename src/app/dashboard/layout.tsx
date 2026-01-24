@@ -19,7 +19,6 @@ export default function DashboardLayout({
   const { user, profile, role, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-
   const isOnboardingPage = pathname === "/dashboard/onboarding";
 
   useEffect(() => {
@@ -45,7 +44,7 @@ export default function DashboardLayout({
 
     if (profile) {
       // Check for onboarding completion
-      const isIncomplete = !profile.username || !profile.full_name || !profile.niche || !profile.platform;
+      const isIncomplete = !profile.onboarding_completed;
       
       if (isIncomplete && !isOnboardingPage) {
         router.push("/dashboard/onboarding");
@@ -60,6 +59,11 @@ export default function DashboardLayout({
     return () => subscription.unsubscribe();
   }, [user, profile, isLoading, isOnboardingPage, router]);
 
+  // Render logic guards
+  const isIncomplete = profile && !profile.onboarding_completed;
+  const isMissingProfile = !profile && !isLoading && user;
+  const shouldRedirectToOnboarding = (isIncomplete || isMissingProfile) && !isOnboardingPage;
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
@@ -69,6 +73,24 @@ export default function DashboardLayout({
         <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
           <Loader2 className="w-4 h-4 animate-spin" />
           <span className="text-sm font-medium">Securing session...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Let useEffect handle redirect to /auth
+  }
+
+  if (shouldRedirectToOnboarding) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+        <div className="animate-pulse">
+          <Logo size={48} />
+        </div>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="text-sm font-medium">Redirecting to onboarding...</span>
         </div>
       </div>
     );

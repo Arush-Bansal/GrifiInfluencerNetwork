@@ -360,7 +360,7 @@ const AuthContent = () => {
           {isSignUp && !role && !showVerification && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
               {ROLES.map((r) => {
-                const Icon = r.icon;
+                const RoleIcon = r.icon;
                 return (
                   <Card 
                     key={r.id}
@@ -372,7 +372,7 @@ const AuthContent = () => {
                   >
                     <CardContent className="p-6 flex flex-col gap-4">
                       <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300 flex items-center justify-center">
-                        <Icon size={24} />
+                        <RoleIcon size={24} />
                       </div>
                       <div className="space-y-1">
                         <h3 className="font-bold text-slate-900 group-hover:text-primary transition-colors">{r.title}</h3>

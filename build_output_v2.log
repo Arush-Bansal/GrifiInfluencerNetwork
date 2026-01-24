@@ -1,0 +1,42 @@
+
+> v4-next@0.1.0 build
+> next build --webpack
+
+   ▲ Next.js 16.0.10 (webpack)
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 6.2s
+   Running TypeScript ...
+   Collecting page data using 15 workers ...
+   Generating static pages using 15 workers (0/17) ...
+   Generating static pages using 15 workers (4/17) 
+   Generating static pages using 15 workers (8/17) 
+   Generating static pages using 15 workers (12/17) 
+ ✓ Generating static pages using 15 workers (17/17) in 1090.0ms
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /about
+├ ○ /auth
+├ ○ /auth/reset-password
+├ ○ /auth/update-password
+├ ○ /contact
+├ ○ /dashboard
+├ ○ /dashboard/collabs
+├ ○ /dashboard/create
+├ ○ /dashboard/network
+├ ○ /dashboard/onboarding
+├ ○ /dashboard/profile
+├ ○ /dashboard/search
+├ ○ /privacy
+├ ○ /terms
+└ ƒ /u/[username]
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

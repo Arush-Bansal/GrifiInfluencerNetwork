@@ -49,7 +49,9 @@ export function useAuth() {
         engagement_rate: data.engagement_rate || "",
         location: data.location || "",
         website: data.website || "",
-        banner_url: data.banner_url || ""
+        banner_url: data.banner_url || "",
+        public_email: data.public_email || "",
+        onboarding_completed: !!data.onboarding_completed
       } as DashboardProfile;
     },
     enabled: !!sessionUser,

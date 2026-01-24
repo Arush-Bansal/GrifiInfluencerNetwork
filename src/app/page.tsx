@@ -182,10 +182,10 @@ const Index = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.1 }}
-            className="text-6xl md:text-[9rem] font-black tracking-tight mb-8 leading-[0.9] text-slate-900"
+            className="text-4xl md:text-[6rem] font-black tracking-tight mb-8 leading-[0.9] text-slate-900"
           >
-            THE FUTURE OF <br />
-            <span className="bg-gradient-to-r from-primary via-primary to-primary/50 bg-clip-text text-transparent italic">MARKETING.</span>
+            DRIVING GROWTH <br />
+            <span className="bg-gradient-to-r from-primary via-primary to-primary/50 bg-clip-text text-transparent italic">THROUGH CONTENT.</span>
           </motion.h1>
           
           <motion.p 

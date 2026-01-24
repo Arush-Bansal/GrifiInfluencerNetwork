@@ -60,6 +60,6 @@ export function mapToDashboardProfile(profile: Tables<"profiles"> | DashboardPro
     yt_copy_count: profile.yt_copy_count || 0,
     twitter_copy_count: profile.twitter_copy_count || 0,
     public_email: profile.public_email || null,
-    services: (profile as Record<string, any>).services || [],
+    services: profile.services || [],
   };
 }

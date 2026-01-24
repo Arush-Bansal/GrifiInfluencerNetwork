@@ -9,10 +9,13 @@ import { Logo } from "@/components/brand/Logo";
 import { 
   Loader2, Check, XCircle, Rocket, Instagram, Twitter as TwitterIcon, Youtube, 
   ArrowRight, ArrowLeft, Plus, Sparkles, Briefcase, 
-  CheckCircle2, Building, Star, PlayCircle
+  CheckCircle2, Building, PlayCircle, Camera, User as UserIcon
 } from "lucide-react";
 import { TiltCard } from "@/components/ui/tilt-card";
-
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useUploadImage, useCheckUsername, useUpdateProfile } from "@/hooks/use-profile";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -39,10 +42,6 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { useCheckUsername, useUpdateProfile } from "@/hooks/use-profile";
-import { supabase } from "@/integrations/supabase/client";
-// import { OnboardingSkeleton } from "@/components/skeletons";
-import { cn } from "@/lib/utils";
 
 // --- Constants & Schema ---
 
@@ -95,6 +94,7 @@ const formSchema = z.object({
   featured_reel_title: z.string().optional(),
   brand_name: z.string().optional(),
   brand_logo_url: z.string().optional(),
+  avatar_url: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -104,6 +104,7 @@ export default function OnboardingPage() {
   const { toast } = useToast();
   const { user, profile, isLoading: authLoading } = useAuth();
   const updateProfile = useUpdateProfile();
+  const uploadImage = useUploadImage();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [isFinishing, setIsFinishing] = useState(false);
@@ -125,6 +126,7 @@ export default function OnboardingPage() {
       featured_reel_title: "",
       brand_name: "",
       brand_logo_url: "",
+      avatar_url: "",
     },
     mode: "onChange",
   });
@@ -159,7 +161,7 @@ export default function OnboardingPage() {
     }
 
     // Check if onboarding is already complete
-    if (profile?.username && profile?.full_name && (profile as any)?.onboarding_completed) {
+    if (profile?.username && profile?.full_name && profile?.onboarding_completed) {
       router.push("/dashboard");
     }
   }, [user, profile, authLoading, router]);
@@ -175,15 +177,16 @@ export default function OnboardingPage() {
         full_name: profile?.full_name || metadata.full_name || "",
         niche: profile?.niche || metadata.niche || "",
         platform: profile?.platform || metadata.platform || "",
-        youtube_url: (profile as any)?.youtube_url || "",
-        instagram_url: (profile as any)?.instagram_url || "",
-        twitter_url: (profile as any)?.twitter_url || "",
-        public_email: (profile as any)?.public_email || user.email || "",
-        services: (profile as any)?.services || [],
+        youtube_url: profile?.youtube_url || "",
+        instagram_url: profile?.instagram_url || "",
+        twitter_url: profile?.twitter_url || "",
+        public_email: profile?.public_email || user.email || "",
+        services: profile?.services || [],
         featured_reel_url: "",
         featured_reel_title: "",
         brand_name: "",
         brand_logo_url: "",
+        avatar_url: profile?.avatar_url || metadata.avatar_url || "",
       };
       
       form.reset(defaultValues);
@@ -193,9 +196,10 @@ export default function OnboardingPage() {
   const nextStep = async () => {
     let fieldsToValidate: (keyof FormValues)[] = [];
     if (currentStep === 1) fieldsToValidate = ['full_name', 'username', 'niche', 'platform'];
-    if (currentStep === 2) fieldsToValidate = ['public_email'];
-    if (currentStep === 3) fieldsToValidate = ['services'];
-    if (currentStep === 4) fieldsToValidate = ['featured_reel_url'];
+    if (currentStep === 2) fieldsToValidate = ['avatar_url'];
+    if (currentStep === 3) fieldsToValidate = ['public_email'];
+    if (currentStep === 4) fieldsToValidate = ['services'];
+    if (currentStep === 5) fieldsToValidate = ['featured_reel_url'];
 
     const isValid = await form.trigger(fieldsToValidate);
     if (isValid) {
@@ -226,10 +230,11 @@ export default function OnboardingPage() {
           youtube_url: data.youtube_url || null,
           instagram_url: data.instagram_url || null,
           twitter_url: data.twitter_url || null,
-          public_email: data.public_email || null,
+           public_email: data.public_email || null,
           services: data.services,
+          avatar_url: data.avatar_url || null,
           onboarding_completed: true,
-        } as any,
+        },
         authUpdates: {
           full_name: data.full_name,
           username: data.username,
@@ -336,7 +341,7 @@ export default function OnboardingPage() {
           </div>
           
           <div className="flex items-center gap-1.5">
-            {[1, 2, 3, 4, 5].map((s) => (
+            {[1, 2, 3, 4, 5, 6].map((s) => (
               <div 
                 key={s} 
                 className={cn(
@@ -352,18 +357,20 @@ export default function OnboardingPage() {
         <Card className="border-none shadow-[0_32px_64px_-15px_rgba(0,0,0,0.1)] bg-white rounded-[3rem] overflow-hidden">
           <CardHeader className="text-left pt-12 px-10 pb-4">
             <CardTitle className="text-4xl font-black tracking-tight text-slate-900 leading-tight">
-              {currentStep === 1 && "The Essentials"}
-              {currentStep === 2 && "Social Footprint"}
-              {currentStep === 3 && "Core Services"}
-              {currentStep === 4 && "Showcase Samples"}
-              {currentStep === 5 && "Industry Network"}
+              {currentStep === 1 && "Identity"}
+              {currentStep === 2 && "Visual Presence"}
+              {currentStep === 3 && "Social Footprint"}
+              {currentStep === 4 && "Professional Services"}
+              {currentStep === 5 && "Portfolio Highlight"}
+              {currentStep === 6 && "Industry Proof"}
             </CardTitle>
             <CardDescription className="text-base text-slate-500 font-medium pt-2">
               {currentStep === 1 && "Let's build your professional identifier on the network."}
-              {currentStep === 2 && "Synchronize your presence across platforms."}
-              {currentStep === 3 && "Which areas of expertise define your brand?"}
-              {currentStep === 4 && "Add your most high-impact work sample."}
-              {currentStep === 5 && "Highlight the brands that have trusted you."}
+              {currentStep === 2 && "Upload a profile photo to build trust with brands."}
+              {currentStep === 3 && "Synchronize your presence across platforms."}
+              {currentStep === 4 && "Which areas of expertise define your brand?"}
+              {currentStep === 5 && "Add your most high-impact work sample."}
+              {currentStep === 6 && "Highlight the brands that have trusted you."}
             </CardDescription>
           </CardHeader>
           
@@ -396,7 +403,7 @@ export default function OnboardingPage() {
                       name="username"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Universal ID (Username)</FormLabel>
+                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Choose Your Handle</FormLabel>
                           <div className="relative">
                             <FormControl>
                               <Input
@@ -478,6 +485,71 @@ export default function OnboardingPage() {
                 )}
 
                 {currentStep === 2 && (
+                  <div className="space-y-6 animate-in slide-in-from-right-4 duration-300 flex flex-col items-center py-4">
+                    <FormField
+                      control={form.control}
+                      name="avatar_url"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col items-center">
+                          <div className="relative group cursor-pointer group-hover:scale-105 transition-all">
+                            <Avatar className="w-32 h-32 border-4 border-slate-50 shadow-xl">
+                              <AvatarImage src={field.value} />
+                              <AvatarFallback className="bg-primary/5 text-primary">
+                                <UserIcon className="w-12 h-12" />
+                              </AvatarFallback>
+                            </Avatar>
+                            <label 
+                              htmlFor="avatar-upload" 
+                              className="absolute bottom-1 right-1 w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-white shadow-lg cursor-pointer hover:bg-slate-800 transition-colors border-2 border-white"
+                            >
+                              <Camera className="w-5 h-5" />
+                              <input 
+                                id="avatar-upload"
+                                type="file" 
+                                accept="image/*"
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file || !user) return;
+                                  
+                                  try {
+                                    const { publicUrl } = await uploadImage.mutateAsync({
+                                      file,
+                                      userId: user.id,
+                                      bucket: 'avatars',
+                                      type: 'avatar'
+                                    });
+                                    field.onChange(publicUrl);
+                                    toast({
+                                      title: "Photo uploaded",
+                                      description: "Your visual identity is looking great!",
+                                    });
+                                  } catch (err) {
+                                    console.error("Upload error:", err);
+                                    toast({
+                                      title: "Upload failed",
+                                      description: "Could not upload photo. Please try again.",
+                                      variant: "destructive",
+                                    });
+                                  }
+                                }}
+                              />
+                            </label>
+                          </div>
+                          <div className="text-center mt-6 space-y-2">
+                             <span className="text-xs font-bold uppercase tracking-widest text-slate-400 block">Visual Identity</span>
+                             <p className="text-[10px] text-primary font-bold uppercase tracking-[0.2em]">
+                               Recommended: Square JPG/PNG, min 400x400px
+                             </p>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+
+                {currentStep === 3 && (
                   <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                     <FormField
                       control={form.control}
@@ -533,7 +605,7 @@ export default function OnboardingPage() {
                           <div className="relative group">
                             <Youtube className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
                             <Input 
-                              placeholder="youtube_channel_id" 
+                              placeholder="youtube_channel_id (Optional)" 
                               className="h-14 pl-14 rounded-2xl border-slate-100 bg-[#FAFAFA] shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6"
                               {...field} 
                             />
@@ -548,7 +620,7 @@ export default function OnboardingPage() {
                           <div className="relative group">
                             <TwitterIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
                             <Input 
-                              placeholder="twitter_handle" 
+                              placeholder="twitter_handle (Optional)" 
                               className="h-14 pl-14 rounded-2xl border-slate-100 bg-[#FAFAFA] shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6"
                               {...field} 
                             />
@@ -559,7 +631,7 @@ export default function OnboardingPage() {
                   </div>
                 )}
 
-                {currentStep === 3 && (
+                {currentStep === 4 && (
                   <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
                     <FormLabel className="flex items-center gap-2">
                        <Briefcase className="w-4 h-4 text-primary" />
@@ -609,7 +681,7 @@ export default function OnboardingPage() {
                   </div>
                 )}
 
-                {currentStep === 4 && (
+                {currentStep === 5 && (
                   <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                     <div className="p-8 bg-[#FAFAFA] border border-slate-100 rounded-[2.5rem] space-y-6 relative overflow-hidden">
                       <div className="absolute top-0 right-0 p-8 opacity-5">
@@ -633,8 +705,8 @@ export default function OnboardingPage() {
                             <FormLabel className="text-[10px] font-bold uppercase tracking-widest">Project Title</FormLabel>
                             <FormControl>
                               <Input 
-                                placeholder="My Viral Campaign" 
-                                className="h-10 bg-background/50 border-border/50 rounded-lg"
+                                placeholder="My Viral Campaign (Optional)" 
+                                className="h-14 rounded-2xl border-slate-100 bg-white shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6"
                                 {...field} 
                               />
                             </FormControl>
@@ -650,8 +722,8 @@ export default function OnboardingPage() {
                             <FormLabel className="text-[10px] font-bold uppercase tracking-widest">Video/Work Link</FormLabel>
                             <FormControl>
                               <Input 
-                                placeholder="https://instagram.com/reel/..." 
-                                className="h-10 bg-background/50 border-border/50 rounded-lg"
+                                placeholder="https://instagram.com/reel/... (Optional)" 
+                                className="h-14 rounded-2xl border-slate-100 bg-white shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6"
                                 {...field} 
                               />
                             </FormControl>
@@ -670,7 +742,7 @@ export default function OnboardingPage() {
                   </div>
                 )}
 
-                {currentStep === 5 && (
+                {currentStep === 6 && (
                   <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                     <div className="p-8 bg-[#FAFAFA] border border-slate-100 rounded-[2.5rem] space-y-6 relative overflow-hidden">
                        <div className="absolute top-0 right-0 p-8 opacity-5">
@@ -694,8 +766,8 @@ export default function OnboardingPage() {
                             <FormLabel className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Featured Brand Name</FormLabel>
                             <FormControl>
                               <Input 
-                                placeholder="e.g. Nike, Red Bull, etc." 
-                                className="h-14 rounded-2xl border-slate-100 bg-[#FAFAFA] shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6 text-left"
+                                placeholder="e.g. Nike, Red Bull, etc. (Optional)" 
+                                className="h-14 rounded-2xl border-slate-100 bg-white shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6 text-left"
                                 {...field} 
                               />
                             </FormControl>
@@ -711,8 +783,8 @@ export default function OnboardingPage() {
                             <FormLabel className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Brand Identity URL (Optional)</FormLabel>
                             <FormControl>
                               <Input 
-                                placeholder="https://logo-url.com/logo.png" 
-                                className="h-14 rounded-2xl border-slate-100 bg-[#FAFAFA] shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6 text-left"
+                                placeholder="https://logo-url.com/logo.png (Optional)" 
+                                className="h-14 rounded-2xl border-slate-100 bg-white shadow-inner shadow-slate-50 focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all px-6 text-left"
                                 {...field} 
                               />
                             </FormControl>
@@ -745,7 +817,7 @@ export default function OnboardingPage() {
                     </Button>
                   )}
                   
-                  {currentStep < 5 ? (
+                  {currentStep < 6 ? (
                     <Button
                       type="button"
                       className="flex-[2] h-14 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-base font-bold shadow-xl shadow-slate-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -777,7 +849,7 @@ export default function OnboardingPage() {
         </Card>
         
         <p className="text-center mt-10 text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em]">
-           STEP {currentStep} OF 5 • VERIFYING PROFESSIONAL IDENTITY
+           STEP {currentStep} OF 6 • VERIFYING PROFESSIONAL IDENTITY
         </p>
       </div>
     </div>

@@ -206,7 +206,7 @@ const ProfilePage = () => {
                     onClick={async () => {
                       if (confirm("Are you sure you want to permanently delete your account? This action cannot be undone and will delete all your data.")) {
                         try {
-                          const { error } = await (supabase as any).rpc('delete_own_user');
+                          const { error } = await supabase.rpc('delete_own_user');
                           if (error) throw error;
                           
                           await supabase.auth.signOut();
@@ -215,10 +215,11 @@ const ProfilePage = () => {
                             title: "Account Deleted",
                             description: "Your account and all data have been permanently removed.",
                           });
-                        } catch (error: any) {
+                        } catch (error: unknown) {
+                          const err = error as Error;
                           toast({
                             title: "Error deleting account",
-                            description: error.message,
+                            description: err.message,
                             variant: "destructive",
                           });
                         }

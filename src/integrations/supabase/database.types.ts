@@ -293,6 +293,8 @@ export type Database = {
           website: string | null
           youtube_url: string | null
           yt_copy_count: number | null
+          content_views: string | null
+          client_rating: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -323,6 +325,8 @@ export type Database = {
           website?: string | null
           youtube_url?: string | null
           yt_copy_count?: number | null
+          content_views?: string | null
+          client_rating?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -353,6 +357,8 @@ export type Database = {
           website?: string | null
           youtube_url?: string | null
           yt_copy_count?: number | null
+          content_views?: string | null
+          client_rating?: string | null
         }
         Relationships: []
       }

@@ -21,9 +21,7 @@ import {
   Plus,
   Video,
   Edit,
-  Mail,
   Twitter,
-  ExternalLink,
   Copy
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -123,9 +121,23 @@ export default function PublicProfilePage() {
     instagram_url: profileData.instagram_url || null,
     twitter_url: profileData.twitter_url || null,
     public_email: profileData.public_email || null,
+    content_views: profileData.content_views || null,
+    client_rating: profileData.client_rating || null,
   } as Profile : null;
 
   const incrementStat = useIncrementStat();
+
+  const isOwnProfile = currentUser?.id === profile?.id;
+
+  // Redirect to onboarding if this is user's own profile and it's incomplete
+  useEffect(() => {
+    if (currentUser && isOwnProfile && rawViewerProfile && !rawViewerProfile.onboarding_completed) {
+      router.push("/dashboard/onboarding");
+    }
+  }, [currentUser, isOwnProfile, rawViewerProfile, router]);
+
+  const { data: isFollowing } = useFollowStatus(currentUser?.id, profile?.id);
+  const { data: connectionStatus, isLoading: loadingConnection } = useConnectionStatus(currentUser?.id, profile?.id);
 
   // Track page visit
   useEffect(() => {
@@ -142,10 +154,6 @@ export default function PublicProfilePage() {
   const { addReel, deleteReel } = useManageFeaturedReels();
   const { data: pastCollaborations = [] } = usePastCollaborations(profile?.id);
   const { addCollaboration, deleteCollaboration } = useManagePastCollaborations();
-
-  const isOwnProfile = currentUser?.id === profile?.id;
-  const { data: isFollowing } = useFollowStatus(currentUser?.id, profile?.id);
-  const { data: connectionStatus, isLoading: loadingConnection } = useConnectionStatus(currentUser?.id, profile?.id);
 
   // Mutations
   const followMutation = useMutation({
@@ -232,8 +240,8 @@ export default function PublicProfilePage() {
           youtube_url: profileData.youtube_url || "",
           instagram_url: profileData.instagram_url || "",
           twitter_url: profileData.twitter_url || "",
-          content_views: (profileData as any).content_views || "5M+",
-          client_rating: (profileData as any).client_rating || "4.9",
+          content_views: (profileData as DashboardProfile).content_views || "5M+",
+          client_rating: (profileData as DashboardProfile).client_rating || "4.9",
           public_email: profileData.public_email || "",
         });
       }, 0);
@@ -453,7 +461,7 @@ interface ProfileContentProps {
   connectionStatus: string | null;
   isFollowing: boolean;
   followMutation: UseMutationResult<void, Error, void>;
-  incrementStat: any;
+  incrementStat: UseMutationResult<void, Error, { profileId: string; stat: 'page_visits' | 'email_copy_count' | 'insta_copy_count' | 'yt_copy_count' | 'twitter_copy_count' }>;
 }
 
 const ProfileContent = ({ 
